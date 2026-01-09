@@ -1,26 +1,260 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand Colors */
+  --brand-yellow: #ffe048;
+  --brand-yellow-light: #fff4b3;
+  --brand-yellow-dark: #e6c940;
+
+  /* Chart Palette */
+  --chart-primary: #ffe048;
+  --chart-secondary: #ffd700;
+  --chart-accent: #ff9500;
+  --chart-success: #34d399;
+  --chart-danger: #f87171;
+  --chart-info: #60a5fa;
+
+  /* Dark theme (default) */
+  --background: #0a0a0a;
+  --background-secondary: #141414;
+  --background-tertiary: #1a1a1a;
+  --foreground: #fafafa;
+  --foreground-muted: #a1a1aa;
+  --border: #27272a;
+  --border-light: #3f3f46;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-background-tertiary: var(--background-tertiary);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-foreground-muted: var(--foreground-muted);
+  --color-border: var(--border);
+  --color-border-light: var(--border-light);
+  --color-brand: var(--brand-yellow);
+  --color-brand-light: var(--brand-yellow-light);
+  --color-brand-dark: var(--brand-yellow-dark);
+  --color-chart-primary: var(--chart-primary);
+  --color-chart-secondary: var(--chart-secondary);
+  --color-chart-accent: var(--chart-accent);
+  --color-chart-success: var(--chart-success);
+  --color-chart-danger: var(--chart-danger);
+  --color-chart-info: var(--chart-info);
+  --font-brice: var(--font-brice);
+  --font-mundial: var(--font-mundial);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-mundial), system-ui, sans-serif;
+  /* Subtle noise texture for depth */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-brice), system-ui, sans-serif;
+}
+
+/* Utility classes */
+.font-mundial {
+  font-family: var(--font-mundial), system-ui, sans-serif;
+}
+
+.font-brice {
+  font-family: var(--font-brice), system-ui, sans-serif;
+}
+
+/* Card styling */
+.card {
+  background: var(--background-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* Brand gradient */
+.brand-gradient {
+  background: linear-gradient(135deg, var(--brand-yellow) 0%, var(--brand-yellow-dark) 100%);
+}
+
+/* Glow effect */
+.brand-glow {
+  box-shadow: 0 0 40px rgba(255, 224, 72, 0.15);
+}
+
+/* Animated glow pulse for highlighted cards */
+.brand-glow-pulse {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 30px rgba(255, 224, 72, 0.15); }
+  50% { box-shadow: 0 0 50px rgba(255, 224, 72, 0.25); }
+}
+
+/* Card hover lift effect */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Navigation active underline */
+.nav-link-active {
+  position: relative;
+}
+
+.nav-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--brand-yellow);
+  border-radius: 1px;
+}
+
+/* Staggered fade-in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.4s ease forwards;
+  opacity: 0;
+}
+
+.animate-delay-1 { animation-delay: 50ms; }
+.animate-delay-2 { animation-delay: 100ms; }
+.animate-delay-3 { animation-delay: 150ms; }
+.animate-delay-4 { animation-delay: 200ms; }
+.animate-delay-5 { animation-delay: 250ms; }
+.animate-delay-6 { animation-delay: 300ms; }
+
+/* Chart container gradient */
+.chart-container {
+  background: radial-gradient(ellipse at center, rgba(255, 224, 72, 0.02) 0%, transparent 70%);
+}
+
+/* Export-only branding - hidden by default, shown during export */
+.export-branding {
+  display: none;
+}
+
+.exporting .export-branding {
+  display: block;
+}
+
+/* Export-only elements: hidden by default, shown during export */
+.export-only {
+  display: none;
+}
+
+.exporting .export-only {
+  display: flex;
+  flex: 0 0 auto !important;
+}
+
+.exporting .export-only.text-center {
+  display: block;
+  flex: 0 0 auto !important;
+}
+
+/* Export-hide elements: shown by default, hidden during export */
+.exporting .export-hide {
+  display: none !important;
+}
+
+/* During export, fill entire canvas */
+.exporting {
+  display: block !important;
+  width: 1200px !important;
+  height: 675px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  background-color: #0a0a0a !important;
+  overflow: hidden !important;
+}
+
+
+/* Chart wrapper and height - use explicit calculation */
+/* Total: 675px. Header ~70px, Legend ~35px = ~570px for chart */
+.exporting .chart-wrapper {
+  padding: 0 !important;
+  height: 560px !important;
+}
+
+.exporting .chart-height {
+  height: 560px !important;
+}
+
+/* ResponsiveContainer fills its container */
+.exporting .recharts-responsive-container {
+  height: 100% !important;
+}
+
+/* Sale item hover micro-interaction */
+.sale-item {
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.sale-item:hover {
+  transform: scale(1.01);
+  background: rgba(255, 224, 72, 0.05);
+}
+
+/* Hero decorative accent line */
+.hero-accent {
+  position: relative;
+}
+
+.hero-accent::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand-yellow) 0%, transparent 100%);
+  border-radius: 2px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-muted);
 }

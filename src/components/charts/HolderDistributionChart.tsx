@@ -104,11 +104,11 @@ export function HolderDistributionChart() {
 
         <div className="grid grid-cols-3 gap-1 sm:gap-2 mt-2 text-[10px] sm:text-xs text-center">
           <div className="p-2 rounded bg-background-tertiary">
-            <p className="font-bold text-foreground">{chartData[0]?.percentage}%</p>
+            <p className="font-bold text-brand">{chartData[0]?.percentage}%</p>
             <p className="text-foreground-muted">Single NFT</p>
           </div>
           <div className="p-2 rounded bg-background-tertiary">
-            <p className="font-bold text-foreground">{(chartData[1]?.percentage || 0) + (chartData[2]?.percentage || 0)}%</p>
+            <p className="font-bold text-chart-info">{(chartData[1]?.percentage || 0) + (chartData[2]?.percentage || 0)}%</p>
             <p className="text-foreground-muted">Collectors (2-10)</p>
           </div>
           <div className="p-2 rounded bg-background-tertiary">

@@ -39,20 +39,24 @@ export function MarketDepthChart() {
     const minPrice = Math.max(0.01, floorPrice * 0.5);
     const maxPrice = floorPrice * 1.5;
 
-    // Create price buckets at 0.03 ETH intervals for cleaner visualization
-    const bucketSize = 0.03;
+    // Create price buckets at 0.02 ETH intervals for cleaner visualization
+    const bucketSize = 0.02;
     const buckets = new Map<number, { bids: number; asks: number }>();
 
-    // Initialize buckets
-    for (let p = minPrice; p <= maxPrice; p += bucketSize) {
+    // Initialize buckets starting from a round number
+    const startBucket = Math.floor(minPrice / bucketSize) * bucketSize;
+    for (let p = startBucket; p <= maxPrice; p += bucketSize) {
       const bucket = Math.round(p * 100) / 100;
       buckets.set(bucket, { bids: 0, asks: 0 });
     }
 
+    // Helper to find the right bucket for a price
+    const getBucket = (price: number) => Math.round(Math.floor(price / bucketSize) * bucketSize * 100) / 100;
+
     // Aggregate offers (bids) into buckets
     for (const offer of data.offers) {
       if (offer.price >= minPrice && offer.price <= maxPrice) {
-        const bucket = Math.round(Math.floor(offer.price / bucketSize) * bucketSize * 100) / 100;
+        const bucket = getBucket(offer.price);
         if (buckets.has(bucket)) {
           const current = buckets.get(bucket)!;
           current.bids += offer.depth;
@@ -63,7 +67,7 @@ export function MarketDepthChart() {
     // Aggregate listings (asks) into buckets
     for (const listing of data.listings) {
       if (listing.price >= minPrice && listing.price <= maxPrice) {
-        const bucket = Math.round(Math.floor(listing.price / bucketSize) * bucketSize * 100) / 100;
+        const bucket = getBucket(listing.price);
         if (buckets.has(bucket)) {
           const current = buckets.get(bucket)!;
           current.asks += listing.depth;

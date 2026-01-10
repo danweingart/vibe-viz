@@ -53,7 +53,7 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
           <span style={{ color: CHART_COLORS.danger }}>WETH: {avgWeth.toFixed(0)}%</span>
         </div>
       </div>
-      <div className="flex-1 h-[120px] sm:h-[280px] landscape:h-[35vh]">
+      <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 8, left: -5, bottom: showXAxis ? 20 : 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={true} vertical={false} />
@@ -278,7 +278,7 @@ export function PaymentRatioChart() {
             />
           </div>
         ) : (
-          <div className="flex-1 h-[120px] sm:h-[280px] landscape:h-[35vh]">
+          <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={gvcDailyData} margin={{ top: 5, right: 8, left: -5, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />

@@ -268,3 +268,11 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--foreground-muted);
 }
+
+/* Mobile landscape: limit chart height to fit on screen */
+@media (orientation: landscape) and (max-height: 500px) {
+  .chart-container > div:first-child {
+    min-height: 35vh !important;
+    max-height: 35vh !important;
+  }
+}

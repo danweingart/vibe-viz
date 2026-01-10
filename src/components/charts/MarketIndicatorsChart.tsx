@@ -183,7 +183,7 @@ export function MarketIndicatorsChart() {
       </CardHeader>
 
       <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 h-[120px] sm:h-[280px] landscape:h-[35vh] flex flex-col">
+        <div className="flex-1 min-h-[120px] sm:min-h-[280px] flex flex-col">
         {/* Gauges row */}
         <div className="grid grid-cols-3 gap-3 mb-3">
           <button

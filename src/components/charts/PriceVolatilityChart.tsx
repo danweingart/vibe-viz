@@ -142,7 +142,7 @@ export function PriceVolatilityChart() {
       </CardHeader>
 
       <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 h-[120px] sm:h-[280px] landscape:h-[35vh]">
+        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 8, left: -5, bottom: 0 }}>
               <defs>

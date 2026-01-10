@@ -86,8 +86,7 @@ function PremiumChartRow({
               fontSize={11}
               fontFamily="var(--font-mundial)"
               tickFormatter={(v) => `${v}%`}
-              domain={[0, 100]}
-              ticks={[0, 50, 100]}
+              domain={['auto', 'auto']}
               width={32}
               axisLine={false}
               tickLine={false}

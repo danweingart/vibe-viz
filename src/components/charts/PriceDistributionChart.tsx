@@ -28,7 +28,7 @@ export function PriceDistributionChart() {
 
   const exportConfig = useMemo(() => ({
     title: "Price Distribution",
-    subtitle: `Sale count by ETH price bucket over ${timeRange} days (log scale)`,
+    subtitle: `Sale count by ETH price bucket over ${timeRange} days`,
     legend: [
       { color: CHART_COLORS.primary, label: "Sales by Price", value: "Count" },
     ],
@@ -105,7 +105,7 @@ export function PriceDistributionChart() {
             Price Distribution
           </Link>
           <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
-          <CardDescription>Sale count by ETH price bucket (log scale)</CardDescription>
+          <CardDescription>Sale count by ETH price bucket</CardDescription>
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex gap-3 text-right text-xs">
@@ -149,9 +149,7 @@ export function PriceDistributionChart() {
                 axisLine={false}
                 tickLine={false}
                 width={35}
-                scale="log"
-                domain={[1, 'auto']}
-                allowDataOverflow
+                domain={[0, 'auto']}
               />
               <Tooltip
                 contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}

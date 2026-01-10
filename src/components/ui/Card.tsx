@@ -59,7 +59,7 @@ export function CardDescription({
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn("text-sm text-foreground-muted", className)}
+      className={cn("hidden sm:block text-sm text-foreground-muted", className)}
       {...props}
     >
       {children}

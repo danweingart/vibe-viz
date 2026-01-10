@@ -82,7 +82,7 @@ export function SalesVelocityChart() {
       </CardHeader>
 
       <div ref={chartRef} className="px-1.5 py-3 bg-background-secondary rounded-lg chart-container">
-        <div className="h-[160px] sm:h-[300px]">
+        <div className="h-[120px] sm:h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />

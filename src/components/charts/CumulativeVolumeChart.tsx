@@ -133,7 +133,7 @@ export function CumulativeVolumeChart() {
         </div>
 
         {/* Chart - minimal margins */}
-        <div className="flex-1 min-h-[160px] sm:min-h-[280px]">
+        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 8, left: -5, bottom: 0 }}>
               <defs>

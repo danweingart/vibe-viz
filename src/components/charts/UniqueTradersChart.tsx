@@ -114,7 +114,7 @@ export function UniqueTradersChart() {
           <CardDescription>Distinct wallets trading {isWeekly ? "each week (avg/day)" : "each day"}</CardDescription>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex gap-3 text-right text-xs">
+          <div className="hidden sm:flex gap-3 text-right text-xs">
             <div>
               <p className="font-bold text-chart-success">{avgBuyers.toFixed(1)}</p>
               <p className="text-foreground-muted">Avg Buyers/Day</p>
@@ -133,7 +133,7 @@ export function UniqueTradersChart() {
       </CardHeader>
 
       <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[280px]">
+        <div className="flex-1 min-h-[220px] sm:min-h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 5, right: 8, left: -5, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />

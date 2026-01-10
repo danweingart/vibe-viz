@@ -70,7 +70,7 @@ export function TopSales() {
             href={`https://opensea.io/assets/ethereum/0xb8ea78fcacef50d41375e44e6814ebba36bb33c4/${sale.tokenId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="sale-item flex items-center gap-4 p-3 rounded-lg"
+            className="sale-item flex items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg"
           >
             {/* Rank */}
             <div className="w-6 h-6 rounded-full bg-brand/20 flex items-center justify-center text-xs font-bold text-brand">
@@ -78,7 +78,7 @@ export function TopSales() {
             </div>
 
             {/* NFT Image */}
-            <div className="h-12 w-12 rounded-lg bg-border overflow-hidden flex-shrink-0">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-border overflow-hidden flex-shrink-0">
               {sale.imageUrl ? (
                 <img
                   src={sale.imageUrl}

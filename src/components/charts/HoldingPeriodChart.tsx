@@ -157,7 +157,7 @@ export function HoldingPeriodChart() {
           <CardDescription>Time between buy and sell for resales within this period</CardDescription>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex gap-3 text-right text-xs">
+          <div className="hidden sm:flex gap-3 text-right text-xs">
             <div>
               <p className="font-bold text-chart-info">{avgHoldingDays.toFixed(0)}d</p>
               <p className="text-foreground-muted">Avg Hold</p>
@@ -179,7 +179,7 @@ export function HoldingPeriodChart() {
       <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
         {/* Chart */}
         <div className="chart-wrapper flex-1 flex flex-col">
-          <div className="chart-height flex-1 min-h-[280px]">
+          <div className="chart-height flex-1 min-h-[220px] sm:min-h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 8, left: -5, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
@@ -215,7 +215,7 @@ export function HoldingPeriodChart() {
         </div>
 
         {/* UI Legend - shown on frontend only */}
-        <div className="export-hide grid grid-cols-3 gap-2 mt-2 text-xs text-center">
+        <div className="export-hide grid grid-cols-3 gap-1 sm:gap-2 mt-2 text-[10px] sm:text-xs text-center">
           <div className="bg-background-tertiary rounded p-2">
             <div className="flex items-center justify-center gap-1 mb-1">
               <div className="w-2 h-2 rounded" style={{ backgroundColor: CHART_COLORS.danger }} />

@@ -14,7 +14,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-xl border border-border bg-background-secondary pt-4 px-4 pb-4 card-hover flex flex-col",
+        "rounded-xl border border-border bg-background-secondary pt-3 px-3 pb-3 sm:pt-4 sm:px-4 sm:pb-4 card-hover flex flex-col",
         variant === "glow" && "brand-glow",
         className
       )}

@@ -59,10 +59,10 @@ export function RecentSales() {
             href={`https://opensea.io/assets/ethereum/0xb8ea78fcacef50d41375e44e6814ebba36bb33c4/${sale.tokenId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="sale-item flex items-center gap-4 p-3 rounded-lg"
+            className="sale-item flex items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg"
           >
             {/* NFT Image */}
-            <div className="h-12 w-12 rounded-lg bg-border overflow-hidden flex-shrink-0">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-border overflow-hidden flex-shrink-0">
               {sale.imageUrl ? (
                 <img
                   src={sale.imageUrl}

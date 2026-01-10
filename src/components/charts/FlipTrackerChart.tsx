@@ -79,7 +79,7 @@ export function FlipTrackerChart() {
           <CardDescription>Tokens bought & sold within {timeRange}D. X = hold time, Y = profit %</CardDescription>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex gap-3 text-right text-xs">
+          <div className="hidden sm:flex gap-3 text-right text-xs">
             <div>
               <p className="font-bold" style={{ color: profitableFlips > 50 ? CHART_COLORS.success : CHART_COLORS.danger }}>
                 {profitableFlips.toFixed(0)}%
@@ -102,7 +102,7 @@ export function FlipTrackerChart() {
       </CardHeader>
 
       <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[280px]">
+        <div className="flex-1 min-h-[220px] sm:min-h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ top: 5, right: 8, left: -5, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />

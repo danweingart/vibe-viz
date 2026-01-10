@@ -125,7 +125,7 @@ export function WhaleActivityChart() {
       </div>
 
       <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[280px]">
+        <div className="flex-1 min-h-[220px] sm:min-h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
@@ -180,7 +180,7 @@ export function WhaleActivityChart() {
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-2 mt-2 text-xs text-center">
+        <div className="grid grid-cols-3 gap-1 sm:gap-2 mt-2 text-[10px] sm:text-xs text-center">
           {chartData.slice(0, 3).map((whale, i) => {
             const crossColor = viewMode === "buyers" ? CHART_COLORS.danger : CHART_COLORS.success;
             const crossLabel = viewMode === "buyers" ? "sells" : "buys";

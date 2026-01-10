@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Card, CardHeader, CardTitle, Badge } from "@/components/ui";
+import { Card, CardHeader, CardTitle, Badge, OpenSeaIcon } from "@/components/ui";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useSalesByTimeRange } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
@@ -94,8 +94,11 @@ export function TopSales() {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-foreground truncate">
-                {sale.tokenName}
+              <p className="font-medium text-foreground truncate flex items-center gap-1.5">
+                <span>{sale.tokenName}</span>
+                <span className="text-foreground-muted hover:text-[#2081e2] transition-colors">
+                  <OpenSeaIcon size={12} />
+                </span>
               </p>
               <p className="text-xs text-foreground-muted">
                 {formatDate(sale.timestamp)}

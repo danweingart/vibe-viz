@@ -20,7 +20,7 @@ import { ChartExportButtons } from "./ChartExportButtons";
 import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatPercent } from "@/lib/utils";
-import { CHART_COLORS } from "@/lib/constants";
+import { CHART_COLORS, CONTRACT_ADDRESS } from "@/lib/constants";
 
 export function FlipTrackerChart() {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -151,17 +151,20 @@ export function FlipTrackerChart() {
                       <p style={{ color: d.profitPercent > 0 ? CHART_COLORS.success : CHART_COLORS.danger }}>
                         {d.profitPercent > 0 ? "+" : ""}{d.profitPercent.toFixed(1)}% ({d.holdingDays}d)
                       </p>
+                      <p className="text-[10px] text-foreground-muted mt-1 italic">Click to view on OpenSea</p>
                     </div>
                   );
                 }}
               />
               <ReferenceLine y={0} stroke={CHART_COLORS.muted} strokeDasharray="5 5" />
-              <Scatter name="Flips" data={chartData}>
+              <Scatter name="Flips" data={chartData} className="cursor-pointer">
                 {chartData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.profitPercent > 0 ? CHART_COLORS.success : CHART_COLORS.danger}
                     opacity={0.7}
+                    className="cursor-pointer"
+                    onClick={() => window.open(`https://opensea.io/assets/ethereum/${CONTRACT_ADDRESS}/${entry.tokenId}`, "_blank")}
                   />
                 ))}
               </Scatter>

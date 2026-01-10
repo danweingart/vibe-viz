@@ -13,7 +13,7 @@ import {
   Cell,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
+import { Card, CardHeader, CardDescription, OpenSeaLink } from "@/components/ui";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { useTraderAnalysis } from "@/hooks";
@@ -157,20 +157,21 @@ export function WhaleActivityChart() {
                       <p className="font-mono text-foreground text-[10px]">{d.address}</p>
                       <p className="text-foreground-muted mt-1">
                         <span style={{ color }}>{formatNumber(d.count)} {viewMode === "buyers" ? "buys" : "sells"}</span>
-                        {d.crossCount > 0 && (
-                          <span style={{ color: crossColor }}> • {formatNumber(d.crossCount)} {crossLabel}</span>
-                        )}
+                        <span style={{ color: d.crossCount > 0 ? crossColor : "#71717a" }}> • {formatNumber(d.crossCount)} {crossLabel}</span>
                       </p>
                       <p className="text-foreground-muted">{formatEth(d.volume, 2)} volume ({d.volumePercent.toFixed(1)}%)</p>
+                      <p className="text-[10px] text-foreground-muted mt-1 italic">Click bar to view on OpenSea</p>
                     </div>
                   );
                 }}
               />
-              <Bar dataKey="volume" radius={[0, 4, 4, 0]}>
+              <Bar dataKey="volume" radius={[0, 4, 4, 0]} className="cursor-pointer">
                 {chartData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={color}
+                    className="cursor-pointer"
+                    onClick={() => window.open(`https://opensea.io/${entry.address}`, "_blank")}
                   />
                 ))}
               </Bar>
@@ -185,11 +186,12 @@ export function WhaleActivityChart() {
             const crossLabel = viewMode === "buyers" ? "sells" : "buys";
             return (
               <div key={i} className="bg-background-tertiary rounded p-2">
-                <p className="font-mono text-[10px] text-foreground-muted truncate">{whale.shortAddress}</p>
+                <p className="font-mono text-[10px] text-foreground-muted flex items-center justify-center gap-1">
+                  <span className="truncate">{whale.shortAddress}</span>
+                  <OpenSeaLink type="wallet" value={whale.address} size={10} />
+                </p>
                 <p className="font-bold" style={{ color }}>{formatNumber(whale.count)} {viewMode === "buyers" ? "buys" : "sells"}</p>
-                {whale.crossCount > 0 && (
-                  <p className="text-[10px]" style={{ color: crossColor }}>{formatNumber(whale.crossCount)} {crossLabel}</p>
-                )}
+                <p className="text-[10px]" style={{ color: whale.crossCount > 0 ? crossColor : "#71717a" }}>{formatNumber(whale.crossCount)} {crossLabel}</p>
               </div>
             );
           })}

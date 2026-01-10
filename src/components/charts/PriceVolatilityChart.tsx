@@ -122,19 +122,19 @@ export function PriceVolatilityChart() {
             Grail Activity
           </Link>
           <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
-          <CardDescription>Moving avg of daily high/low over 7 days (wider = higher premium activity)</CardDescription>
+          <CardDescription>7-day rolling avg of daily highs & lows</CardDescription>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex gap-3 text-right text-xs">
             <div>
               <p className="font-bold text-chart-accent">{avgVolatility.toFixed(1)}%</p>
-              <p className="text-foreground-muted">Avg Range</p>
+              <p className="text-foreground-muted text-[10px]">Avg Range</p>
             </div>
             <div>
               <p className="font-bold" style={{ color: trend.color }}>
                 {trend.icon} {trend.label}
               </p>
-              <p className="text-foreground-muted">Trend</p>
+              <p className="text-foreground-muted text-[10px]">Trend</p>
             </div>
           </div>
           <ChartExportButtons chartRef={chartRef} config={exportConfig} />

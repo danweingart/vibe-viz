@@ -43,16 +43,10 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             <NavLink href="/" active={pathname === "/"}>
-              Dashboard
+              Collection
             </NavLink>
-            <NavLink href="/holders" active={pathname === "/holders"}>
-              Holders
-            </NavLink>
-            <NavLink href="/sales" active={pathname === "/sales"}>
-              Sales
-            </NavLink>
-            <NavLink href="/whales" active={pathname === "/whales"}>
-              Whales
+            <NavLink href="/vibestr" active={pathname === "/vibestr"}>
+              VIBESTR
             </NavLink>
           </nav>
 
@@ -110,16 +104,10 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
           <nav className="md:hidden py-4 border-t border-border">
             <div className="flex flex-col gap-2">
               <MobileNavLink href="/" onClick={() => setMobileMenuOpen(false)} active={pathname === "/"}>
-                Dashboard
+                Collection
               </MobileNavLink>
-              <MobileNavLink href="/holders" onClick={() => setMobileMenuOpen(false)} active={pathname === "/holders"}>
-                Holders
-              </MobileNavLink>
-              <MobileNavLink href="/sales" onClick={() => setMobileMenuOpen(false)} active={pathname === "/sales"}>
-                Sales
-              </MobileNavLink>
-              <MobileNavLink href="/whales" onClick={() => setMobileMenuOpen(false)} active={pathname === "/whales"}>
-                Whales
+              <MobileNavLink href="/vibestr" onClick={() => setMobileMenuOpen(false)} active={pathname === "/vibestr"}>
+                VIBESTR
               </MobileNavLink>
             </div>
           </nav>

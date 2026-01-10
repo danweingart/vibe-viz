@@ -4,7 +4,7 @@ import { Header, Footer } from "@/components/layout";
 import { HolderDistributionChart, SalesVelocityChart } from "@/components/charts";
 import { ChartSettingsProvider } from "@/providers/ChartSettingsProvider";
 import { ChartControls } from "@/components/dashboard";
-import { Card, CardHeader, CardTitle, Badge } from "@/components/ui";
+import { Card, CardHeader, CardTitle, Badge, OpenSeaLink } from "@/components/ui";
 import { useRecentSales, useCollectionStats } from "@/hooks";
 import { formatEth, formatUsd, formatAddress, formatTimeAgo } from "@/lib/utils";
 
@@ -106,9 +106,13 @@ export default function WhalesPage() {
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">{sale.tokenName}</p>
-                        <p className="text-xs text-foreground-muted">
+                        <p className="font-medium text-foreground flex items-center gap-1.5">
+                          {sale.tokenName}
+                          <OpenSeaLink type="token" value={sale.tokenId} size={12} />
+                        </p>
+                        <p className="text-xs text-foreground-muted flex items-center gap-1">
                           {formatAddress(sale.buyer)}
+                          <OpenSeaLink type="wallet" value={sale.buyer} size={10} />
                         </p>
                       </div>
                     </div>
@@ -142,15 +146,11 @@ export default function WhalesPage() {
                       <div className="h-8 w-8 rounded-full bg-brand/20 flex items-center justify-center text-brand font-bold text-sm">
                         {index + 1}
                       </div>
-                      <div>
-                        <a
-                          href={`https://opensea.io/${address}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium text-foreground hover:text-brand transition-colors"
-                        >
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-foreground">
                           {formatAddress(address, 6)}
-                        </a>
+                        </span>
+                        <OpenSeaLink type="wallet" value={address} size={12} />
                       </div>
                     </div>
                     <Badge variant="info">{count} purchases</Badge>

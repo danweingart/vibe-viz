@@ -103,13 +103,13 @@ function StatCard({ label, value, subValue, change, highlight, animationDelay = 
         <div className="absolute inset-0 bg-gradient-to-br from-brand/10 to-transparent" />
       )}
       <div className="relative text-center">
-        <p className="text-[10px] text-foreground-muted uppercase tracking-wider mb-0.5">
+        <p className="text-[10px] text-foreground-muted uppercase tracking-wider mb-1.5">
           {label}
         </p>
         <p className="text-lg font-bold text-foreground font-brice leading-tight">{value}</p>
         <div className="flex items-center justify-center gap-1.5 mt-0.5">
           {subValue && (
-            <span className="text-[10px] text-foreground-muted">{subValue}</span>
+            <span className="text-xs text-foreground-muted">{subValue}</span>
           )}
           {change !== undefined && (
             <span

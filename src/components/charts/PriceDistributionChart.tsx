@@ -108,15 +108,15 @@ export function PriceDistributionChart() {
           <CardDescription>Sale count by ETH price bucket (log scale)</CardDescription>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex gap-3 text-right">
+          <div className="flex gap-3 text-right text-xs">
             <div>
-              <p className="text-sm font-bold text-foreground">
+              <p className="font-bold text-foreground">
                 {formatEth(avgPrice, 2)}
               </p>
               <p className="text-[10px] text-foreground-muted">Avg</p>
             </div>
             <div>
-              <p className="text-sm font-bold text-foreground">
+              <p className="font-bold text-foreground">
                 {formatEth(medianPrice, 2)}
               </p>
               <p className="text-[10px] text-foreground-muted">Median</p>

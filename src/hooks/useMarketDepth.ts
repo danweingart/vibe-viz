@@ -16,7 +16,7 @@ export function useMarketDepth() {
     queryKey: ["market-depth"],
     queryFn: fetchMarketDepth,
     staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 10 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: 2,
   });

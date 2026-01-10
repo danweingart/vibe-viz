@@ -4,3 +4,4 @@ export { Badge } from "./Badge";
 export { Button } from "./Button";
 export { ChartTitle } from "./ChartTitle";
 export { Logo, LogoFallback } from "./Logo";
+export { OpenSeaLink, OpenSeaIcon } from "./OpenSeaLink";

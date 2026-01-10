@@ -1,11 +1,26 @@
 import { NextResponse } from "next/server";
-import { getListings, getOffers, parseListingPrice, parseOfferPrice } from "@/lib/opensea/client";
-import { getEthPrice } from "@/lib/coingecko/client";
+import { getListings, getCollectionOffers, parseListingPrice } from "@/lib/opensea/client";
 import { cache } from "@/lib/cache/memory";
 import { COLLECTION_SLUG } from "@/lib/constants";
-import type { MarketDepth } from "@/types/api";
+import type { MarketDepth, OpenSeaOffer } from "@/types/api";
 
 export const dynamic = "force-dynamic";
+
+// Parse offer: price.value is TOTAL value (price * quantity), so divide to get per-NFT price
+function parseOfferWithQuantity(offer: OpenSeaOffer): { pricePerNft: number; quantity: number } {
+  if (!offer.price) return { pricePerNft: 0, quantity: 0 };
+  const totalValue = BigInt(offer.price.value);
+  const decimals = offer.price.decimals;
+  const totalEth = Number(totalValue) / Math.pow(10, decimals);
+  const quantity = offer.remaining_quantity || 1;
+  const pricePerNft = totalEth / quantity;
+  return { pricePerNft, quantity };
+}
+
+// Round price to bucket (0.01 ETH increments)
+function priceToBucket(price: number): number {
+  return Math.floor(price * 100) / 100;
+}
 
 export async function GET() {
   try {
@@ -16,82 +31,66 @@ export async function GET() {
     }
 
     // Fetch listings and offers in parallel
-    const [listings, offers, ethPriceData] = await Promise.all([
+    const [listings, offers] = await Promise.all([
       getListings(COLLECTION_SLUG, 100),
-      getOffers(COLLECTION_SLUG, 50),
-      getEthPrice(),
+      getCollectionOffers(COLLECTION_SLUG, 200),
     ]);
 
-    // Parse listing prices and sort
+    // Parse listing prices - each listing is for 1 NFT
     const listingPrices = listings
       .map(parseListingPrice)
       .filter((p) => p > 0)
       .sort((a, b) => a - b);
 
-    // Parse offer prices and sort descending
-    const offerPrices = offers
-      .map(parseOfferPrice)
-      .filter((p) => p > 0)
-      .sort((a, b) => b - a);
+    // Aggregate listings by price bucket
+    const listingBuckets = new Map<number, number>();
+    for (const price of listingPrices) {
+      const bucket = priceToBucket(price);
+      listingBuckets.set(bucket, (listingBuckets.get(bucket) || 0) + 1);
+    }
 
-    // Bucket listings into price ranges for depth chart
-    const listingBuckets: { price: number; count: number }[] = [];
-    if (listingPrices.length > 0) {
-      const minListing = listingPrices[0];
-      const maxListing = listingPrices[listingPrices.length - 1];
-      const range = maxListing - minListing;
-      const bucketSize = range > 0 ? range / 10 : 0.1;
-
-      for (let i = 0; i < 10; i++) {
-        const bucketMin = minListing + i * bucketSize;
-        const bucketMax = minListing + (i + 1) * bucketSize;
-        const count = listingPrices.filter(
-          (p) => p >= bucketMin && (i === 9 ? p <= bucketMax : p < bucketMax)
-        ).length;
-        listingBuckets.push({
-          price: Math.round((bucketMin + bucketMax) / 2 * 100) / 100,
-          count,
-        });
+    // Parse offers and aggregate by per-NFT price bucket, summing remaining_quantity
+    const offerBuckets = new Map<number, number>();
+    for (const offer of offers) {
+      const { pricePerNft, quantity } = parseOfferWithQuantity(offer);
+      if (pricePerNft > 0 && quantity > 0) {
+        const bucket = priceToBucket(pricePerNft);
+        offerBuckets.set(bucket, (offerBuckets.get(bucket) || 0) + quantity);
       }
     }
 
-    // Bucket offers into price ranges
-    const offerBuckets: { price: number; count: number }[] = [];
-    if (offerPrices.length > 0) {
-      const maxOffer = offerPrices[0];
-      const minOffer = offerPrices[offerPrices.length - 1];
-      const range = maxOffer - minOffer;
-      const bucketSize = range > 0 ? range / 10 : 0.1;
+    // Convert to sorted arrays
+    const listingDepth = Array.from(listingBuckets.entries())
+      .map(([price, depth]) => ({ price, depth }))
+      .sort((a, b) => a.price - b.price);
 
-      for (let i = 0; i < 10; i++) {
-        const bucketMax = maxOffer - i * bucketSize;
-        const bucketMin = maxOffer - (i + 1) * bucketSize;
-        const count = offerPrices.filter(
-          (p) => p <= bucketMax && (i === 9 ? p >= bucketMin : p > bucketMin)
-        ).length;
-        offerBuckets.push({
-          price: Math.round((bucketMin + bucketMax) / 2 * 100) / 100,
-          count,
-        });
-      }
-    }
+    const offerDepth = Array.from(offerBuckets.entries())
+      .map(([price, depth]) => ({ price, depth }))
+      .sort((a, b) => b.price - a.price); // Descending for offers
 
+    // Calculate totals
+    const totalListingDepth = listingDepth.reduce((sum, b) => sum + b.depth, 0);
+    const totalOfferDepth = offerDepth.reduce((sum, b) => sum + b.depth, 0);
+
+    // Calculate spread
     const lowestListing = listingPrices[0] || 0;
-    const highestOffer = offerPrices[0] || 0;
+    const highestOffer = offerDepth.length > 0 ? offerDepth[0].price : 0;
     const spread = lowestListing - highestOffer;
     const spreadPercent = highestOffer > 0 ? (spread / highestOffer) * 100 : 0;
 
     const marketDepth: MarketDepth = {
-      listings: listingBuckets,
-      offers: offerBuckets.reverse(), // Reverse so lowest is first
+      listings: listingDepth,
+      offers: offerDepth,
       spread: Math.round(spread * 1000) / 1000,
       spreadPercent: Math.round(spreadPercent * 10) / 10,
       lowestListing,
       highestOffer,
+      totalListingDepth,
+      totalOfferDepth,
       lastUpdated: new Date().toISOString(),
     };
 
-    // Cache for 2 minutes (market data changes frequently)
+    // Cache for 2 minutes
     await cache.set(cacheKey, marketDepth, 120);
 
     return NextResponse.json(marketDepth);

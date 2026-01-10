@@ -157,14 +157,77 @@ export async function getBestListing(
   }
 }
 
-// Fetch collection offers
+// Fetch collection offers with pagination - these are the floor-level bids on any item
+export async function getCollectionOffers(
+  collectionSlug: string = COLLECTION_SLUG,
+  limit: number = 200
+): Promise<OpenSeaOffer[]> {
+  const allOffers: OpenSeaOffer[] = [];
+  let next: string | null = null;
+  const perPage = Math.min(limit, 50); // OpenSea max per page is 50
+
+  do {
+    const params = new URLSearchParams();
+    params.set("limit", String(perPage));
+    if (next) params.set("next", next);
+
+    const url = `${OPENSEA_API_BASE}/offers/collection/${collectionSlug}?${params}`;
+    const response = await fetchWithRetry<OpenSeaOffersResponse>(url);
+
+    if (response.offers) {
+      allOffers.push(...response.offers);
+    }
+    next = response.next;
+
+    // Stop if we've reached the requested limit
+    if (allOffers.length >= limit) {
+      break;
+    }
+
+    // Small delay to avoid rate limiting
+    if (next) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+  } while (next);
+
+  return allOffers.slice(0, limit);
+}
+
+// Fetch all offers including trait and item offers with pagination
 export async function getOffers(
   collectionSlug: string = COLLECTION_SLUG,
-  limit: number = 50
+  limit: number = 200
 ): Promise<OpenSeaOffer[]> {
-  const url = `${OPENSEA_API_BASE}/offers/collection/${collectionSlug}?limit=${limit}`;
-  const response = await fetchWithRetry<OpenSeaOffersResponse>(url);
-  return response.offers || [];
+  const allOffers: OpenSeaOffer[] = [];
+  let next: string | null = null;
+  const perPage = Math.min(limit, 50); // OpenSea max per page is 50
+
+  do {
+    const params = new URLSearchParams();
+    params.set("limit", String(perPage));
+    if (next) params.set("next", next);
+
+    // Use /all endpoint to get all offers (collection, trait, and item offers)
+    const url = `${OPENSEA_API_BASE}/offers/collection/${collectionSlug}/all?${params}`;
+    const response = await fetchWithRetry<OpenSeaOffersResponse>(url);
+
+    if (response.offers) {
+      allOffers.push(...response.offers);
+    }
+    next = response.next;
+
+    // Stop if we've reached the requested limit
+    if (allOffers.length >= limit) {
+      break;
+    }
+
+    // Small delay to avoid rate limiting
+    if (next) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+  } while (next);
+
+  return allOffers.slice(0, limit);
 }
 
 // Parse listing price from OpenSea format

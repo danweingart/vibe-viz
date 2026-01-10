@@ -184,6 +184,7 @@ export interface OpenSeaListingsResponse {
 export interface OpenSeaOffer {
   order_hash: string;
   chain: string;
+  remaining_quantity: number;
   price: {
     currency: string;
     decimals: number;
@@ -213,12 +214,14 @@ export interface DailyTraderStats {
 
 // Market depth data for order book visualization
 export interface MarketDepth {
-  listings: { price: number; count: number }[];
-  offers: { price: number; count: number }[];
+  listings: { price: number; depth: number }[];
+  offers: { price: number; depth: number }[];
   spread: number;
   spreadPercent: number;
   lowestListing: number;
   highestOffer: number;
+  totalListingDepth: number;
+  totalOfferDepth: number;
   lastUpdated: string;
 }
 

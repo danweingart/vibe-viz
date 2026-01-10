@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardHeader, CardTitle, Badge } from "@/components/ui";
+import { Card, CardHeader, CardTitle, Badge, OpenSeaIcon } from "@/components/ui";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useRecentSales } from "@/hooks";
-import { formatEth, formatUsd, formatTimeAgo, formatAddress } from "@/lib/utils";
+import { formatEth, formatUsd, formatTimeAgo } from "@/lib/utils";
 
 export function RecentSales() {
   const { data: sales, isLoading, error } = useRecentSales(8);
@@ -78,11 +78,14 @@ export function RecentSales() {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-foreground truncate">
-                {sale.tokenName}
+              <p className="font-medium text-foreground truncate flex items-center gap-1.5">
+                <span>{sale.tokenName}</span>
+                <span className="text-foreground-muted hover:text-[#2081e2] transition-colors">
+                  <OpenSeaIcon size={12} />
+                </span>
               </p>
               <p className="text-xs text-foreground-muted">
-                {formatAddress(sale.buyer)} bought from {formatAddress(sale.seller)}
+                {formatTimeAgo(sale.timestamp)}
               </p>
             </div>
 
@@ -94,11 +97,6 @@ export function RecentSales() {
               <span className="text-xs text-foreground-muted">
                 {formatUsd(sale.priceUsd)}
               </span>
-            </div>
-
-            {/* Time */}
-            <div className="text-xs text-foreground-muted w-16 text-right flex-shrink-0">
-              {formatTimeAgo(sale.timestamp)}
             </div>
           </a>
         ))}

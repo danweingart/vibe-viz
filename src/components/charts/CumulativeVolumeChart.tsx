@@ -90,11 +90,8 @@ export function CumulativeVolumeChart() {
   }
 
   return (
-    <Card className="relative">
-      {/* Export buttons - outside exportable area */}
-      <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-
-      {/* Exportable content - minimal padding */}
+    <Card>
+      {/* Exportable content */}
       <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
         {/* Header with title and metrics */}
         <div className="flex items-start justify-between mb-2">
@@ -107,28 +104,31 @@ export function CumulativeVolumeChart() {
               Running total over {timeRange} days ({currency.toUpperCase()})
             </p>
           </div>
-          <div className="flex gap-3 text-right text-xs">
-            <div>
-              <p className="font-bold text-brand">
-                {currency === "eth" ? formatEth(totalVolume, 1) : formatUsd(totalVolume)}
-              </p>
-              <p className="text-foreground-muted text-[10px]">Total</p>
+          <div className="flex items-center gap-3">
+            <div className="flex gap-3 text-right text-xs">
+              <div>
+                <p className="font-bold text-brand">
+                  {currency === "eth" ? formatEth(totalVolume, 1) : formatUsd(totalVolume)}
+                </p>
+                <p className="text-foreground-muted text-[10px]">Total</p>
+              </div>
+              <div>
+                <p className="font-bold text-chart-info">
+                  {currency === "eth" ? formatEth(dailyAvg, 2) : formatUsd(dailyAvg)}
+                </p>
+                <p className="text-foreground-muted text-[10px]">Daily Avg</p>
+              </div>
+              <div>
+                <p
+                  className="font-bold"
+                  style={{ color: growthRate > 0 ? CHART_COLORS.success : growthRate < 0 ? CHART_COLORS.danger : CHART_COLORS.muted }}
+                >
+                  {growthRate > 0 ? "+" : ""}{growthRate.toFixed(0)}%
+                </p>
+                <p className="text-foreground-muted text-[10px]">Velocity Δ</p>
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-chart-info">
-                {currency === "eth" ? formatEth(dailyAvg, 2) : formatUsd(dailyAvg)}
-              </p>
-              <p className="text-foreground-muted text-[10px]">Daily Avg</p>
-            </div>
-            <div>
-              <p
-                className="font-bold"
-                style={{ color: growthRate > 0 ? CHART_COLORS.success : growthRate < 0 ? CHART_COLORS.danger : CHART_COLORS.muted }}
-              >
-                {growthRate > 0 ? "+" : ""}{growthRate.toFixed(0)}%
-              </p>
-              <p className="text-foreground-muted text-[10px]">Velocity Δ</p>
-            </div>
+            <ChartExportButtons chartRef={chartRef} config={exportConfig} />
           </div>
         </div>
 

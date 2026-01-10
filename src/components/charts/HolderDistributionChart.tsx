@@ -60,13 +60,13 @@ export function HolderDistributionChart() {
           </CardDescription>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex gap-3 text-right">
+          <div className="flex gap-3 text-right text-xs">
             <div>
-              <p className="text-sm font-bold text-foreground">{formatNumber(totalHolders)}</p>
+              <p className="font-bold text-foreground">{formatNumber(totalHolders)}</p>
               <p className="text-[10px] text-foreground-muted">Holders</p>
             </div>
             <div>
-              <p className="text-sm font-bold text-chart-accent">{whalePercentage.toFixed(1)}%</p>
+              <p className="font-bold text-chart-accent">{whalePercentage.toFixed(1)}%</p>
               <p className="text-[10px] text-foreground-muted">Whales</p>
             </div>
           </div>
@@ -82,10 +82,16 @@ export function HolderDistributionChart() {
               <YAxis type="category" dataKey="label" stroke="#71717a" fontSize={11} axisLine={false} tickLine={false} width={45} fontFamily="var(--font-mundial)" />
               <Tooltip
                 contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
-                formatter={(value, name, props) => [
-                  `${formatNumber(Number(value))} holders (${props.payload.percentage}%)`,
-                  "Wallets",
-                ]}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const d = payload[0]?.payload;
+                  return (
+                    <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+                      <p className="font-bold text-brand">{d.label} NFTs</p>
+                      <p className="text-foreground">{formatNumber(d.count)} holders ({d.percentage}%)</p>
+                    </div>
+                  );
+                }}
               />
               <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                 {chartData.map((entry, index) => (

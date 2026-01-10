@@ -16,7 +16,7 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
 
 export function StatCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-background-secondary p-6">
+    <div className="rounded-xl border border-border bg-background-secondary p-3 sm:p-6">
       <Skeleton className="h-4 w-24 mb-2" />
       <Skeleton className="h-8 w-32 mb-1" />
       <Skeleton className="h-4 w-20" />

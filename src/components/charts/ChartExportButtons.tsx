@@ -38,13 +38,13 @@ export function ChartExportButtons({ chartRef, config }: ChartExportButtonsProps
   }, [chartRef, config]);
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-2 sm:gap-1">
       <Button
         variant="ghost"
         size="sm"
         onClick={handleShare}
         isLoading={isSharing}
-        title="Share to X"
+        aria-label="Share chart to X"
       >
         <XIcon className="w-4 h-4" />
       </Button>
@@ -53,7 +53,7 @@ export function ChartExportButtons({ chartRef, config }: ChartExportButtonsProps
         size="sm"
         onClick={handleDownload}
         isLoading={isExporting}
-        title="Download PNG"
+        aria-label="Download chart as PNG"
       >
         <DownloadIcon className="w-4 h-4" />
       </Button>

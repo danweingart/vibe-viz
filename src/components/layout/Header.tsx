@@ -70,8 +70,10 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 text-foreground-muted hover:text-foreground"
+              className="md:hidden p-2 text-foreground-muted hover:text-foreground active:scale-95"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
             >
               <svg
                 className="h-6 w-6"
@@ -155,7 +157,7 @@ function MobileNavLink({
     <Link
       href={href}
       onClick={onClick}
-      className={`block px-3 py-2 text-base font-medium rounded-lg ${
+      className={`block px-4 py-3 text-base font-medium rounded-lg active:scale-[0.99] active:opacity-90 ${
         active
           ? "text-brand bg-brand/10"
           : "text-foreground-muted hover:text-foreground hover:bg-border"

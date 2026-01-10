@@ -15,7 +15,7 @@ export function StatsOverview() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
@@ -103,7 +103,7 @@ function StatCard({ label, value, subValue, change, highlight, animationDelay = 
         <div className="absolute inset-0 bg-gradient-to-br from-brand/10 to-transparent" />
       )}
       <div className="relative text-center">
-        <p className="text-[10px] text-foreground-muted uppercase tracking-wider mb-1.5">
+        <p className="text-xs sm:text-[10px] text-foreground-muted uppercase tracking-wider mb-1.5">
           {label}
         </p>
         <p className="text-lg font-bold text-foreground font-brice leading-tight">{value}</p>

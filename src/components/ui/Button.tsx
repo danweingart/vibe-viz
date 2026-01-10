@@ -30,8 +30,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           "inline-flex items-center justify-center rounded-lg font-medium transition-colors",
           "focus:outline-none focus:ring-2 focus:ring-brand/50 focus:ring-offset-2 focus:ring-offset-background",
           "disabled:opacity-50 disabled:cursor-not-allowed",
-          size === "sm" && "h-8 px-3 text-sm",
-          size === "md" && "h-10 px-4 text-sm",
+          "active:scale-[0.98] active:opacity-90",
+          size === "sm" && "h-10 sm:h-8 px-3 text-sm",
+          size === "md" && "h-11 sm:h-10 px-4 text-sm",
           size === "lg" && "h-12 px-6 text-base",
           variant === "default" &&
             "bg-foreground text-background hover:bg-foreground/90",

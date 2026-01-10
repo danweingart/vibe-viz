@@ -14,7 +14,7 @@ export function ChartControls() {
             <button
               key={range}
               onClick={() => setTimeRange(range)}
-              className={`px-4 py-2.5 sm:py-2 text-sm font-medium transition-colors ${
+              className={`px-4 py-3 sm:py-2 text-sm font-medium transition-colors active:scale-[0.98] active:opacity-90 ${
                 timeRange === range
                   ? "bg-brand text-background"
                   : "text-foreground-muted hover:text-foreground hover:bg-border"
@@ -33,7 +33,7 @@ export function ChartControls() {
             <button
               key={curr}
               onClick={() => setCurrency(curr)}
-              className={`px-4 py-2.5 sm:py-2 text-sm font-medium transition-colors ${
+              className={`px-4 py-3 sm:py-2 text-sm font-medium transition-colors active:scale-[0.98] active:opacity-90 ${
                 currency === curr
                   ? "bg-brand text-background"
                   : "text-foreground-muted hover:text-foreground hover:bg-border"

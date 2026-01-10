@@ -144,7 +144,7 @@ export function PriceVolatilityChart() {
       <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
         <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 5, right: 8, left: -5, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="volatilityGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />

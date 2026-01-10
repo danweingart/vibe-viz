@@ -181,10 +181,10 @@ export function HoldingPeriodChart() {
         <div className="chart-wrapper flex-1 flex flex-col">
           <div className="chart-height flex-1 min-h-[120px] sm:min-h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 8, left: -5, bottom: 0 }}>
+              <BarChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                 <XAxis dataKey="label" stroke="#71717a" fontSize={11} axisLine={false} tickLine={false} fontFamily="var(--font-mundial)" />
-                <YAxis stroke="#71717a" fontSize={11} axisLine={false} tickLine={false} fontFamily="var(--font-mundial)" width={35} />
+                <YAxis stroke="#71717a" fontSize={11} axisLine={false} tickLine={false} fontFamily="var(--font-mundial)" width={40} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
                   content={({ active, payload }) => {

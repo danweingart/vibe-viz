@@ -135,7 +135,7 @@ export function UniqueTradersChart() {
       <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
         <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 5, right: 8, left: -5, bottom: 0 }}>
+            <ComposedChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
               <XAxis
                 dataKey="date"
@@ -157,7 +157,7 @@ export function UniqueTradersChart() {
                   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
                 }}
               />
-              <YAxis stroke="#71717a" fontSize={11} fontFamily="var(--font-mundial)" axisLine={false} tickLine={false} width={35} />
+              <YAxis stroke="#71717a" fontSize={11} fontFamily="var(--font-mundial)" axisLine={false} tickLine={false} width={40} />
               <Tooltip
                 contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
                 labelStyle={{ color: "#fafafa" }}

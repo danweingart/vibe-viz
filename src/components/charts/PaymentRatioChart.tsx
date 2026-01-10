@@ -55,7 +55,7 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
       </div>
       <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 5, right: 8, left: -5, bottom: showXAxis ? 20 : 5 }}>
+          <LineChart data={data} margin={{ top: 5, right: 12, left: 0, bottom: showXAxis ? 20 : 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={true} vertical={false} />
             <XAxis
               dataKey="date"
@@ -75,7 +75,7 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
               tickFormatter={(v) => `${v}%`}
               domain={[0, 100]}
               ticks={[0, 25, 50, 75, 100]}
-              width={32}
+              width={40}
               axisLine={false}
               tickLine={false}
             />
@@ -280,7 +280,7 @@ export function PaymentRatioChart() {
         ) : (
           <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={gvcDailyData} margin={{ top: 5, right: 8, left: -5, bottom: 20 }}>
+              <LineChart data={gvcDailyData} margin={{ top: 5, right: 12, left: 0, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                 <XAxis
                   dataKey="date"
@@ -299,7 +299,7 @@ export function PaymentRatioChart() {
                   tickFormatter={(v) => `${v}%`}
                   domain={[0, 100]}
                   ticks={[0, 25, 50, 75, 100]}
-                  width={32}
+                  width={40}
                   axisLine={false}
                   tickLine={false}
                 />

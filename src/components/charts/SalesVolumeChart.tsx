@@ -139,7 +139,7 @@ export function SalesVolumeChart() {
       <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
         <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 5, right: 8, left: -5, bottom: 0 }}>
+            <ComposedChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
               <XAxis
                 dataKey="date"
@@ -157,7 +157,7 @@ export function SalesVolumeChart() {
                 fontFamily="var(--font-mundial)"
                 axisLine={false}
                 tickLine={false}
-                width={35}
+                width={40}
                 tickFormatter={(v) =>
                   viewMode === "sales"
                     ? String(v)

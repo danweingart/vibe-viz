@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Palette - Vibe-Viz Design System</title>
+  <style>
+    @font-face {
+      font-family: 'Brice';
+      src: url('/fonts/Brice-Bold.woff2') format('woff2');
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: 'Mundial';
+      src: url('/fonts/Mundial-Regular.woff2') format('woff2');
+      font-weight: 400;
+    }
+
+    :root {
+      --brand: #ffe048;
+      --bg: #0a0a0a;
+      --bg-secondary: #141414;
+      --bg-tertiary: #1a1a1a;
+      --fg: #fafafa;
+      --fg-muted: #a1a1aa;
+      --border: #27272a;
+      --border-light: #3f3f46;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Mundial', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+      padding: 48px 24px;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    .breadcrumb {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin-bottom: 24px;
+    }
+    .breadcrumb a { color: var(--brand); text-decoration: none; }
+
+    h1 {
+      font-family: 'Brice', sans-serif;
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--fg-muted);
+      margin-bottom: 48px;
+    }
+
+    .color-section {
+      margin-bottom: 48px;
+    }
+
+    .color-section h2 {
+      font-family: 'Brice', sans-serif;
+      font-size: 20px;
+      color: var(--brand);
+      margin-bottom: 24px;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .color-swatch {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .color-swatch .preview {
+      height: 100px;
+      display: flex;
+      align-items: flex-end;
+      padding: 12px;
+    }
+
+    .color-swatch .preview span {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.5);
+    }
+
+    .color-swatch .info {
+      padding: 16px;
+    }
+
+    .color-swatch .name {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .color-swatch .value {
+      font-family: monospace;
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+
+    .color-swatch .usage {
+      font-size: 12px;
+      color: var(--fg-muted);
+      margin-top: 8px;
+    }
+
+    .usage-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 48px;
+    }
+
+    .usage-table th,
+    .usage-table td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .usage-table th {
+      color: var(--fg-muted);
+      font-weight: 400;
+    }
+
+    .usage-table .dot {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .usage-table code {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="index.html">Design System</a> / Color Palette
+    </nav>
+
+    <h1>Color Palette</h1>
+    <p class="subtitle">Brand colors and chart colors from constants.ts</p>
+
+    <section class="color-section">
+      <h2>Chart Colors (CHART_COLORS)</h2>
+      <div class="color-grid">
+        <div class="color-swatch">
+          <div class="preview" style="background: #ffe048;">
+            <span style="color: #0a0a0a;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Primary</div>
+            <div class="value">#ffe048</div>
+            <div class="usage">Main brand, default data series</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #ffd700;">
+            <span style="color: #0a0a0a;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Secondary</div>
+            <div class="value">#ffd700</div>
+            <div class="usage">Secondary brand variant</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #ff9500;">
+            <span style="color: #0a0a0a;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Accent</div>
+            <div class="value">#ff9500</div>
+            <div class="usage">Highlights, warnings</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #34d399;">
+            <span style="color: #0a0a0a;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Success</div>
+            <div class="value">#34d399</div>
+            <div class="usage">Positive values, buyers, profits</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #f87171;">
+            <span style="color: #0a0a0a;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Danger</div>
+            <div class="value">#f87171</div>
+            <div class="usage">Negative values, sellers, losses</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #60a5fa;">
+            <span style="color: #0a0a0a;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Info</div>
+            <div class="value">#60a5fa</div>
+            <div class="usage">Moving averages, secondary data</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #71717a;">
+            <span style="color: #fafafa;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Muted</div>
+            <div class="value">#71717a</div>
+            <div class="usage">Disabled, secondary text</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="color-section">
+      <h2>Background Colors</h2>
+      <div class="color-grid">
+        <div class="color-swatch">
+          <div class="preview" style="background: #0a0a0a; border: 1px solid #27272a;">
+            <span style="color: #fafafa;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Background</div>
+            <div class="value">#0a0a0a</div>
+            <div class="usage">Page background</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #141414;">
+            <span style="color: #fafafa;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Secondary</div>
+            <div class="value">#141414</div>
+            <div class="usage">Cards, panels</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #1a1a1a;">
+            <span style="color: #fafafa;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Tertiary</div>
+            <div class="value">#1a1a1a</div>
+            <div class="usage">Hover states, stat cards</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="color-section">
+      <h2>Text & Border Colors</h2>
+      <div class="color-grid">
+        <div class="color-swatch">
+          <div class="preview" style="background: #fafafa;">
+            <span style="color: #0a0a0a;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Foreground</div>
+            <div class="value">#fafafa</div>
+            <div class="usage">Primary text</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #a1a1aa;">
+            <span style="color: #0a0a0a;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Muted Text</div>
+            <div class="value">#a1a1aa</div>
+            <div class="usage">Secondary text, labels</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #27272a;">
+            <span style="color: #fafafa;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Border</div>
+            <div class="value">#27272a</div>
+            <div class="usage">Card borders, dividers</div>
+          </div>
+        </div>
+        <div class="color-swatch">
+          <div class="preview" style="background: #3f3f46;">
+            <span style="color: #fafafa;">AA</span>
+          </div>
+          <div class="info">
+            <div class="name">Border Light</div>
+            <div class="value">#3f3f46</div>
+            <div class="usage">Hover borders</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <h2 class="brice" style="font-size: 20px; margin: 48px 0 24px;">Color Usage by Chart</h2>
+
+    <table class="usage-table">
+      <thead>
+        <tr>
+          <th>Chart</th>
+          <th>Colors Used</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Floor Price</td>
+          <td><span class="dot" style="background: #ffe048;"></span>Primary + <span class="dot" style="background: #60a5fa;"></span>Info</td>
+        </tr>
+        <tr>
+          <td>Sales Volume</td>
+          <td><span class="dot" style="background: #ffe048;"></span>Primary + <span class="dot" style="background: #f87171;"></span>Danger</td>
+        </tr>
+        <tr>
+          <td>Whale Activity</td>
+          <td><span class="dot" style="background: #34d399;"></span>Success (buyers) / <span class="dot" style="background: #f87171;"></span>Danger (sellers)</td>
+        </tr>
+        <tr>
+          <td>Unique Traders</td>
+          <td><span class="dot" style="background: #34d399;"></span>Success + <span class="dot" style="background: #f87171;"></span>Danger + <span class="dot" style="background: #60a5fa;"></span>Info</td>
+        </tr>
+        <tr>
+          <td>Payment Ratio</td>
+          <td><span class="dot" style="background: #ffe048;"></span>Primary (ETH) + <span class="dot" style="background: #f87171;"></span>Danger (WETH)</td>
+        </tr>
+        <tr>
+          <td>Holding Period</td>
+          <td><span class="dot" style="background: #f87171;"></span>Danger + <span class="dot" style="background: #ffe048;"></span>Primary + <span class="dot" style="background: #34d399;"></span>Success</td>
+        </tr>
+        <tr>
+          <td>Flip Tracker</td>
+          <td><span class="dot" style="background: #34d399;"></span>Success (profit) + <span class="dot" style="background: #f87171;"></span>Danger (loss)</td>
+        </tr>
+        <tr>
+          <td>Market Depth</td>
+          <td><span class="dot" style="background: #34d399;"></span>Success (bids) + <span class="dot" style="background: #f87171;"></span>Danger (asks)</td>
+        </tr>
+        <tr>
+          <td>Grail Activity</td>
+          <td><span class="dot" style="background: #34d399;"></span>Success (high) + <span class="dot" style="background: #f87171;"></span>Danger (low)</td>
+        </tr>
+        <tr>
+          <td>Collector's Premium</td>
+          <td><span class="dot" style="background: #34d399;"></span>Success + <span class="dot" style="background: #ffe048;"></span>Primary + <span class="dot" style="background: #ff9500;"></span>Accent</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

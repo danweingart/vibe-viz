@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stat Cards - Vibe-Viz Design System</title>
+  <style>
+    @font-face {
+      font-family: 'Brice';
+      src: url('/fonts/Brice-Bold.woff2') format('woff2');
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: 'Mundial';
+      src: url('/fonts/Mundial-Regular.woff2') format('woff2');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'Mundial';
+      src: url('/fonts/Mundial-Bold.woff2') format('woff2');
+      font-weight: 700;
+    }
+
+    :root {
+      --brand: #ffe048;
+      --bg: #0a0a0a;
+      --bg-secondary: #141414;
+      --bg-tertiary: #1a1a1a;
+      --fg: #fafafa;
+      --fg-muted: #a1a1aa;
+      --border: #27272a;
+      --success: #34d399;
+      --danger: #f87171;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Mundial', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+      padding: 48px 24px;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    .breadcrumb {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin-bottom: 24px;
+    }
+    .breadcrumb a { color: var(--brand); text-decoration: none; }
+
+    h1 {
+      font-family: 'Brice', sans-serif;
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--fg-muted);
+      margin-bottom: 48px;
+    }
+
+    .demo-section {
+      margin-bottom: 48px;
+    }
+
+    .demo-section h2 {
+      font-family: 'Brice', sans-serif;
+      font-size: 18px;
+      color: var(--brand);
+      margin-bottom: 16px;
+    }
+
+    .demo-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    /* Stat Card Styles */
+    .stats-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stats-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .stats-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .stats-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+    .stat-card {
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .stat-subvalue {
+      font-size: 12px;
+      color: var(--fg-muted);
+      margin-top: 2px;
+    }
+
+    .stat-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .stat-change.positive { color: var(--success); }
+    .stat-change.negative { color: var(--danger); }
+
+    .note {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+
+    .specs {
+      margin-top: 48px;
+    }
+
+    .specs h2 {
+      font-family: 'Brice', sans-serif;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    .specs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .specs-table th,
+    .specs-table td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .specs-table th {
+      color: var(--fg-muted);
+      font-weight: 400;
+    }
+
+    .specs-table code {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="index.html">Design System</a> / Stat Cards
+    </nav>
+
+    <h1>Stat Cards</h1>
+    <p class="subtitle">Key metrics displayed in responsive grid layouts</p>
+
+    <div class="demo-section">
+      <h2>2-Column Grid</h2>
+      <div class="demo-card">
+        <div class="stats-grid cols-2">
+          <div class="stat-card">
+            <div class="stat-label">Current Floor</div>
+            <div class="stat-value">1.25 ETH</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">7D Average</div>
+            <div class="stat-value">1.18 ETH</div>
+          </div>
+        </div>
+      </div>
+      <p class="note">Used for: FloorPriceChart, PriceHistoryChart, VolumeChart, SalesVolumeChart</p>
+    </div>
+
+    <div class="demo-section">
+      <h2>3-Column Grid</h2>
+      <div class="demo-card">
+        <div class="stats-grid cols-3">
+          <div class="stat-card">
+            <div class="stat-label">Total Holders</div>
+            <div class="stat-value">3,847</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Single NFT</div>
+            <div class="stat-value">65%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Whales (11+)</div>
+            <div class="stat-value">5.0%</div>
+          </div>
+        </div>
+      </div>
+      <p class="note">Used for: HolderDistributionChart, FlipTrackerChart, HoldingPeriodChart, CumulativeVolumeChart</p>
+    </div>
+
+    <div class="demo-section">
+      <h2>4-Column Grid</h2>
+      <div class="demo-card">
+        <div class="stats-grid cols-4">
+          <div class="stat-card">
+            <div class="stat-label">Avg Buyers/Day</div>
+            <div class="stat-value">12.4</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Sellers/Day</div>
+            <div class="stat-value">8.7</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">New Buyers</div>
+            <div class="stat-value">34%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Repeat</div>
+            <div class="stat-value">66%</div>
+          </div>
+        </div>
+      </div>
+      <p class="note">Used for: UniqueTradersChart</p>
+    </div>
+
+    <div class="demo-section">
+      <h2>With Subvalue</h2>
+      <div class="demo-card">
+        <div class="stats-grid cols-2">
+          <div class="stat-card">
+            <div class="stat-label">90D Total</div>
+            <div class="stat-value">847</div>
+            <div class="stat-subvalue">9.4/day</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Volume</div>
+            <div class="stat-value">1,234 ETH</div>
+            <div class="stat-subvalue">$2.8M USD</div>
+          </div>
+        </div>
+      </div>
+      <p class="note">Subvalues show secondary context like daily averages or currency conversions.</p>
+    </div>
+
+    <div class="demo-section">
+      <h2>With Change Indicator</h2>
+      <div class="demo-card">
+        <div class="stats-grid cols-2">
+          <div class="stat-card">
+            <div class="stat-label">Last 7 Days</div>
+            <div class="stat-value">89</div>
+            <div class="stat-change positive">+12.5%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Last 7 Days</div>
+            <div class="stat-value">156 ETH</div>
+            <div class="stat-change negative">-8.3%</div>
+          </div>
+        </div>
+      </div>
+      <p class="note">Change indicators show week-over-week trends. Positive = green, Negative = red.</p>
+    </div>
+
+    <section class="specs">
+      <h2>Specifications</h2>
+      <table class="specs-table">
+        <tr>
+          <th>Property</th>
+          <th>Value</th>
+        </tr>
+        <tr>
+          <td>Grid gap</td>
+          <td>12px (<code>gap-3</code>)</td>
+        </tr>
+        <tr>
+          <td>Card padding</td>
+          <td>16px (<code>p-4</code>)</td>
+        </tr>
+        <tr>
+          <td>Card background</td>
+          <td>var(--bg-tertiary) <code>#1a1a1a</code></td>
+        </tr>
+        <tr>
+          <td>Card border-radius</td>
+          <td>12px (<code>rounded-xl</code>)</td>
+        </tr>
+        <tr>
+          <td>Label font-size</td>
+          <td>11px</td>
+        </tr>
+        <tr>
+          <td>Label color</td>
+          <td>var(--fg-muted) <code>#a1a1aa</code></td>
+        </tr>
+        <tr>
+          <td>Value font-size</td>
+          <td>20px</td>
+        </tr>
+        <tr>
+          <td>Value font-weight</td>
+          <td>700 (bold)</td>
+        </tr>
+        <tr>
+          <td>Subvalue font-size</td>
+          <td>12px</td>
+        </tr>
+        <tr>
+          <td>Change indicator font-size</td>
+          <td>12px</td>
+        </tr>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

@@ -77,7 +77,7 @@ export function FloorPriceChart() {
     <StandardChartCard
       title="Floor Price"
       href="/charts/floor-price"
-      description="Lowest sale price each day + 7D trend line"
+      description="Daily minimum sale price with 7-day moving average"
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}

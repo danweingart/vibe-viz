@@ -123,7 +123,7 @@ export function PriceVolatilityChart() {
     <StandardChartCard
       title="Grail Activity"
       href="/charts/grail-activity"
-      description="7-day rolling avg of daily highs & lows"
+      description="High-value sale activity with smoothed daily range"
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}

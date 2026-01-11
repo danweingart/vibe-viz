@@ -143,7 +143,7 @@ export function HoldingPeriodChart() {
     <StandardChartCard
       title="Holding Period"
       href="/charts/holding-period"
-      description="Time between buy and sell for resales within this period"
+      description="Hold duration distribution for resold tokens"
       legend={legendItems}
       exportConfig={exportConfig}
       isLoading={isLoading}

@@ -6,29 +6,30 @@ import { StandardChartCard } from "@/components/charts/StandardChartCard";
 import { useMarketIndicators } from "@/hooks";
 import { CHART_COLORS } from "@/lib/constants";
 
-// Gauge component for circular progress indicators
+// Gauge component - responsive size based on container
 function Gauge({
   value,
   max,
   label,
   color,
-  size = 175,
 }: {
   value: number;
   max: number;
   label: string;
   color: string;
-  size?: number;
 }) {
-  const radius = (size - 10) / 2;
+  // Use viewBox for responsive SVG that scales with container
+  const size = 100; // Internal coordinate system
+  const radius = (size - 12) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = (value / max) * circumference;
   const strokeDashoffset = circumference - progress;
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} className="transform -rotate-90">
+    <div className="flex flex-col items-center h-full justify-center">
+      <div className="relative w-full aspect-square max-w-[140px] sm:max-w-[180px]">
+        <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full transform -rotate-90">
+          {/* Background circle */}
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -37,6 +38,7 @@ function Gauge({
             stroke="#27272a"
             strokeWidth="6"
           />
+          {/* Progress circle */}
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -50,11 +52,12 @@ function Gauge({
             className="transition-all duration-500"
           />
         </svg>
+        {/* Center value */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xl font-bold" style={{ color }}>{value}</span>
+          <span className="text-lg sm:text-2xl font-bold" style={{ color }}>{value}</span>
         </div>
       </div>
-      <span className="text-xs text-foreground-muted mt-1">{label}</span>
+      <span className="text-xs text-foreground-muted mt-2">{label}</span>
     </div>
   );
 }
@@ -156,7 +159,7 @@ export function MarketIndicatorsChart() {
     <StandardChartCard
       title="Market Indicators"
       href="/charts/market-indicators"
-      description="RSI, momentum & liquidity scores for market sentiment"
+      description="Technical indicators for market health assessment"
       badge={data && <TrendBadge trend={data.priceTrend} type="price" />}
       exportConfig={exportConfig}
       isLoading={isLoading}
@@ -165,11 +168,11 @@ export function MarketIndicatorsChart() {
       emptyMessage="Failed to load indicators"
     >
       {data && (
-        <>
-          {/* Gauges row */}
-          <div className="grid grid-cols-3 gap-3 mb-3">
+        <div className="h-full flex flex-col">
+          {/* Gauges row - takes available space */}
+          <div className="flex-1 grid grid-cols-3 gap-2 min-h-0">
             <button
-              className="relative flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
+              className="flex flex-col items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => setExpandedDef(expandedDef === "rsi" ? null : "rsi")}
             >
               <Gauge value={data.rsi} max={100} label="RSI (14D)" color={rsiColor} />
@@ -180,7 +183,7 @@ export function MarketIndicatorsChart() {
             </button>
 
             <button
-              className="relative flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
+              className="flex flex-col items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => setExpandedDef(expandedDef === "momentum" ? null : "momentum")}
             >
               <Gauge
@@ -196,7 +199,7 @@ export function MarketIndicatorsChart() {
             </button>
 
             <button
-              className="relative flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
+              className="flex flex-col items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => setExpandedDef(expandedDef === "liquidity" ? null : "liquidity")}
             >
               <Gauge
@@ -214,14 +217,14 @@ export function MarketIndicatorsChart() {
 
           {/* Expanded definition */}
           {expandedDef && (
-            <div className="bg-background-tertiary rounded-lg p-2 mb-3 text-xs export-hide">
+            <div className="bg-background-tertiary rounded-lg p-2 my-3 text-xs export-hide shrink-0">
               <p className="font-bold text-foreground mb-1">{INDICATOR_DEFS[expandedDef as keyof typeof INDICATOR_DEFS].title}</p>
               <p className="text-foreground-muted leading-relaxed">{INDICATOR_DEFS[expandedDef as keyof typeof INDICATOR_DEFS].desc}</p>
             </div>
           )}
 
-          {/* Info cards */}
-          <div className="grid grid-cols-2 gap-3 mt-auto">
+          {/* Info cards - fixed at bottom */}
+          <div className="grid grid-cols-2 gap-3 mt-auto shrink-0">
             <div className="bg-background-tertiary rounded-lg p-3">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-foreground-muted">Price Trend</span>
@@ -242,7 +245,7 @@ export function MarketIndicatorsChart() {
               </p>
             </div>
           </div>
-        </>
+        </div>
       )}
     </StandardChartCard>
   );

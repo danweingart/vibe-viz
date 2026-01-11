@@ -79,7 +79,7 @@ export function PriceHistoryChart() {
     <StandardChartCard
       title="Average Sale Price"
       href="/charts/price-history"
-      description="Mean sale price per day (all sales averaged)"
+      description="Average sale price per day across all transactions"
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share Button - Vibe-Viz Design System</title>
+  <style>
+    @font-face {
+      font-family: 'Brice';
+      src: url('/fonts/Brice-Bold.woff2') format('woff2');
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: 'Mundial';
+      src: url('/fonts/Mundial-Regular.woff2') format('woff2');
+      font-weight: 400;
+    }
+
+    :root {
+      --brand: #ffe048;
+      --bg: #0a0a0a;
+      --bg-secondary: #141414;
+      --bg-tertiary: #1a1a1a;
+      --fg: #fafafa;
+      --fg-muted: #a1a1aa;
+      --border: #27272a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Mundial', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+      padding: 48px 24px;
+    }
+
+    .container { max-width: 600px; margin: 0 auto; }
+
+    .breadcrumb {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin-bottom: 24px;
+    }
+    .breadcrumb a { color: var(--brand); text-decoration: none; }
+
+    h1 {
+      font-family: 'Brice', sans-serif;
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--fg-muted);
+      margin-bottom: 48px;
+    }
+
+    .demo-section {
+      margin-bottom: 48px;
+    }
+
+    .demo-section h2 {
+      font-family: 'Brice', sans-serif;
+      font-size: 18px;
+      color: var(--brand);
+      margin-bottom: 16px;
+    }
+
+    .demo-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Share Button Styles */
+    .share-wrapper {
+      position: relative;
+    }
+
+    .share-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: transparent;
+      border: none;
+      color: var(--fg);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Mundial', sans-serif;
+      transition: background 0.15s;
+    }
+
+    .share-btn:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .share-btn .chevron {
+      transition: transform 0.15s;
+    }
+
+    .share-btn.open .chevron {
+      transform: rotate(180deg);
+    }
+
+    .share-dropdown {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      width: 160px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      z-index: 50;
+    }
+
+    .share-dropdown.hidden {
+      display: none;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--fg);
+      font-size: 14px;
+      font-family: 'Mundial', sans-serif;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s;
+    }
+
+    .dropdown-item:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .dropdown-item.loading {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--fg);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .note {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+
+    .specs {
+      margin-top: 48px;
+    }
+
+    .specs h2 {
+      font-family: 'Brice', sans-serif;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    .specs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .specs-table th,
+    .specs-table td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .specs-table th {
+      color: var(--fg-muted);
+      font-weight: 400;
+    }
+
+    .specs-table code {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="index.html">Design System</a> / Share Button
+    </nav>
+
+    <h1>Share Button</h1>
+    <p class="subtitle">Unified dropdown for download and social sharing</p>
+
+    <div class="demo-section">
+      <h2>Closed State</h2>
+      <div class="demo-card">
+        <div class="share-wrapper">
+          <button class="share-btn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            <span>Share</span>
+            <svg class="chevron" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <p class="note">Default state. Shows share icon, label, and chevron indicator.</p>
+    </div>
+
+    <div class="demo-section">
+      <h2>Open State (Dropdown Visible)</h2>
+      <div class="demo-card">
+        <div class="share-wrapper">
+          <button class="share-btn open">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            <span>Share</span>
+            <svg class="chevron" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="share-dropdown">
+            <button class="dropdown-item">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Download PNG
+            </button>
+            <button class="dropdown-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              Share to X
+            </button>
+          </div>
+        </div>
+      </div>
+      <p class="note">Chevron rotates 180deg. Dropdown positioned right-aligned below button.</p>
+    </div>
+
+    <div class="demo-section">
+      <h2>Loading State (Downloading)</h2>
+      <div class="demo-card">
+        <div class="share-wrapper">
+          <button class="share-btn open">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            <span>Share</span>
+            <svg class="chevron" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="share-dropdown">
+            <button class="dropdown-item loading">
+              <div class="spinner"></div>
+              Download PNG
+            </button>
+            <button class="dropdown-item" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              Share to X
+            </button>
+          </div>
+        </div>
+      </div>
+      <p class="note">Icon replaced with spinner. Both options disabled during loading.</p>
+    </div>
+
+    <section class="specs">
+      <h2>Specifications</h2>
+      <table class="specs-table">
+        <tr>
+          <th>Property</th>
+          <th>Value</th>
+        </tr>
+        <tr>
+          <td>Button padding</td>
+          <td>6px 10px</td>
+        </tr>
+        <tr>
+          <td>Button border-radius</td>
+          <td>6px</td>
+        </tr>
+        <tr>
+          <td>Icon size</td>
+          <td>16px</td>
+        </tr>
+        <tr>
+          <td>Chevron size</td>
+          <td>12px</td>
+        </tr>
+        <tr>
+          <td>Dropdown width</td>
+          <td>160px</td>
+        </tr>
+        <tr>
+          <td>Dropdown offset</td>
+          <td>4px from button</td>
+        </tr>
+        <tr>
+          <td>Dropdown item padding</td>
+          <td>8px 12px</td>
+        </tr>
+        <tr>
+          <td>Dropdown border-radius</td>
+          <td>8px</td>
+        </tr>
+        <tr>
+          <td>Dropdown shadow</td>
+          <td>0 4px 12px rgba(0,0,0,0.4)</td>
+        </tr>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

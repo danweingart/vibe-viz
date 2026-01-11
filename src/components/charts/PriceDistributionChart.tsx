@@ -107,7 +107,7 @@ export function PriceDistributionChart() {
     <StandardChartCard
       title="Price Distribution"
       href="/charts/price-distribution"
-      description="Sale count by ETH price bucket"
+      description="Sales distribution across price ranges"
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}

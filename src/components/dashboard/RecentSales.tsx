@@ -1,41 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Card, CardHeader, CardTitle, Badge, OpenSeaIcon, Button } from "@/components/ui";
+import { Card, CardHeader, CardTitle, Badge, OpenSeaIcon } from "@/components/ui";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { SaleShareButton } from "./SaleShareButton";
 import { useRecentSales } from "@/hooks";
-import { formatEth, formatUsd, formatTimeAgo } from "@/lib/utils";
-import { exportSalesListToCanvas, shareSalesListToX } from "@/lib/salesListExport";
+import { formatUsd, formatTimeAgo } from "@/lib/utils";
 
 export function RecentSales() {
   const { data: sales, isLoading, error } = useRecentSales(8);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
-
-  const handleDownload = useCallback(async () => {
-    if (!sales || sales.length === 0) return;
-    setIsExporting(true);
-    try {
-      await exportSalesListToCanvas(sales, { type: "recent" });
-    } catch (error) {
-      console.error("Failed to export:", error);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [sales]);
-
-  const handleShare = useCallback(async () => {
-    if (!sales || sales.length === 0) return;
-    setIsSharing(true);
-    try {
-      await shareSalesListToX(sales, { type: "recent" });
-    } catch (error) {
-      console.error("Failed to share:", error);
-    } finally {
-      setIsSharing(false);
-    }
-  }, [sales]);
 
   if (isLoading) {
     return (
@@ -79,29 +51,7 @@ export function RecentSales() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Recent Sales</CardTitle>
-        <div className="flex items-center gap-2">
-          <Badge variant="info">{sales.length} latest</Badge>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleShare}
-              isLoading={isSharing}
-              aria-label="Share to X"
-            >
-              <XIcon className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDownload}
-              isLoading={isExporting}
-              aria-label="Download as PNG"
-            >
-              <DownloadIcon className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+        <Badge variant="info">{sales.length} latest</Badge>
       </CardHeader>
       <div className="space-y-3">
         {sales.map((sale) => (
@@ -155,21 +105,5 @@ export function RecentSales() {
         ))}
       </div>
     </Card>
-  );
-}
-
-function DownloadIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
-  );
-}
-
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
   );
 }

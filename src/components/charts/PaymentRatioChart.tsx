@@ -321,7 +321,7 @@ export function PaymentRatioChart() {
       href="/charts/payment-ratio"
       description="ETH vs WETH usage by volume (7D smoothed)"
       legend={legendItems}
-      controls={comparisonControls}
+      headerControls={comparisonControls}
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}

@@ -87,7 +87,7 @@ export function FlipTrackerChart() {
     <StandardChartCard
       title="Flip Tracker"
       href="/charts/flip-tracker"
-      description={`Tokens bought & sold within ${timeRange}D. X = hold time, Y = profit %`}
+      description="Quick resales showing hold duration vs profit margin"
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}
@@ -113,7 +113,7 @@ export function FlipTrackerChart() {
       }
     >
       <ResponsiveContainer width="100%" height="100%">
-        <ScatterChart margin={{ top: 5, right: 12, left: 0, bottom: 20 }}>
+        <ScatterChart margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
           <XAxis
             type="number"
@@ -124,7 +124,6 @@ export function FlipTrackerChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
-            label={{ value: "Hold Time (Days)", position: "bottom", fill: AXIS_STYLE.stroke, fontSize: 10 }}
           />
           <YAxis
             type="number"
@@ -137,7 +136,6 @@ export function FlipTrackerChart() {
             tickLine={AXIS_STYLE.tickLine}
             width={40}
             tickFormatter={(v) => `${v}%`}
-            label={{ value: "Return", angle: -90, position: "insideLeft", fill: AXIS_STYLE.stroke, fontSize: 10 }}
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}

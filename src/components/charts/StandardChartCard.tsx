@@ -4,7 +4,7 @@ import { useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardHeader, CardDescription } from "@/components/ui";
-import { ChartExportButtons } from "@/components/charts/ChartExportButtons";
+import { ShareButton } from "@/components/charts/ShareButton";
 import type { ChartExportConfig, LegendItem as ExportLegendItem } from "@/lib/chartExport/types";
 import { EXPORT_BRANDING } from "@/lib/chartConfig";
 
@@ -28,7 +28,8 @@ export interface StandardChartCardProps {
   badge?: React.ReactNode;
 
   // Optional - controls (placed outside export area)
-  controls?: React.ReactNode; // View toggles, comparison buttons
+  headerControls?: React.ReactNode; // View toggles placed in header near Share button
+  controls?: React.ReactNode; // Additional controls in legend row (legacy)
   legend?: LegendItem[];
   onLegendToggle?: (key: string) => void;
 
@@ -57,6 +58,7 @@ export function StandardChartCard({
   description,
   href,
   badge,
+  headerControls,
   controls,
   legend,
   onLegendToggle,
@@ -178,40 +180,41 @@ export function StandardChartCard({
           </div>
           {description && <CardDescription>{description}</CardDescription>}
         </div>
-        {finalExportConfig && (
-          <ChartExportButtons chartRef={chartRef} config={finalExportConfig} />
-        )}
+        <div className="flex items-center gap-2">
+          {headerControls}
+          {finalExportConfig && (
+            <ShareButton chartRef={chartRef} config={finalExportConfig} />
+          )}
+        </div>
       </CardHeader>
 
-      {/* Controls row - OUTSIDE chartRef, excluded from export */}
-      {(controls || legend) && (
-        <div className="flex items-center justify-between px-3 mb-3 gap-4">
-          {legend && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {legend.map((item) => (
-                <button
-                  key={item.key}
-                  onClick={() => onLegendToggle?.(item.key)}
-                  className={`flex items-center gap-1.5 px-2 py-1 rounded-full border border-border text-xs transition-all
-                    ${
-                      item.active !== false
-                        ? "bg-background-tertiary"
-                        : "opacity-50 text-foreground-muted"
-                    }
-                    ${onLegendToggle ? "hover:bg-background-tertiary cursor-pointer" : "cursor-default"}
-                  `}
-                  disabled={!onLegendToggle}
-                  type="button"
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="font-mundial">{item.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Legend row - OUTSIDE chartRef, excluded from export */}
+      {legend && (
+        <div className={`flex items-center px-3 mb-3 gap-4 ${controls ? "justify-between" : "justify-center"}`}>
+          <div className="flex items-center gap-2 flex-wrap justify-center">
+            {legend.map((item) => (
+              <button
+                key={item.key}
+                onClick={() => onLegendToggle?.(item.key)}
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-full border border-border text-xs transition-all
+                  ${
+                    item.active !== false
+                      ? "bg-background-tertiary"
+                      : "opacity-50 text-foreground-muted"
+                  }
+                  ${onLegendToggle ? "hover:bg-background-tertiary cursor-pointer" : "cursor-default"}
+                `}
+                disabled={!onLegendToggle}
+                type="button"
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="font-mundial">{item.label}</span>
+              </button>
+            ))}
+          </div>
           {controls && <div className="flex items-center gap-2">{controls}</div>}
         </div>
       )}

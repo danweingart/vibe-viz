@@ -102,7 +102,7 @@ export function WhaleActivityChart() {
       href="/charts/whale-activity"
       description={`Largest wallets ranked by total ${viewMode === "buyers" ? "buy" : "sell"} volume`}
       legend={legendItems}
-      controls={viewToggle}
+      headerControls={viewToggle}
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}

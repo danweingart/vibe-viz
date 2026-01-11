@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typography - Vibe-Viz Design System</title>
+  <style>
+    @font-face {
+      font-family: 'Brice';
+      src: url('/fonts/Brice-Bold.woff2') format('woff2');
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: 'Mundial';
+      src: url('/fonts/Mundial-Regular.woff2') format('woff2');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'Mundial';
+      src: url('/fonts/Mundial-Bold.woff2') format('woff2');
+      font-weight: 700;
+    }
+
+    :root {
+      --brand: #ffe048;
+      --bg: #0a0a0a;
+      --bg-secondary: #141414;
+      --bg-tertiary: #1a1a1a;
+      --fg: #fafafa;
+      --fg-muted: #a1a1aa;
+      --border: #27272a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Mundial', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+      padding: 48px 24px;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; }
+
+    .breadcrumb {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin-bottom: 24px;
+    }
+    .breadcrumb a { color: var(--brand); text-decoration: none; }
+
+    h1 {
+      font-family: 'Brice', sans-serif;
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--fg-muted);
+      margin-bottom: 48px;
+    }
+
+    .font-section {
+      margin-bottom: 64px;
+    }
+
+    .font-section h2 {
+      font-family: 'Brice', sans-serif;
+      font-size: 20px;
+      color: var(--brand);
+      margin-bottom: 24px;
+    }
+
+    .type-sample {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .type-sample .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .type-sample .name {
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+
+    .type-sample .specs {
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--fg-muted);
+    }
+
+    .type-sample .preview {
+      color: var(--fg);
+    }
+
+    .brice { font-family: 'Brice', sans-serif; }
+    .mundial { font-family: 'Mundial', sans-serif; }
+
+    .scale-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 48px;
+    }
+
+    .scale-table th,
+    .scale-table td {
+      text-align: left;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .scale-table th {
+      color: var(--fg-muted);
+      font-weight: 400;
+    }
+
+    .scale-table code {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .scale-table .sample {
+      color: var(--fg);
+    }
+
+    .scale-table .sample.brice {
+      font-family: 'Brice', sans-serif;
+    }
+
+    .scale-table .sample.mundial {
+      font-family: 'Mundial', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="index.html">Design System</a> / Typography
+    </nav>
+
+    <h1>Typography</h1>
+    <p class="subtitle">Font families and scale from chartConfig.ts</p>
+
+    <section class="font-section">
+      <h2>Brice Bold</h2>
+      <div class="type-sample">
+        <div class="meta">
+          <span class="name">Headings & Titles</span>
+          <span class="specs">font-weight: 700</span>
+        </div>
+        <p class="preview brice" style="font-size: 36px;">Good Vibes Club</p>
+      </div>
+      <div class="type-sample">
+        <div class="meta">
+          <span class="name">Card Titles</span>
+          <span class="specs">18px</span>
+        </div>
+        <p class="preview brice" style="font-size: 18px;">Floor Price</p>
+      </div>
+      <div class="type-sample">
+        <div class="meta">
+          <span class="name">Section Headers</span>
+          <span class="specs">16px</span>
+        </div>
+        <p class="preview brice" style="font-size: 16px;">Price & Volume</p>
+      </div>
+    </section>
+
+    <section class="font-section">
+      <h2>Mundial</h2>
+      <div class="type-sample">
+        <div class="meta">
+          <span class="name">Body Text (Regular)</span>
+          <span class="specs">font-weight: 400</span>
+        </div>
+        <p class="preview mundial" style="font-size: 16px;">Average sale price per day across all transactions. Tracking floor price movements and market sentiment indicators for the Good Vibes Club collection.</p>
+      </div>
+      <div class="type-sample">
+        <div class="meta">
+          <span class="name">Bold Values</span>
+          <span class="specs">font-weight: 700</span>
+        </div>
+        <p class="preview mundial" style="font-size: 20px; font-weight: 700;">1.25 ETH</p>
+      </div>
+    </section>
+
+    <h2 class="brice" style="font-size: 20px; margin-bottom: 24px;">Typography Scale</h2>
+
+    <table class="scale-table">
+      <thead>
+        <tr>
+          <th>Element</th>
+          <th>Size</th>
+          <th>Font</th>
+          <th>Sample</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Page Title</td>
+          <td>36px</td>
+          <td>Brice Bold</td>
+          <td><span class="sample brice" style="font-size: 24px;">Good Vibes Club</span></td>
+        </tr>
+        <tr>
+          <td>Card Title</td>
+          <td>18px</td>
+          <td>Brice Bold</td>
+          <td><span class="sample brice" style="font-size: 18px;">Floor Price</span></td>
+        </tr>
+        <tr>
+          <td>Section Title</td>
+          <td>16px</td>
+          <td>Brice Bold</td>
+          <td><span class="sample brice" style="font-size: 16px;">Price & Volume</span></td>
+        </tr>
+        <tr>
+          <td>Card Description</td>
+          <td>13px</td>
+          <td>Mundial Regular</td>
+          <td><span class="sample mundial" style="font-size: 13px; color: var(--fg-muted);">Daily minimum sale price with 7-day moving average</span></td>
+        </tr>
+        <tr>
+          <td>Stat Value</td>
+          <td>20px</td>
+          <td>Mundial Bold</td>
+          <td><span class="sample mundial" style="font-size: 20px; font-weight: 700;">1.25 ETH</span></td>
+        </tr>
+        <tr>
+          <td>Stat Label</td>
+          <td>11px</td>
+          <td>Mundial Medium</td>
+          <td><span class="sample mundial" style="font-size: 11px; color: var(--fg-muted); text-transform: uppercase;">CURRENT FLOOR</span></td>
+        </tr>
+        <tr>
+          <td>Legend Text</td>
+          <td>12px</td>
+          <td>Mundial Regular</td>
+          <td><span class="sample mundial" style="font-size: 12px;">Floor Price</span></td>
+        </tr>
+        <tr>
+          <td>Axis Labels</td>
+          <td>11px</td>
+          <td>Mundial Regular</td>
+          <td><span class="sample mundial" style="font-size: 11px; color: var(--fg-muted);">Jan 5</span></td>
+        </tr>
+        <tr>
+          <td>Tooltip Label</td>
+          <td>12px</td>
+          <td>Mundial Regular</td>
+          <td><span class="sample mundial" style="font-size: 12px;">January 5, 2024</span></td>
+        </tr>
+        <tr>
+          <td>Tooltip Value</td>
+          <td>11px</td>
+          <td>Mundial Regular</td>
+          <td><span class="sample mundial" style="font-size: 11px;">1.25 ETH</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart Anatomy - Vibe-Viz Design System</title>
+  <style>
+    @font-face {
+      font-family: 'Brice';
+      src: url('/fonts/Brice-Bold.woff2') format('woff2');
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: 'Mundial';
+      src: url('/fonts/Mundial-Regular.woff2') format('woff2');
+      font-weight: 400;
+    }
+
+    :root {
+      --brand: #ffe048;
+      --bg: #0a0a0a;
+      --bg-secondary: #141414;
+      --bg-tertiary: #1a1a1a;
+      --fg: #fafafa;
+      --fg-muted: #a1a1aa;
+      --border: #27272a;
+      --border-light: #3f3f46;
+      --success: #34d399;
+      --danger: #f87171;
+      --info: #60a5fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Mundial', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+      padding: 48px 24px;
+    }
+
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    .breadcrumb {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin-bottom: 24px;
+    }
+    .breadcrumb a { color: var(--brand); text-decoration: none; }
+
+    h1 {
+      font-family: 'Brice', sans-serif;
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--fg-muted);
+      margin-bottom: 48px;
+    }
+
+    .section {
+      margin-bottom: 64px;
+    }
+
+    .section h2 {
+      font-family: 'Brice', sans-serif;
+      font-size: 20px;
+      margin-bottom: 24px;
+      color: var(--brand);
+    }
+
+    /* Chart Card Demo */
+    .chart-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 16px;
+    }
+
+    .chart-title {
+      font-family: 'Brice', sans-serif;
+      font-size: 18px;
+    }
+
+    .chart-description {
+      font-size: 13px;
+      color: var(--fg-muted);
+      margin-top: 4px;
+    }
+
+    .share-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: transparent;
+      border: none;
+      color: var(--fg);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .share-btn:hover { background: var(--bg-tertiary); }
+
+    .legend-row {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 12px 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      background: var(--bg-tertiary);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .chart-container {
+      margin: 0 12px 12px;
+      padding: 12px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed var(--border);
+    }
+
+    .chart-placeholder {
+      color: var(--fg-muted);
+      font-size: 14px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 0 16px 16px;
+    }
+
+    .stat-card {
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    /* Measurement Annotations */
+    .annotated {
+      position: relative;
+    }
+
+    .measurement {
+      position: absolute;
+      background: var(--danger);
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    .measurement-line {
+      position: absolute;
+      background: var(--danger);
+    }
+
+    /* Specs Table */
+    .specs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .specs-table th,
+    .specs-table td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .specs-table th {
+      color: var(--fg-muted);
+      font-weight: 400;
+    }
+
+    .specs-table code {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="index.html">Design System</a> / Chart Anatomy
+    </nav>
+
+    <h1>Chart Anatomy</h1>
+    <p class="subtitle">Card structure, padding, margins, and measurements</p>
+
+    <section class="section">
+      <h2>Complete Chart Card</h2>
+      <div class="chart-card annotated">
+        <!-- Header -->
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Floor Price</div>
+            <div class="chart-description">Daily minimum sale price with 7-day moving average</div>
+          </div>
+          <button class="share-btn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            Share
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Legend Row (Centered) -->
+        <div class="legend-row">
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #ffe048;"></span>
+            <span>Floor Price</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #60a5fa;"></span>
+            <span>7D MA</span>
+          </div>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="chart-container">
+          <span class="chart-placeholder">Chart visualization area<br>min-height: 280px (mobile) / 360px (desktop)</span>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Current Floor</div>
+            <div class="stat-value">1.25 ETH</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">7D Average</div>
+            <div class="stat-value">1.18 ETH</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Measurements</h2>
+      <table class="specs-table">
+        <tr>
+          <th>Element</th>
+          <th>Value</th>
+          <th>CSS</th>
+        </tr>
+        <tr>
+          <td>Card border radius</td>
+          <td>12px</td>
+          <td><code>rounded-xl</code></td>
+        </tr>
+        <tr>
+          <td>Header padding</td>
+          <td>16px</td>
+          <td><code>p-4</code></td>
+        </tr>
+        <tr>
+          <td>Legend row padding</td>
+          <td>0 12px 12px</td>
+          <td><code>px-3 pb-3</code></td>
+        </tr>
+        <tr>
+          <td>Legend gap</td>
+          <td>8px</td>
+          <td><code>gap-2</code></td>
+        </tr>
+        <tr>
+          <td>Chart container margin</td>
+          <td>0 12px 12px</td>
+          <td><code>mx-3 mb-3</code></td>
+        </tr>
+        <tr>
+          <td>Chart container padding</td>
+          <td>12px</td>
+          <td><code>p-3</code></td>
+        </tr>
+        <tr>
+          <td>Chart min-height (mobile)</td>
+          <td>280px</td>
+          <td><code>min-h-[280px]</code></td>
+        </tr>
+        <tr>
+          <td>Chart min-height (desktop)</td>
+          <td>360px</td>
+          <td><code>sm:min-h-[360px]</code></td>
+        </tr>
+        <tr>
+          <td>Stats grid gap</td>
+          <td>12px</td>
+          <td><code>gap-3</code></td>
+        </tr>
+        <tr>
+          <td>Stats card padding</td>
+          <td>16px</td>
+          <td><code>p-4</code></td>
+        </tr>
+        <tr>
+          <td>Stats card radius</td>
+          <td>12px</td>
+          <td><code>rounded-xl</code></td>
+        </tr>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Typography Scale</h2>
+      <table class="specs-table">
+        <tr>
+          <th>Element</th>
+          <th>Size</th>
+          <th>Font</th>
+        </tr>
+        <tr>
+          <td>Card title</td>
+          <td>18px (lg)</td>
+          <td>Brice Bold</td>
+        </tr>
+        <tr>
+          <td>Card description</td>
+          <td>13px</td>
+          <td>Mundial Regular</td>
+        </tr>
+        <tr>
+          <td>Legend text</td>
+          <td>12px</td>
+          <td>Mundial Regular</td>
+        </tr>
+        <tr>
+          <td>Stat label</td>
+          <td>11px</td>
+          <td>Mundial Medium</td>
+        </tr>
+        <tr>
+          <td>Stat value</td>
+          <td>20px</td>
+          <td>Mundial Bold</td>
+        </tr>
+        <tr>
+          <td>Axis labels</td>
+          <td>11px</td>
+          <td>Mundial Regular</td>
+        </tr>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

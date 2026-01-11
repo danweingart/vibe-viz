@@ -55,7 +55,7 @@ export function HolderDistributionChart() {
     <StandardChartCard
       title="Holder Distribution"
       href="/charts/holder-distribution"
-      description="Count of wallets by how many NFTs they hold"
+      description="Wallet distribution by collection size"
       badge={<span className="px-1.5 py-0.5 text-[9px] bg-chart-accent/20 text-chart-accent rounded">Estimated</span>}
       legend={legendItems}
       exportConfig={exportConfig}

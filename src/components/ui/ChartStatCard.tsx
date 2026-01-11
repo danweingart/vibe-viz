@@ -61,7 +61,7 @@ export function ChartStatGrid({ children, columns = 2 }: ChartStatGridProps) {
   };
 
   return (
-    <div className={`grid ${gridCols[columns]} gap-3 mt-4`}>
+    <div className={`grid ${gridCols[columns]} gap-3 mt-2`}>
       {children}
     </div>
   );

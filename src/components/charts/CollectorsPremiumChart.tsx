@@ -30,7 +30,6 @@ function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] 
 
 interface PremiumChartRowProps {
   data: Array<{ date: string; value: number; basketValue?: number }>;
-  dataKey: string;
   label: string;
   color: string;
   avg: number;
@@ -41,7 +40,6 @@ interface PremiumChartRowProps {
 
 function PremiumChartRow({
   data,
-  dataKey,
   label,
   color,
   avg,
@@ -50,7 +48,7 @@ function PremiumChartRow({
   showComparison = false,
 }: PremiumChartRowProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 h-full">
       {/* Y-axis label */}
       <div className="w-16 shrink-0 text-right">
         <p className="text-[10px] text-foreground-muted leading-none">{label}</p>
@@ -62,8 +60,8 @@ function PremiumChartRow({
         </p>
       </div>
 
-      {/* Chart */}
-      <div className="flex-1 h-[127px]">
+      {/* Chart - fills remaining space */}
+      <div className="flex-1 h-full min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={CHART_MARGINS.default}>
             <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
@@ -235,57 +233,57 @@ export function CollectorsPremiumChart() {
       title="Collector's Premium"
       href="/charts/collectors-premium"
       description="% of daily sales priced above floor (7D smoothed)"
-      controls={comparisonToggle}
+      headerControls={comparisonToggle}
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
       isEmpty={!data || data.length === 0}
       emptyMessage="No data available"
     >
-      {/* Comparison legend when active */}
-      {showComparison && !basketLoading && (
-        <div className="flex items-center gap-4 mb-1 text-xs">
-          <div className="flex items-center gap-1.5">
-            <div className="w-4 h-0.5 bg-brand rounded" />
-            <span className="text-foreground-muted">GVC</span>
+      {/* Full-height container using CSS Grid for equal row distribution */}
+      <div className="h-full flex flex-col">
+        {/* Comparison legend when active */}
+        {showComparison && !basketLoading && (
+          <div className="flex items-center gap-4 mb-2 text-xs shrink-0">
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-0.5 bg-brand rounded" />
+              <span className="text-foreground-muted">GVC</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-0.5 rounded bg-foreground-muted/50" style={{ backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 2px, #71717a 2px, #71717a 4px)" }} />
+              <span className="text-foreground-muted">Leading ETH</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-4 h-0.5 rounded bg-foreground-muted/50" style={{ backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 2px, #71717a 2px, #71717a 4px)" }} />
-            <span className="text-foreground-muted">Leading ETH</span>
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* Three stacked line charts */}
-      <div className="space-y-0">
-        <PremiumChartRow
-          data={data10}
-          dataKey="salesAbove10Pct"
-          label=">10%"
-          color={CHART_COLORS.success}
-          avg={avg10}
-          basketAvg={basketAvg10}
-          showComparison={showComparison && !basketLoading}
-        />
-        <PremiumChartRow
-          data={data25}
-          dataKey="salesAbove25Pct"
-          label=">25%"
-          color={CHART_COLORS.primary}
-          avg={avg25}
-          basketAvg={basketAvg25}
-          showComparison={showComparison && !basketLoading}
-        />
-        <PremiumChartRow
-          data={data50}
-          dataKey="salesAbove50Pct"
-          label=">50%"
-          color={CHART_COLORS.accent}
-          avg={avg50}
-          basketAvg={basketAvg50}
-          showComparison={showComparison && !basketLoading}
-          showXAxis={true}
-        />
+        {/* Three stacked charts using grid with equal rows */}
+        <div className="flex-1 grid grid-rows-3 gap-1 min-h-0">
+          <PremiumChartRow
+            data={data10}
+            label=">10%"
+            color={CHART_COLORS.success}
+            avg={avg10}
+            basketAvg={basketAvg10}
+            showComparison={showComparison && !basketLoading}
+          />
+          <PremiumChartRow
+            data={data25}
+            label=">25%"
+            color={CHART_COLORS.primary}
+            avg={avg25}
+            basketAvg={basketAvg25}
+            showComparison={showComparison && !basketLoading}
+          />
+          <PremiumChartRow
+            data={data50}
+            label=">50%"
+            color={CHART_COLORS.accent}
+            avg={avg50}
+            basketAvg={basketAvg50}
+            showComparison={showComparison && !basketLoading}
+            showXAxis={true}
+          />
+        </div>
       </div>
     </StandardChartCard>
   );

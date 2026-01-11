@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legend Styles - Vibe-Viz Design System</title>
+  <style>
+    @font-face {
+      font-family: 'Brice';
+      src: url('/fonts/Brice-Bold.woff2') format('woff2');
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: 'Mundial';
+      src: url('/fonts/Mundial-Regular.woff2') format('woff2');
+      font-weight: 400;
+    }
+
+    :root {
+      --brand: #ffe048;
+      --bg: #0a0a0a;
+      --bg-secondary: #141414;
+      --bg-tertiary: #1a1a1a;
+      --fg: #fafafa;
+      --fg-muted: #a1a1aa;
+      --border: #27272a;
+      --success: #34d399;
+      --danger: #f87171;
+      --info: #60a5fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Mundial', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+      padding: 48px 24px;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; }
+
+    .breadcrumb {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin-bottom: 24px;
+    }
+    .breadcrumb a { color: var(--brand); text-decoration: none; }
+
+    h1 {
+      font-family: 'Brice', sans-serif;
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--fg-muted);
+      margin-bottom: 48px;
+    }
+
+    .demo-section {
+      margin-bottom: 48px;
+    }
+
+    .demo-section h2 {
+      font-family: 'Brice', sans-serif;
+      font-size: 18px;
+      color: var(--brand);
+      margin-bottom: 16px;
+    }
+
+    .demo-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .legend-row {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      background: var(--bg-tertiary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .legend-item:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--border-light);
+    }
+
+    .legend-item.inactive {
+      opacity: 0.5;
+      background: transparent;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .note {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+
+    .specs {
+      margin-top: 48px;
+    }
+
+    .specs h2 {
+      font-family: 'Brice', sans-serif;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    .specs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .specs-table th,
+    .specs-table td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .specs-table th {
+      color: var(--fg-muted);
+      font-weight: 400;
+    }
+
+    .specs-table code {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="index.html">Design System</a> / Legend Styles
+    </nav>
+
+    <h1>Legend Styles</h1>
+    <p class="subtitle">Centered legend toggles with interactive states</p>
+
+    <div class="demo-section">
+      <h2>Single Item Legend</h2>
+      <div class="demo-card">
+        <div class="legend-row">
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #ffe048;"></span>
+            <span>Daily Volume</span>
+          </div>
+        </div>
+      </div>
+      <p class="note">Used for: VolumeChart, PriceHistoryChart, CumulativeVolumeChart</p>
+    </div>
+
+    <div class="demo-section">
+      <h2>Two Item Legend</h2>
+      <div class="demo-card">
+        <div class="legend-row">
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #ffe048;"></span>
+            <span>Floor Price</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #60a5fa;"></span>
+            <span>7D MA</span>
+          </div>
+        </div>
+      </div>
+      <p class="note">Used for: FloorPriceChart, SalesVelocityChart, PaymentRatioChart, MarketDepthChart</p>
+    </div>
+
+    <div class="demo-section">
+      <h2>Three Item Legend</h2>
+      <div class="demo-card">
+        <div class="legend-row">
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #34d399;"></span>
+            <span>Buyers</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #f87171;"></span>
+            <span>Sellers</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #60a5fa;"></span>
+            <span>New</span>
+          </div>
+        </div>
+      </div>
+      <p class="note">Used for: UniqueTradersChart, HoldingPeriodChart</p>
+    </div>
+
+    <div class="demo-section">
+      <h2>Interactive State (One Disabled)</h2>
+      <div class="demo-card">
+        <div class="legend-row">
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #34d399;"></span>
+            <span>Profit</span>
+          </div>
+          <div class="legend-item inactive">
+            <span class="legend-dot" style="background: #f87171;"></span>
+            <span>Loss</span>
+          </div>
+        </div>
+      </div>
+      <p class="note">Click legend items to toggle series visibility. Inactive items have 50% opacity.</p>
+    </div>
+
+    <section class="specs">
+      <h2>Specifications</h2>
+      <table class="specs-table">
+        <tr>
+          <th>Property</th>
+          <th>Value</th>
+        </tr>
+        <tr>
+          <td>Container alignment</td>
+          <td><code>justify-center</code></td>
+        </tr>
+        <tr>
+          <td>Item gap</td>
+          <td>8px (<code>gap-2</code>)</td>
+        </tr>
+        <tr>
+          <td>Item padding</td>
+          <td>4px 8px (<code>px-2 py-1</code>)</td>
+        </tr>
+        <tr>
+          <td>Item border</td>
+          <td>1px solid var(--border)</td>
+        </tr>
+        <tr>
+          <td>Item border-radius</td>
+          <td>20px (<code>rounded-full</code>)</td>
+        </tr>
+        <tr>
+          <td>Dot size</td>
+          <td>10px (<code>w-2.5 h-2.5</code>)</td>
+        </tr>
+        <tr>
+          <td>Dot-label gap</td>
+          <td>6px (<code>gap-1.5</code>)</td>
+        </tr>
+        <tr>
+          <td>Font size</td>
+          <td>12px (<code>text-xs</code>)</td>
+        </tr>
+        <tr>
+          <td>Inactive opacity</td>
+          <td>0.5 (<code>opacity-50</code>)</td>
+        </tr>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

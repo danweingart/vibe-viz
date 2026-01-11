@@ -153,7 +153,7 @@ export function SalesVolumeChart() {
       href={linkHref}
       description={description}
       legend={legendItems}
-      controls={viewToggle}
+      headerControls={viewToggle}
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}

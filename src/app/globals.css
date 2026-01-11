@@ -156,6 +156,46 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   background: radial-gradient(ellipse at center, rgba(255, 224, 72, 0.02) 0%, transparent 70%);
 }
 
+/* ===== CHART STATE STYLES ===== */
+
+/* Loading skeleton with shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.chart-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--background-secondary) 25%,
+    var(--border-light) 50%,
+    var(--background-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Static skeleton for empty states (no animation) */
+.chart-skeleton-static {
+  background: var(--background-secondary);
+  position: relative;
+}
+
+.chart-skeleton-static::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, transparent 48%, var(--border) 50%, transparent 52%),
+    linear-gradient(to bottom, transparent 48%, var(--border) 50%, transparent 52%);
+  background-size: 40px 40px;
+  opacity: 0.3;
+}
+
 /* Export-only branding - hidden by default, shown during export */
 .export-branding {
   display: none;

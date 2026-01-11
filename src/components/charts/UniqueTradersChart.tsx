@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   ComposedChart,
@@ -12,10 +12,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import Link from "next/link";
-import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
-import { ChartExportButtons } from "./ChartExportButtons";
-import { ChartSkeleton } from "@/components/ui/Skeleton";
+import { ChartStatCard, ChartStatGrid } from "@/components/ui";
+import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
 import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber } from "@/lib/utils";
@@ -23,20 +21,18 @@ import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function UniqueTradersChart() {
-  const chartRef = useRef<HTMLDivElement>(null);
   const { timeRange } = useChartSettings();
   const { data, isLoading, error } = useTraderAnalysis(timeRange);
 
-  const exportConfig = useMemo(() => ({
-    title: "Unique Traders",
-    subtitle: `Distinct wallets trading each day over ${timeRange} days`,
-    legend: [
-      { color: CHART_COLORS.success, label: "Unique Buyers", value: "Daily" },
-      { color: CHART_COLORS.danger, label: "Unique Sellers", value: "Daily" },
-      { color: CHART_COLORS.info, label: "New Buyers", value: "First-time" },
-    ],
-    filename: getChartFilename("unique-traders", timeRange),
-  }), [timeRange]);
+  const [visibleSeries, setVisibleSeries] = useState<Record<string, boolean>>({
+    buyers: true,
+    sellers: true,
+    new: true,
+  });
+
+  const handleLegendToggle = (key: string) => {
+    setVisibleSeries((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const { chartData, avgBuyers, avgSellers, newBuyerRate, isWeekly } = useMemo(() => {
     if (!data || data.dailyStats.length === 0) {
@@ -94,139 +90,140 @@ export function UniqueTradersChart() {
     };
   }, [data, timeRange]);
 
-  const legendItems = [
-    { key: "buyers", label: "Buyers", color: CHART_COLORS.success },
-    { key: "sellers", label: "Sellers", color: CHART_COLORS.danger },
-    { key: "new", label: "New", color: CHART_COLORS.info },
+  const legendItems: LegendItem[] = [
+    { key: "buyers", label: "Buyers", color: CHART_COLORS.success, active: visibleSeries.buyers },
+    { key: "sellers", label: "Sellers", color: CHART_COLORS.danger, active: visibleSeries.sellers },
+    { key: "new", label: "New", color: CHART_COLORS.info, active: visibleSeries.new },
   ];
 
-  if (isLoading) return <ChartSkeleton />;
-  if (error || !data || data.dailyStats.length === 0) {
-    return (
-      <Card>
-        <CardHeader><span className="text-lg font-bold font-brice">Unique Traders</span></CardHeader>
-        <p className="text-foreground-muted text-center py-8">No trader data available</p>
-      </Card>
-    );
-  }
+  const exportConfig = useMemo(() => ({
+    title: "Unique Traders",
+    subtitle: `Distinct wallets trading each day over ${timeRange} days`,
+    legend: [
+      { color: CHART_COLORS.success, label: "Unique Buyers", value: "Daily" },
+      { color: CHART_COLORS.danger, label: "Unique Sellers", value: "Daily" },
+      { color: CHART_COLORS.info, label: "New Buyers", value: "First-time" },
+    ],
+    filename: getChartFilename("unique-traders", timeRange),
+  }), [timeRange]);
+
+  const statsContent = data ? (
+    <ChartStatGrid columns={4}>
+      <ChartStatCard
+        label="Avg Buyers/Day"
+        value={avgBuyers.toFixed(1)}
+      />
+      <ChartStatCard
+        label="Avg Sellers/Day"
+        value={avgSellers.toFixed(1)}
+      />
+      <ChartStatCard
+        label="New Buyers"
+        value={`${newBuyerRate.toFixed(0)}%`}
+      />
+      <ChartStatCard
+        label="Repeat Buyers"
+        value={`${data.repeatBuyerRate}%`}
+      />
+    </ChartStatGrid>
+  ) : null;
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <Link href="/charts/unique-traders" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
-            Unique Traders
-          </Link>
-          <CardDescription>Distinct wallets trading {isWeekly ? "each week (avg/day)" : "each day"}</CardDescription>
-        </div>
-        <div className="flex items-center gap-3">
-          <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-        </div>
-      </CardHeader>
-
-      <div className="flex items-center px-3 mb-3">
-        <ChartLegendToggle items={legendItems} />
-      </div>
-
-      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={CHART_MARGINS.default}>
-              <CartesianGrid {...GRID_STYLE} />
-              <XAxis
-                dataKey="date"
-                stroke={AXIS_STYLE.stroke}
-                fontSize={AXIS_STYLE.fontSize}
-                fontFamily={AXIS_STYLE.fontFamily}
-                axisLine={AXIS_STYLE.axisLine}
-                tickLine={AXIS_STYLE.tickLine}
-                interval={isWeekly ? 0 : Math.max(0, Math.floor(chartData.length / 6) - 1)}
-                tickFormatter={(v) => {
-                  const date = new Date(v);
-                  if (isWeekly) {
-                    const endDate = new Date(date);
-                    endDate.setDate(date.getDate() + 6);
-                    const startStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                    const endStr = endDate.getDate().toString();
-                    return `${startStr}-${endStr}`;
-                  }
-                  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                }}
-              />
-              <YAxis
-                stroke={AXIS_STYLE.stroke}
-                fontSize={AXIS_STYLE.fontSize}
-                fontFamily={AXIS_STYLE.fontFamily}
-                axisLine={AXIS_STYLE.axisLine}
-                tickLine={AXIS_STYLE.tickLine}
-                width={40}
-              />
-              <Tooltip
-                contentStyle={getTooltipContentStyle()}
-                labelStyle={{ color: "#fafafa" }}
-                formatter={(value, name) => {
-                  const labels: Record<string, string> = {
-                    uniqueBuyers: "Unique Buyers",
-                    uniqueSellers: "Unique Sellers",
-                    newBuyers: "New Buyers",
-                  };
-                  return [formatNumber(Number(value)), labels[name as string] || name];
-                }}
-                labelFormatter={(l) => {
-                  if (isWeekly) {
-                    const date = new Date(l);
-                    const endDate = new Date(date);
-                    endDate.setDate(date.getDate() + 6);
-                    return `${formatDate(l)} - ${formatDate(endDate.toISOString())}`;
-                  }
-                  return formatDate(l);
-                }}
-              />
-              <Bar
-                dataKey="uniqueBuyers"
-                name="uniqueBuyers"
-                fill={CHART_COLORS.success}
-                radius={[4, 4, 0, 0]}
-                opacity={0.8}
-              />
-              <Bar
-                dataKey="uniqueSellers"
-                name="uniqueSellers"
-                fill={CHART_COLORS.danger}
-                radius={[4, 4, 0, 0]}
-                opacity={0.8}
-              />
-              <Line
-                type="monotone"
-                dataKey="newBuyers"
-                name="newBuyers"
-                stroke={CHART_COLORS.info}
-                strokeWidth={2}
-                dot={false}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-
-      </div>
-      <ChartStatGrid columns={4}>
-        <ChartStatCard
-          label="Avg Buyers/Day"
-          value={avgBuyers.toFixed(1)}
-        />
-        <ChartStatCard
-          label="Avg Sellers/Day"
-          value={avgSellers.toFixed(1)}
-        />
-        <ChartStatCard
-          label="New Buyers"
-          value={`${newBuyerRate.toFixed(0)}%`}
-        />
-        <ChartStatCard
-          label="Repeat Buyers"
-          value={`${data.repeatBuyerRate}%`}
-        />
-      </ChartStatGrid>
-    </Card>
+    <StandardChartCard
+      title="Unique Traders"
+      href="/charts/unique-traders"
+      description={`Distinct wallets trading ${isWeekly ? "each week (avg/day)" : "each day"}`}
+      legend={legendItems}
+      onLegendToggle={handleLegendToggle}
+      exportConfig={exportConfig}
+      isLoading={isLoading}
+      error={error}
+      isEmpty={!data || data.dailyStats.length === 0}
+      emptyMessage="No trader data available"
+      stats={statsContent}
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={chartData} margin={CHART_MARGINS.default}>
+          <CartesianGrid {...GRID_STYLE} />
+          <XAxis
+            dataKey="date"
+            stroke={AXIS_STYLE.stroke}
+            fontSize={AXIS_STYLE.fontSize}
+            fontFamily={AXIS_STYLE.fontFamily}
+            axisLine={AXIS_STYLE.axisLine}
+            tickLine={AXIS_STYLE.tickLine}
+            interval={isWeekly ? 0 : Math.max(0, Math.floor(chartData.length / 6) - 1)}
+            tickFormatter={(v) => {
+              const date = new Date(v);
+              if (isWeekly) {
+                const endDate = new Date(date);
+                endDate.setDate(date.getDate() + 6);
+                const startStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                const endStr = endDate.getDate().toString();
+                return `${startStr}-${endStr}`;
+              }
+              return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+            }}
+          />
+          <YAxis
+            stroke={AXIS_STYLE.stroke}
+            fontSize={AXIS_STYLE.fontSize}
+            fontFamily={AXIS_STYLE.fontFamily}
+            axisLine={AXIS_STYLE.axisLine}
+            tickLine={AXIS_STYLE.tickLine}
+            width={40}
+          />
+          <Tooltip
+            contentStyle={getTooltipContentStyle()}
+            labelStyle={{ color: "#fafafa" }}
+            formatter={(value, name) => {
+              const labels: Record<string, string> = {
+                uniqueBuyers: "Unique Buyers",
+                uniqueSellers: "Unique Sellers",
+                newBuyers: "New Buyers",
+              };
+              return [formatNumber(Number(value)), labels[name as string] || name];
+            }}
+            labelFormatter={(l) => {
+              if (isWeekly) {
+                const date = new Date(l);
+                const endDate = new Date(date);
+                endDate.setDate(date.getDate() + 6);
+                return `${formatDate(l)} - ${formatDate(endDate.toISOString())}`;
+              }
+              return formatDate(l);
+            }}
+          />
+          {visibleSeries.buyers && (
+            <Bar
+              dataKey="uniqueBuyers"
+              name="uniqueBuyers"
+              fill={CHART_COLORS.success}
+              radius={[4, 4, 0, 0]}
+              opacity={0.8}
+            />
+          )}
+          {visibleSeries.sellers && (
+            <Bar
+              dataKey="uniqueSellers"
+              name="uniqueSellers"
+              fill={CHART_COLORS.danger}
+              radius={[4, 4, 0, 0]}
+              opacity={0.8}
+            />
+          )}
+          {visibleSeries.new && (
+            <Line
+              type="monotone"
+              dataKey="newBuyers"
+              name="newBuyers"
+              stroke={CHART_COLORS.info}
+              strokeWidth={2}
+              dot={false}
+            />
+          )}
+        </ComposedChart>
+      </ResponsiveContainer>
+    </StandardChartCard>
   );
 }

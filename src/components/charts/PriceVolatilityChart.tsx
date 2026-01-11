@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useMemo } from "react";
-import { getChartFilename } from "@/lib/chartExport/index";
+import { useMemo, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -10,36 +9,36 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
 } from "recharts";
-import Link from "next/link";
-import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
-import { ChartExportButtons } from "./ChartExportButtons";
-import { ChartSkeleton } from "@/components/ui/Skeleton";
+import { ChartStatCard, ChartStatGrid } from "@/components/ui";
+import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
 import { usePriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { getChartFilename } from "@/lib/chartExport/index";
 
 export function PriceVolatilityChart() {
-  const chartRef = useRef<HTMLDivElement>(null);
   const { timeRange, currency } = useChartSettings();
   const { data, isLoading, error } = usePriceHistory(timeRange);
 
-  const exportConfig = useMemo(() => ({
-    title: "Grail Activity",
-    subtitle: `7-day rolling average of daily high/low prices over ${timeRange} days`,
-    legend: [
-      { color: CHART_COLORS.success, label: "7D Avg High", value: currency === "eth" ? "ETH" : "USD" },
-      { color: CHART_COLORS.danger, label: "7D Avg Low", value: currency === "eth" ? "ETH" : "USD" },
-    ],
-    filename: getChartFilename("grail-activity", timeRange),
-  }), [timeRange, currency]);
+  // Track which series are visible
+  const [visibleSeries, setVisibleSeries] = useState({
+    high: true,
+    low: true,
+  });
 
-  const { chartData, avgVolatility, maxVolatility, volatilityTrend } = useMemo(() => {
+  const handleLegendToggle = (key: string) => {
+    setVisibleSeries((prev) => ({
+      ...prev,
+      [key]: !prev[key as keyof typeof prev],
+    }));
+  };
+
+  const { chartData, avgVolatility, volatilityTrend } = useMemo(() => {
     if (!data || data.length === 0) {
-      return { chartData: [], avgVolatility: 0, maxVolatility: 0, volatilityTrend: "stable" as const };
+      return { chartData: [], avgVolatility: 0, volatilityTrend: "stable" as const };
     }
 
     // Calculate daily price range and volatility percentage
@@ -70,7 +69,6 @@ export function PriceVolatilityChart() {
     });
 
     const avgVol = processedData.reduce((sum, d) => sum + d.volatilityPct, 0) / processedData.length;
-    const maxVol = Math.max(...processedData.map((d) => d.volatilityPct));
 
     // Calculate trend (compare recent 7 days to previous 7 days)
     const recent = processedData.slice(-7);
@@ -92,20 +90,9 @@ export function PriceVolatilityChart() {
     return {
       chartData: processedData,
       avgVolatility: avgVol,
-      maxVolatility: maxVol,
       volatilityTrend: trend,
     };
   }, [data, currency]);
-
-  if (isLoading) return <ChartSkeleton />;
-  if (error || !data || data.length === 0) {
-    return (
-      <Card>
-        <CardHeader><span className="text-lg font-bold font-brice">Grail Activity</span></CardHeader>
-        <p className="text-foreground-muted text-center py-8">No data available</p>
-      </Card>
-    );
-  }
 
   const trendConfig = {
     increasing: { color: CHART_COLORS.danger, icon: "↑", label: "Rising" },
@@ -115,114 +102,123 @@ export function PriceVolatilityChart() {
 
   const trend = trendConfig[volatilityTrend];
 
-  const legendItems = [
-    { key: "high", label: "7D Avg High", color: CHART_COLORS.success },
-    { key: "low", label: "7D Avg Low", color: CHART_COLORS.danger },
+  // Legend items with active state
+  const legendItems: LegendItem[] = [
+    { key: "high", label: "7D Avg High", color: CHART_COLORS.success, active: visibleSeries.high },
+    { key: "low", label: "7D Avg Low", color: CHART_COLORS.danger, active: visibleSeries.low },
   ];
 
+  // Export configuration
+  const exportConfig = useMemo(() => ({
+    title: "Grail Activity",
+    subtitle: `7-day rolling average of daily high/low prices over ${timeRange} days`,
+    legend: [
+      { color: CHART_COLORS.success, label: "7D Avg High", value: currency === "eth" ? "ETH" : "USD" },
+      { color: CHART_COLORS.danger, label: "7D Avg Low", value: currency === "eth" ? "ETH" : "USD" },
+    ],
+    filename: getChartFilename("grail-activity", timeRange),
+  }), [timeRange, currency]);
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <Link href="/charts/grail-activity" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
-            Grail Activity
-          </Link>
-          <CardDescription>7-day rolling avg of daily highs & lows</CardDescription>
-        </div>
-        <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-      </CardHeader>
-
-      <div className="flex items-center px-3 mb-3">
-        <ChartLegendToggle items={legendItems} />
-      </div>
-
-      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={CHART_MARGINS.default}>
-              <defs>
-                <linearGradient id="volatilityGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />
-                  <stop offset="50%" stopColor={CHART_COLORS.primary} stopOpacity={0.2} />
-                  <stop offset="100%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
-              <XAxis
-                dataKey="date"
-                stroke={AXIS_STYLE.stroke}
-                fontSize={AXIS_STYLE.fontSize}
-                fontFamily={AXIS_STYLE.fontFamily}
-                axisLine={AXIS_STYLE.axisLine}
-                tickLine={AXIS_STYLE.tickLine}
-                interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
-                tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-              />
-              <YAxis
-                stroke={AXIS_STYLE.stroke}
-                fontSize={AXIS_STYLE.fontSize}
-                fontFamily={AXIS_STYLE.fontFamily}
-                axisLine={AXIS_STYLE.axisLine}
-                tickLine={AXIS_STYLE.tickLine}
-                width={40}
-                tickFormatter={(v) => currency === "eth" ? v.toFixed(2) : `$${v.toFixed(0)}`}
-                domain={["dataMin", "dataMax"]}
-              />
-              <Tooltip
-                contentStyle={getTooltipContentStyle()}
-                labelStyle={{ color: "#fafafa" }}
-                content={({ active, payload, label }) => {
-                  if (!active || !payload?.length || !label) return null;
-                  const d = payload[0]?.payload;
-                  return (
-                    <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
-                      <p className="font-bold text-foreground">{formatDate(String(label))}</p>
-                      <p className="text-chart-success">
-                        7D Avg High: {currency === "eth" ? formatEth(d.displayMaxMA, 3) : formatUsd(d.displayMaxMA)}
-                      </p>
-                      <p className="text-chart-danger">
-                        7D Avg Low: {currency === "eth" ? formatEth(d.displayMinMA, 3) : formatUsd(d.displayMinMA)}
-                      </p>
-                      <p className="text-chart-accent">
-                        Daily Range: {d.volatilityPct.toFixed(1)}%
-                      </p>
-                    </div>
-                  );
-                }}
-              />
-              {/* Price band - 7-day rolling average */}
-              <Area
-                type="monotone"
-                dataKey="displayMaxMA"
-                stroke={CHART_COLORS.success}
-                strokeWidth={1.5}
-                fill="url(#volatilityGradient)"
-                fillOpacity={1}
-              />
-              <Area
-                type="monotone"
-                dataKey="displayMinMA"
-                stroke={CHART_COLORS.danger}
-                strokeWidth={1.5}
-                fill="#0a0a0a"
-                fillOpacity={1}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-      </div>
-
-      <ChartStatGrid columns={2}>
-        <ChartStatCard
-          label="Avg Range"
-          value={`${avgVolatility.toFixed(1)}%`}
-        />
-        <ChartStatCard
-          label="Trend"
-          value={`${trend.icon} ${trend.label}`}
-        />
-      </ChartStatGrid>
-    </Card>
+    <StandardChartCard
+      title="Grail Activity"
+      href="/charts/grail-activity"
+      description="7-day rolling avg of daily highs & lows"
+      legend={legendItems}
+      onLegendToggle={handleLegendToggle}
+      exportConfig={exportConfig}
+      isLoading={isLoading}
+      error={error}
+      isEmpty={!data || data.length === 0}
+      emptyMessage="No data available"
+      stats={
+        <ChartStatGrid columns={2}>
+          <ChartStatCard
+            label="Avg Range"
+            value={`${avgVolatility.toFixed(1)}%`}
+          />
+          <ChartStatCard
+            label="Trend"
+            value={`${trend.icon} ${trend.label}`}
+          />
+        </ChartStatGrid>
+      }
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={chartData} margin={CHART_MARGINS.default}>
+          <defs>
+            <linearGradient id="volatilityGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />
+              <stop offset="50%" stopColor={CHART_COLORS.primary} stopOpacity={0.2} />
+              <stop offset="100%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
+          <XAxis
+            dataKey="date"
+            stroke={AXIS_STYLE.stroke}
+            fontSize={AXIS_STYLE.fontSize}
+            fontFamily={AXIS_STYLE.fontFamily}
+            axisLine={AXIS_STYLE.axisLine}
+            tickLine={AXIS_STYLE.tickLine}
+            interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
+            tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          />
+          <YAxis
+            stroke={AXIS_STYLE.stroke}
+            fontSize={AXIS_STYLE.fontSize}
+            fontFamily={AXIS_STYLE.fontFamily}
+            axisLine={AXIS_STYLE.axisLine}
+            tickLine={AXIS_STYLE.tickLine}
+            width={40}
+            tickFormatter={(v) => currency === "eth" ? v.toFixed(2) : `$${v.toFixed(0)}`}
+            domain={["dataMin", "dataMax"]}
+          />
+          <Tooltip
+            contentStyle={getTooltipContentStyle()}
+            labelStyle={{ color: "#fafafa" }}
+            content={({ active, payload, label }) => {
+              if (!active || !payload?.length || !label) return null;
+              const d = payload[0]?.payload;
+              return (
+                <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+                  <p className="font-bold text-foreground">{formatDate(String(label))}</p>
+                  <p className="text-chart-success">
+                    7D Avg High: {currency === "eth" ? formatEth(d.displayMaxMA, 3) : formatUsd(d.displayMaxMA)}
+                  </p>
+                  <p className="text-chart-danger">
+                    7D Avg Low: {currency === "eth" ? formatEth(d.displayMinMA, 3) : formatUsd(d.displayMinMA)}
+                  </p>
+                  <p className="text-chart-accent">
+                    Daily Range: {d.volatilityPct.toFixed(1)}%
+                  </p>
+                </div>
+              );
+            }}
+          />
+          {/* Price band - 7-day rolling average */}
+          {visibleSeries.high && (
+            <Area
+              type="monotone"
+              dataKey="displayMaxMA"
+              stroke={CHART_COLORS.success}
+              strokeWidth={1.5}
+              fill="url(#volatilityGradient)"
+              fillOpacity={1}
+            />
+          )}
+          {visibleSeries.low && (
+            <Area
+              type="monotone"
+              dataKey="displayMinMA"
+              stroke={CHART_COLORS.danger}
+              strokeWidth={1.5}
+              fill="#0a0a0a"
+              fillOpacity={1}
+            />
+          )}
+        </AreaChart>
+      </ResponsiveContainer>
+    </StandardChartCard>
   );
 }

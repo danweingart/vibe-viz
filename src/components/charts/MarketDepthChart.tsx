@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   BarChart,
@@ -10,16 +10,29 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
-import { ChartSkeleton } from "@/components/ui/Skeleton";
-import { ChartExportButtons } from "./ChartExportButtons";
+import { ChartStatCard, ChartStatGrid } from "@/components/ui";
+import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
 import { useMarketDepth } from "@/hooks/useMarketDepth";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function MarketDepthChart() {
-  const chartRef = useRef<HTMLDivElement>(null);
   const { data, isLoading, error } = useMarketDepth();
+  const [visibleSeries, setVisibleSeries] = useState<Set<string>>(
+    new Set(["bids", "asks"])
+  );
+
+  const handleLegendToggle = useCallback((key: string) => {
+    setVisibleSeries((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }, []);
 
   const exportConfig = useMemo(() => ({
     title: "Market Depth",
@@ -31,9 +44,9 @@ export function MarketDepthChart() {
     filename: getChartFilename("market-depth", 0),
   }), []);
 
-  const legendItems = [
-    { key: "bids", label: "Bids", color: CHART_COLORS.success },
-    { key: "asks", label: "Asks", color: CHART_COLORS.danger },
+  const legendItems: LegendItem[] = [
+    { key: "bids", label: "Bids", color: CHART_COLORS.success, active: visibleSeries.has("bids") },
+    { key: "asks", label: "Asks", color: CHART_COLORS.danger, active: visibleSeries.has("asks") },
   ];
 
   const chartData = useMemo(() => {
@@ -97,76 +110,64 @@ export function MarketDepthChart() {
   const totalBids = chartData.reduce((sum, d) => sum + (d.bids || 0), 0);
   const totalAsks = chartData.reduce((sum, d) => sum + (d.asks || 0), 0);
 
-  if (isLoading) return <ChartSkeleton />;
-  if (error || !data) {
-    return (
-      <Card>
-        <CardHeader><span className="text-lg font-bold font-brice">Market Depth</span></CardHeader>
-        <p className="text-foreground-muted text-center py-8">No market depth data available</p>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <span className="text-lg font-bold text-foreground font-brice">Market Depth</span>
-          <CardDescription>Order book depth by price level</CardDescription>
-        </div>
-        <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-      </CardHeader>
-
-      <div className="flex items-center px-3 mb-3">
-        <ChartLegendToggle items={legendItems} />
-      </div>
-
-      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={CHART_MARGINS.default}>
-              <XAxis type="category" dataKey="label" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} fontFamily={AXIS_STYLE.fontFamily} />
-              <YAxis type="number" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} width={30} fontFamily={AXIS_STYLE.fontFamily} />
-              <Tooltip
-                contentStyle={getTooltipContentStyle()}
-                content={({ active, payload }) => {
-                  if (!active || !payload?.length) return null;
-                  const d = payload[0]?.payload;
-                  return (
-                    <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
-                      <p className="font-bold text-foreground">{d.price.toFixed(2)} ETH</p>
-                      {d.bids && (
-                        <p style={{ color: CHART_COLORS.success }}>
-                          {d.bids} bid{d.bids > 1 ? "s" : ""}
-                        </p>
-                      )}
-                      {d.asks && (
-                        <p style={{ color: CHART_COLORS.danger }}>
-                          {d.asks} listing{d.asks > 1 ? "s" : ""}
-                        </p>
-                      )}
-                    </div>
-                  );
-                }}
-              />
-              <Bar dataKey="bids" stackId="depth" fill={CHART_COLORS.success} radius={[4, 4, 4, 4]} />
-              <Bar dataKey="asks" stackId="depth" fill={CHART_COLORS.danger} radius={[4, 4, 4, 4]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-      </div>
-
-      <ChartStatGrid columns={2}>
-        <ChartStatCard
-          label="Total Bids"
-          value={totalBids.toString()}
-        />
-        <ChartStatCard
-          label="Total Listings"
-          value={totalAsks.toString()}
-        />
-      </ChartStatGrid>
-    </Card>
+    <StandardChartCard
+      title="Market Depth"
+      description="Order book depth by price level"
+      legend={legendItems}
+      onLegendToggle={handleLegendToggle}
+      exportConfig={exportConfig}
+      isLoading={isLoading}
+      error={error}
+      isEmpty={!data || chartData.length === 0}
+      emptyMessage="No market depth data available"
+      stats={
+        <ChartStatGrid columns={2}>
+          <ChartStatCard
+            label="Total Bids"
+            value={totalBids.toString()}
+          />
+          <ChartStatCard
+            label="Total Listings"
+            value={totalAsks.toString()}
+          />
+        </ChartStatGrid>
+      }
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData} margin={CHART_MARGINS.default}>
+          <XAxis type="category" dataKey="label" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} fontFamily={AXIS_STYLE.fontFamily} />
+          <YAxis type="number" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} width={30} fontFamily={AXIS_STYLE.fontFamily} />
+          <Tooltip
+            contentStyle={getTooltipContentStyle()}
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null;
+              const d = payload[0]?.payload;
+              return (
+                <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+                  <p className="font-bold text-foreground">{d.price.toFixed(2)} ETH</p>
+                  {d.bids && (
+                    <p style={{ color: CHART_COLORS.success }}>
+                      {d.bids} bid{d.bids > 1 ? "s" : ""}
+                    </p>
+                  )}
+                  {d.asks && (
+                    <p style={{ color: CHART_COLORS.danger }}>
+                      {d.asks} listing{d.asks > 1 ? "s" : ""}
+                    </p>
+                  )}
+                </div>
+              );
+            }}
+          />
+          {visibleSeries.has("bids") && (
+            <Bar dataKey="bids" stackId="depth" fill={CHART_COLORS.success} radius={[4, 4, 4, 4]} />
+          )}
+          {visibleSeries.has("asks") && (
+            <Bar dataKey="asks" stackId="depth" fill={CHART_COLORS.danger} radius={[4, 4, 4, 4]} />
+          )}
+        </BarChart>
+      </ResponsiveContainer>
+    </StandardChartCard>
   );
 }

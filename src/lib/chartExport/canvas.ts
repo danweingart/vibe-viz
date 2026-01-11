@@ -6,6 +6,10 @@ import {
   LEGEND_HEIGHT,
   COLORS,
 } from "./types";
+import { EXPORT_BRANDING } from "@/lib/chartConfig";
+
+// Cache the loaded logo image
+let logoImageCache: HTMLImageElement | null = null;
 
 /**
  * Get the computed font-family from a CSS variable
@@ -16,6 +20,28 @@ function getFontFamily(cssVar: string, fallback: string): string {
   // next/font sets CSS variables on body, not :root
   const value = getComputedStyle(document.body).getPropertyValue(cssVar).trim();
   return value || fallback;
+}
+
+/**
+ * Load and cache the logo image
+ */
+export async function loadLogoImage(): Promise<HTMLImageElement | null> {
+  if (logoImageCache) return logoImageCache;
+  if (typeof document === "undefined") return null;
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      logoImageCache = img;
+      resolve(img);
+    };
+    img.onerror = () => {
+      console.warn("Failed to load logo image for export");
+      resolve(null);
+    };
+    img.src = EXPORT_BRANDING.header.logoPath;
+  });
 }
 
 /**
@@ -35,36 +61,62 @@ export function drawBackground(ctx: CanvasRenderingContext2D): void {
 }
 
 /**
- * Draw centered header with brand name, title, and subtitle
+ * Draw header with logo (left side) + brand name, title, and subtitle (centered)
  * Uses Brice Bold for brand/title, Mundial for subtitle
  */
 export function drawHeader(
   ctx: CanvasRenderingContext2D,
   title: string,
-  subtitle: string
+  subtitle: string,
+  logoImg?: HTMLImageElement | null
 ): void {
   const centerX = EXPORT_WIDTH / 2;
+  const { logoSize, brandFontSize, titleFontSize, subtitleFontSize, padding, gap } =
+    EXPORT_BRANDING.header;
 
   // Get font families from CSS variables
   const brice = getFontFamily("--font-brice", "system-ui, sans-serif");
   const mundial = getFontFamily("--font-mundial", "system-ui, sans-serif");
 
-  // Brand name - "Good Vibes Club" in yellow (Brice Bold)
-  ctx.fillStyle = COLORS.brand;
-  ctx.font = `bold 36px ${brice}`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("Good Vibes Club", centerX, 32);
+  // Calculate vertical center for logo + brand text row
+  const logoRowY = 32;
+
+  if (logoImg) {
+    // Layout: logo + gap + "Good Vibes Club" centered together
+    ctx.font = `bold ${brandFontSize}px ${brice}`;
+    const brandTextWidth = ctx.measureText(EXPORT_BRANDING.header.brandText).width;
+    const totalWidth = logoSize + gap + brandTextWidth;
+    const startX = centerX - totalWidth / 2;
+
+    // Draw logo
+    ctx.drawImage(logoImg, startX, logoRowY - logoSize / 2, logoSize, logoSize);
+
+    // Draw brand name - "Good Vibes Club" in yellow (Brice Bold)
+    ctx.fillStyle = COLORS.brand;
+    ctx.font = `bold ${brandFontSize}px ${brice}`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(EXPORT_BRANDING.header.brandText, startX + logoSize + gap, logoRowY);
+  } else {
+    // No logo - just center the brand text
+    ctx.fillStyle = COLORS.brand;
+    ctx.font = `bold ${brandFontSize}px ${brice}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(EXPORT_BRANDING.header.brandText, centerX, logoRowY);
+  }
 
   // Title in white (Brice Bold)
   ctx.fillStyle = COLORS.foreground;
-  ctx.font = `bold 22px ${brice}`;
-  ctx.fillText(title, centerX, 62);
+  ctx.font = `bold ${titleFontSize}px ${brice}`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(title, centerX, 68);
 
   // Subtitle in muted gray (Mundial Regular)
   ctx.fillStyle = COLORS.foregroundMuted;
-  ctx.font = `400 16px ${mundial}`;
-  ctx.fillText(subtitle, centerX, 88);
+  ctx.font = `400 ${subtitleFontSize}px ${mundial}`;
+  ctx.fillText(subtitle, centerX, 92);
 }
 
 /**

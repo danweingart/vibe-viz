@@ -39,11 +39,29 @@ export const AREA_GRADIENT = {
   endOpacity: 0,
 } as const;
 
-// Chart heights
-export const CHART_HEIGHT = {
-  dashboard: 320, // Front-end display (increased from 280px)
+// Chart sizing - separate display vs export dimensions
+export const CHART_SIZE = {
+  // On-screen display (responsive, optimized for dashboard)
+  display: {
+    minHeight: 320,      // Mobile minimum
+    desktopHeight: 400,  // Desktop comfortable height
+    maxHeight: 500,      // Maximum on large screens
+  },
+
+  // Export dimensions (fixed 4:5 portrait for social media)
   export: {
-    canvas: { width: 1080, height: 1350 },
+    width: 1080,
+    height: 1350,
+    aspectRatio: 1080 / 1350, // 4:5 portrait
+    scale: 2, // 2x for retina displays
+  },
+} as const;
+
+// Legacy alias for backward compatibility
+export const CHART_HEIGHT = {
+  dashboard: 320, // Deprecated - use CHART_SIZE instead
+  export: {
+    canvas: { width: CHART_SIZE.export.width, height: CHART_SIZE.export.height },
     chartArea: 0.62, // 62% of card for chart
   },
 } as const;
@@ -87,6 +105,56 @@ export const EXPORT_STYLE = {
   footer: {
     fontSize: 28,
     padding: "20px 28px",
+  },
+} as const;
+
+// Export branding configuration (shown ONLY in export, hidden on screen)
+export const EXPORT_BRANDING = {
+  header: {
+    height: 120,          // Total header height including padding
+    logoSize: 48,         // Logo dimensions (square)
+    logoPath: "/images/shaka.png",
+    brandText: "Good Vibes Club",
+    brandFontSize: 36,    // "Good Vibes Club" text size
+    titleFontSize: 22,    // Chart title size
+    subtitleFontSize: 16, // Chart subtitle/description size
+    padding: 24,          // Horizontal padding
+    gap: 16,              // Gap between logo and text
+  },
+  legendBar: {
+    height: 55,           // Legend bar height
+    itemFontSize: 14,     // Legend label size
+    valueFontSize: 16,    // Legend value size
+    dotSize: 10,          // Color indicator dot diameter
+    gap: 8,               // Gap between dot and label
+  },
+  chartArea: {
+    topMargin: 175,       // header + legend bar
+    bottomMargin: 24,
+    sideMargin: 24,
+  },
+} as const;
+
+// State styling for loading, empty, error states
+export const STATE_STYLE = {
+  skeleton: {
+    backgroundColor: "#27272a",
+    shimmerColor: "#3f3f46",
+    animationDuration: "1.5s",
+    borderRadius: "8px",
+  },
+  empty: {
+    iconSize: 48,
+    iconColor: "#71717a",
+    messageFontSize: 14,
+    messageColor: "#a1a1aa",
+  },
+  error: {
+    iconSize: 48,
+    iconColor: "#f87171",
+    messageFontSize: 14,
+    messageColor: "#a1a1aa",
+    retryButtonColor: "#ffe048",
   },
 } as const;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   BarChart,
@@ -12,15 +12,13 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import Link from "next/link";
-import { Card, CardHeader, CardDescription, OpenSeaLink, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
-import { ChartSkeleton } from "@/components/ui/Skeleton";
-import { ChartExportButtons } from "./ChartExportButtons";
+import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
+import { OpenSeaLink, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Truncate address for display
 function truncateAddress(address: string): string {
@@ -29,7 +27,6 @@ function truncateAddress(address: string): string {
 }
 
 export function WhaleActivityChart() {
-  const chartRef = useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<"buyers" | "sellers">("buyers");
   const { timeRange } = useChartSettings();
   const { data, isLoading, error } = useTraderAnalysis(timeRange);
@@ -68,69 +65,64 @@ export function WhaleActivityChart() {
     };
   }, [data, viewMode]);
 
-  if (isLoading) return <ChartSkeleton />;
-  if (error || !data) {
-    return (
-      <Card>
-        <CardHeader><span className="text-lg font-bold font-brice">Whale Activity</span></CardHeader>
-        <p className="text-foreground-muted text-center py-8">No whale data available</p>
-      </Card>
-    );
-  }
-
   const color = viewMode === "buyers" ? CHART_COLORS.success : CHART_COLORS.danger;
 
-  const legendItems = [
+  const legendItems: LegendItem[] = [
     { key: "volume", label: viewMode === "buyers" ? "Buy Volume" : "Sell Volume", color: viewMode === "buyers" ? CHART_COLORS.success : CHART_COLORS.danger },
   ];
 
+  const viewToggle = (
+    <div className="flex rounded-lg border border-border overflow-hidden">
+      <button
+        onClick={() => setViewMode("buyers")}
+        className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+          viewMode === "buyers"
+            ? "bg-chart-success text-background"
+            : "text-foreground-muted hover:text-foreground hover:bg-border"
+        }`}
+      >
+        Top Buyers
+      </button>
+      <button
+        onClick={() => setViewMode("sellers")}
+        className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+          viewMode === "sellers"
+            ? "bg-chart-danger text-background"
+            : "text-foreground-muted hover:text-foreground hover:bg-border"
+        }`}
+      >
+        Top Sellers
+      </button>
+    </div>
+  );
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <Link href="/charts/whale-activity" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
-            Whale Activity
-          </Link>
-          <p className="export-branding hidden text-sm text-brand font-mundial">Good Vibes Club</p>
-          <CardDescription>Largest wallets ranked by total {viewMode === "buyers" ? "buy" : "sell"} volume</CardDescription>
-        </div>
-        <div className="flex items-center gap-3">
-          <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-        </div>
-      </CardHeader>
-
-      {/* View toggle - outside capture area */}
-      <div className="flex justify-center mb-3">
-        <div className="flex rounded-lg border border-border overflow-hidden">
-          <button
-            onClick={() => setViewMode("buyers")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-              viewMode === "buyers"
-                ? "bg-chart-success text-background"
-                : "text-foreground-muted hover:text-foreground hover:bg-border"
-            }`}
-          >
-            Top Buyers
-          </button>
-          <button
-            onClick={() => setViewMode("sellers")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-              viewMode === "sellers"
-                ? "bg-chart-danger text-background"
-                : "text-foreground-muted hover:text-foreground hover:bg-border"
-            }`}
-          >
-            Top Sellers
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-center px-4 mb-3">
-        <ChartLegendToggle items={legendItems} />
-      </div>
-
-      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
+    <StandardChartCard
+      title="Whale Activity"
+      href="/charts/whale-activity"
+      description={`Largest wallets ranked by total ${viewMode === "buyers" ? "buy" : "sell"} volume`}
+      legend={legendItems}
+      controls={viewToggle}
+      exportConfig={exportConfig}
+      isLoading={isLoading}
+      error={error}
+      isEmpty={!data || chartData.length === 0}
+      emptyMessage="No whale data available"
+      stats={
+        <ChartStatGrid columns={2}>
+          <ChartStatCard
+            label="Top 5 Share"
+            value={`${topWalletShare.toFixed(0)}%`}
+          />
+          <ChartStatCard
+            label="Total Volume"
+            value={formatEth(totalVolume, 1)}
+          />
+        </ChartStatGrid>
+      }
+    >
+      <div className="flex flex-col h-full">
+        <div className="flex-1 min-h-[280px] sm:min-h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
@@ -184,7 +176,7 @@ export function WhaleActivityChart() {
           </ResponsiveContainer>
         </div>
 
-        {/* Stats row */}
+        {/* Stats row - inside export area */}
         <div className="grid grid-cols-3 gap-1 sm:gap-2 mt-2 text-[10px] sm:text-xs text-center">
           {chartData.slice(0, 3).map((whale, i) => {
             const crossColor = viewMode === "buyers" ? CHART_COLORS.danger : CHART_COLORS.success;
@@ -202,17 +194,6 @@ export function WhaleActivityChart() {
           })}
         </div>
       </div>
-
-      <ChartStatGrid columns={2}>
-        <ChartStatCard
-          label="Top 5 Share"
-          value={`${topWalletShare.toFixed(0)}%`}
-        />
-        <ChartStatCard
-          label="Total Volume"
-          value={formatEth(totalVolume, 1)}
-        />
-      </ChartStatGrid>
-    </Card>
+    </StandardChartCard>
   );
 }

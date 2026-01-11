@@ -1,15 +1,14 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useMemo } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from "recharts";
-import Link from "next/link";
-import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
-import { ChartExportButtons } from "./ChartExportButtons";
+import { ChartStatCard, ChartStatGrid } from "@/components/ui";
+import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
 import { useCollectionStats } from "@/hooks";
 import { formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Simulated holder distribution based on common NFT patterns
 // In production, this would come from on-chain data or an indexer
@@ -23,19 +22,9 @@ const HOLDER_BUCKETS = [
 ];
 
 export function HolderDistributionChart() {
-  const chartRef = useRef<HTMLDivElement>(null);
   const { data: stats } = useCollectionStats();
 
   const totalHolders = stats?.numOwners || 0;
-
-  const exportConfig = useMemo(() => ({
-    title: "Holder Distribution",
-    subtitle: `${formatNumber(totalHolders)} unique wallets by collection size`,
-    legend: [
-      { color: CHART_COLORS.primary, label: "Wallet Count", value: "Holders" },
-    ],
-    filename: getChartFilename("holder-distribution"),
-  }), [totalHolders]);
 
   const chartData = HOLDER_BUCKETS.map((bucket, index) => ({
     ...bucket,
@@ -47,74 +36,73 @@ export function HolderDistributionChart() {
   const whaleHolders = chartData.slice(3).reduce((sum, b) => sum + b.count, 0);
   const whalePercentage = totalHolders > 0 ? (whaleHolders / totalHolders) * 100 : 0;
 
-  const legendItems = [
+  // Legend items
+  const legendItems: LegendItem[] = [
     { key: "holders", label: "Wallet Count", color: CHART_COLORS.primary },
   ];
 
+  // Export configuration
+  const exportConfig = useMemo(() => ({
+    title: "Holder Distribution",
+    subtitle: `${formatNumber(totalHolders)} unique wallets by collection size`,
+    filename: getChartFilename("holder-distribution"),
+    legend: [
+      { color: CHART_COLORS.primary, label: "Wallet Count", value: "Holders" },
+    ],
+  }), [totalHolders]);
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <Link href="/charts/holder-distribution" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
-            Holder Distribution
-          </Link>
-          <span className="export-branding text-sm text-brand font-mundial">Good Vibes Club</span>
-          <CardDescription>
-            Count of wallets by how many NFTs they hold
-            <span className="ml-1 px-1.5 py-0.5 text-[9px] bg-chart-accent/20 text-chart-accent rounded">Estimated</span>
-          </CardDescription>
-        </div>
-        <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-      </CardHeader>
-
-      <div className="flex items-center px-3 mb-3">
-        <ChartLegendToggle items={legendItems} />
-      </div>
-
-      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} layout="vertical" margin={CHART_MARGINS.horizontal}>
-              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
-              <XAxis type="number" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} fontFamily={AXIS_STYLE.fontFamily} />
-              <YAxis type="category" dataKey="label" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} width={45} fontFamily={AXIS_STYLE.fontFamily} />
-              <Tooltip
-                contentStyle={getTooltipContentStyle()}
-                content={({ active, payload }) => {
-                  if (!active || !payload?.length) return null;
-                  const d = payload[0]?.payload;
-                  return (
-                    <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
-                      <p className="font-bold text-brand">{d.label} NFTs</p>
-                      <p className="text-foreground">{formatNumber(d.count)} holders ({d.percentage}%)</p>
-                    </div>
-                  );
-                }}
-              />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <ChartStatGrid columns={3}>
-        <ChartStatCard
-          label="Total Holders"
-          value={formatNumber(totalHolders)}
-        />
-        <ChartStatCard
-          label="Single NFT"
-          value={`${chartData[0]?.percentage || 0}%`}
-        />
-        <ChartStatCard
-          label="Whales (11+)"
-          value={`${whalePercentage.toFixed(1)}%`}
-        />
-      </ChartStatGrid>
-    </Card>
+    <StandardChartCard
+      title="Holder Distribution"
+      href="/charts/holder-distribution"
+      description="Count of wallets by how many NFTs they hold"
+      badge={<span className="px-1.5 py-0.5 text-[9px] bg-chart-accent/20 text-chart-accent rounded">Estimated</span>}
+      legend={legendItems}
+      exportConfig={exportConfig}
+      isEmpty={totalHolders === 0}
+      emptyMessage="No holder data available"
+      stats={
+        <ChartStatGrid columns={3}>
+          <ChartStatCard
+            label="Total Holders"
+            value={formatNumber(totalHolders)}
+          />
+          <ChartStatCard
+            label="Single NFT"
+            value={`${chartData[0]?.percentage || 0}%`}
+          />
+          <ChartStatCard
+            label="Whales (11+)"
+            value={`${whalePercentage.toFixed(1)}%`}
+          />
+        </ChartStatGrid>
+      }
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData} layout="vertical" margin={CHART_MARGINS.horizontal}>
+          <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
+          <XAxis type="number" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} fontFamily={AXIS_STYLE.fontFamily} />
+          <YAxis type="category" dataKey="label" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} width={45} fontFamily={AXIS_STYLE.fontFamily} />
+          <Tooltip
+            contentStyle={getTooltipContentStyle()}
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null;
+              const d = payload[0]?.payload;
+              return (
+                <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+                  <p className="font-bold text-brand">{d.label} NFTs</p>
+                  <p className="text-foreground">{formatNumber(d.count)} holders ({d.percentage}%)</p>
+                </div>
+              );
+            }}
+          />
+          <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </StandardChartCard>
   );
 }

@@ -6,7 +6,7 @@ import {
   CHART_MARGIN,
   HEADER_HEIGHT,
 } from "./types";
-import { drawBackground, drawHeader, drawLegendBar, downloadCanvas, ensureFontsLoaded } from "./canvas";
+import { drawBackground, drawHeader, drawLegendBar, downloadCanvas, ensureFontsLoaded, loadLogoImage } from "./canvas";
 import { extractChartSVG, svgToImage } from "./svg";
 
 export type { ChartExportConfig, LegendItem } from "./types";
@@ -24,6 +24,9 @@ async function generateChartCanvas(
   // Ensure custom fonts are loaded before drawing
   await ensureFontsLoaded();
 
+  // Load logo image (cached after first load)
+  const logoImg = await loadLogoImage();
+
   const canvas = document.createElement("canvas");
   canvas.width = EXPORT_WIDTH * SCALE;
   canvas.height = EXPORT_HEIGHT * SCALE;
@@ -35,8 +38,8 @@ async function generateChartCanvas(
   // 1. Fill background
   drawBackground(ctx);
 
-  // 2. Draw header (brand name, title, subtitle)
-  drawHeader(ctx, config.title, config.subtitle);
+  // 2. Draw header (brand name, title, subtitle) with logo
+  drawHeader(ctx, config.title, config.subtitle, logoImg);
 
   // 3. Draw legend bar
   drawLegendBar(ctx, config.legend, HEADER_HEIGHT);

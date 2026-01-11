@@ -1,14 +1,10 @@
 "use client";
 
-import { useRef, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
-import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
-import { ChartSkeleton } from "@/components/ui/Skeleton";
-import { ChartExportButtons } from "./ChartExportButtons";
+import { StandardChartCard } from "@/components/charts/StandardChartCard";
 import { useMarketIndicators } from "@/hooks";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_HEIGHT } from "@/lib/chartConfig";
 
 // Gauge component for circular progress indicators
 function Gauge({
@@ -110,7 +106,6 @@ const INDICATOR_DEFS = {
 };
 
 export function MarketIndicatorsChart() {
-  const chartRef = useRef<HTMLDivElement>(null);
   const [expandedDef, setExpandedDef] = useState<string | null>(null);
   const { data, isLoading, error } = useMarketIndicators();
 
@@ -157,112 +152,98 @@ export function MarketIndicatorsChart() {
     };
   }, [data, rsiColor, momentumColor, liquidityColor]);
 
-  if (isLoading) return <ChartSkeleton />;
-  if (error || !data) {
-    return (
-      <Card>
-        <CardHeader><span className="text-lg font-bold font-brice">Market Indicators</span></CardHeader>
-        <p className="text-foreground-muted text-center py-8">Failed to load indicators</p>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <Link href="/charts/market-indicators" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
-            Market Indicators
-          </Link>
-          <CardDescription>RSI, momentum & liquidity scores for market sentiment</CardDescription>
-        </div>
-        <div className="flex items-center gap-2">
-          <TrendBadge trend={data.priceTrend} type="price" />
-          <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-        </div>
-      </CardHeader>
+    <StandardChartCard
+      title="Market Indicators"
+      href="/charts/market-indicators"
+      description="RSI, momentum & liquidity scores for market sentiment"
+      badge={data && <TrendBadge trend={data.priceTrend} type="price" />}
+      exportConfig={exportConfig}
+      isLoading={isLoading}
+      error={error}
+      isEmpty={!data}
+      emptyMessage="Failed to load indicators"
+    >
+      {data && (
+        <>
+          {/* Gauges row */}
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <button
+              className="relative flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => setExpandedDef(expandedDef === "rsi" ? null : "rsi")}
+            >
+              <Gauge value={data.rsi} max={100} label="RSI (14D)" color={rsiColor} />
+              <span className="text-[10px] text-foreground-muted mt-1">
+                {data.rsi > 70 ? "Overbought" : data.rsi < 30 ? "Oversold" : "Neutral"}
+              </span>
+              <span className="text-[8px] text-brand mt-0.5 export-hide">Click for info</span>
+            </button>
 
-      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[320px] sm:min-h-[500px] flex flex-col">
-        {/* Gauges row */}
-        <div className="grid grid-cols-3 gap-3 mb-3">
-          <button
-            className="relative flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => setExpandedDef(expandedDef === "rsi" ? null : "rsi")}
-          >
-            <Gauge value={data.rsi} max={100} label="RSI (14D)" color={rsiColor} />
-            <span className="text-[10px] text-foreground-muted mt-1">
-              {data.rsi > 70 ? "Overbought" : data.rsi < 30 ? "Oversold" : "Neutral"}
-            </span>
-            <span className="text-[8px] text-brand mt-0.5">Click for info</span>
-          </button>
+            <button
+              className="relative flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => setExpandedDef(expandedDef === "momentum" ? null : "momentum")}
+            >
+              <Gauge
+                value={Math.abs(data.momentum)}
+                max={100}
+                label="Momentum"
+                color={momentumColor}
+              />
+              <span className="text-[10px] text-foreground-muted mt-1">
+                {data.momentum > 0 ? "+" : ""}{data.momentum}%
+              </span>
+              <span className="text-[8px] text-brand mt-0.5 export-hide">Click for info</span>
+            </button>
 
-          <button
-            className="relative flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => setExpandedDef(expandedDef === "momentum" ? null : "momentum")}
-          >
-            <Gauge
-              value={Math.abs(data.momentum)}
-              max={100}
-              label="Momentum"
-              color={momentumColor}
-            />
-            <span className="text-[10px] text-foreground-muted mt-1">
-              {data.momentum > 0 ? "+" : ""}{data.momentum}%
-            </span>
-            <span className="text-[8px] text-brand mt-0.5">Click for info</span>
-          </button>
-
-          <button
-            className="relative flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => setExpandedDef(expandedDef === "liquidity" ? null : "liquidity")}
-          >
-            <Gauge
-              value={data.liquidityScore}
-              max={100}
-              label="Liquidity"
-              color={liquidityColor}
-            />
-            <span className="text-[10px] text-foreground-muted mt-1">
-              {data.liquidityScore > 60 ? "High" : data.liquidityScore > 30 ? "Medium" : "Low"}
-            </span>
-            <span className="text-[8px] text-brand mt-0.5">Click for info</span>
-          </button>
-        </div>
-
-        {/* Expanded definition */}
-        {expandedDef && (
-          <div className="bg-background-tertiary rounded-lg p-2 mb-3 text-xs">
-            <p className="font-bold text-foreground mb-1">{INDICATOR_DEFS[expandedDef as keyof typeof INDICATOR_DEFS].title}</p>
-            <p className="text-foreground-muted leading-relaxed">{INDICATOR_DEFS[expandedDef as keyof typeof INDICATOR_DEFS].desc}</p>
+            <button
+              className="relative flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => setExpandedDef(expandedDef === "liquidity" ? null : "liquidity")}
+            >
+              <Gauge
+                value={data.liquidityScore}
+                max={100}
+                label="Liquidity"
+                color={liquidityColor}
+              />
+              <span className="text-[10px] text-foreground-muted mt-1">
+                {data.liquidityScore > 60 ? "High" : data.liquidityScore > 30 ? "Medium" : "Low"}
+              </span>
+              <span className="text-[8px] text-brand mt-0.5 export-hide">Click for info</span>
+            </button>
           </div>
-        )}
 
-        {/* Info cards */}
-        <div className="grid grid-cols-2 gap-3 mt-auto">
-          <div className="bg-background-tertiary rounded-lg p-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-foreground-muted">Price Trend</span>
-              <TrendBadge trend={data.priceTrend} type="price" />
+          {/* Expanded definition */}
+          {expandedDef && (
+            <div className="bg-background-tertiary rounded-lg p-2 mb-3 text-xs export-hide">
+              <p className="font-bold text-foreground mb-1">{INDICATOR_DEFS[expandedDef as keyof typeof INDICATOR_DEFS].title}</p>
+              <p className="text-foreground-muted leading-relaxed">{INDICATOR_DEFS[expandedDef as keyof typeof INDICATOR_DEFS].desc}</p>
             </div>
-            <p className="text-[10px] text-foreground-muted">
-              Based on RSI and price momentum over 14 days
-            </p>
-          </div>
+          )}
 
-          <div className="bg-background-tertiary rounded-lg p-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-foreground-muted">Volume Trend</span>
-              <TrendBadge trend={data.volumeTrend} type="volume" />
+          {/* Info cards */}
+          <div className="grid grid-cols-2 gap-3 mt-auto">
+            <div className="bg-background-tertiary rounded-lg p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-foreground-muted">Price Trend</span>
+                <TrendBadge trend={data.priceTrend} type="price" />
+              </div>
+              <p className="text-[10px] text-foreground-muted">
+                Based on RSI and price momentum over 14 days
+              </p>
             </div>
-            <p className="text-[10px] text-foreground-muted">
-              7-day vs previous 7-day volume comparison
-            </p>
-          </div>
-        </div>
 
-        </div>
-      </div>
-    </Card>
+            <div className="bg-background-tertiary rounded-lg p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-foreground-muted">Volume Trend</span>
+                <TrendBadge trend={data.volumeTrend} type="volume" />
+              </div>
+              <p className="text-[10px] text-foreground-muted">
+                7-day vs previous 7-day volume comparison
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+    </StandardChartCard>
   );
 }

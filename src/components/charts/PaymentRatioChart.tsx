@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   LineChart,
@@ -11,15 +11,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import Link from "next/link";
-import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
-import { ChartExportButtons } from "./ChartExportButtons";
-import { ChartSkeleton } from "@/components/ui/Skeleton";
+import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
+import { ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { usePriceHistory, useBasketPriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Calculate 7-day rolling average for an array of values
 function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] {
@@ -113,7 +111,6 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
 }
 
 export function PaymentRatioChart() {
-  const chartRef = useRef<HTMLDivElement>(null);
   const [showComparison, setShowComparison] = useState(false);
   const { timeRange } = useChartSettings();
   const { data: priceHistory, isLoading, error } = usePriceHistory(timeRange);
@@ -202,149 +199,137 @@ export function PaymentRatioChart() {
     };
   }, [priceHistory, basketData]);
 
-  const legendItems = [
+  const legendItems: LegendItem[] = [
     { key: "eth", label: "ETH", color: CHART_COLORS.primary },
     { key: "weth", label: "WETH", color: CHART_COLORS.danger },
   ];
 
-  if (isLoading) return <ChartSkeleton />;
-  if (error || !priceHistory) {
-    return (
-      <Card>
-        <CardHeader><span className="text-lg font-bold font-brice">Payment Methods</span></CardHeader>
-        <p className="text-foreground-muted text-center py-8">Failed to load data</p>
-      </Card>
-    );
-  }
+  // Comparison toggle controls
+  const comparisonControls = (
+    <div className="flex rounded-lg border border-border overflow-hidden">
+      <button
+        onClick={() => setShowComparison(false)}
+        className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
+          !showComparison
+            ? "bg-brand text-background"
+            : "text-foreground-muted hover:text-foreground hover:bg-border"
+        }`}
+      >
+        GVC
+      </button>
+      <button
+        onClick={() => setShowComparison(true)}
+        className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
+          showComparison
+            ? "bg-brand text-background"
+            : "text-foreground-muted hover:text-foreground hover:bg-border"
+        }`}
+      >
+        Compare{basketLoading && showComparison ? "..." : ""}
+      </button>
+    </div>
+  );
+
+  // Stats - only shown when not in comparison mode
+  const showStats = !(showComparison && !basketLoading && basketDailyData.length > 0);
+  const statsContent = showStats ? (
+    <ChartStatGrid columns={2}>
+      <ChartStatCard
+        label="ETH Usage"
+        value={`${gvcAvgEth.toFixed(0)}%`}
+      />
+      <ChartStatCard
+        label="WETH Usage"
+        value={`${gvcAvgWeth.toFixed(0)}%`}
+      />
+    </ChartStatGrid>
+  ) : undefined;
+
+  // Chart content
+  const chartContent = showComparison && !basketLoading && basketDailyData.length > 0 ? (
+    <div className="flex gap-4 h-full">
+      <PaymentLineChart
+        data={gvcDailyData}
+        label="Good Vibes Club"
+        avgEth={gvcAvgEth}
+        avgWeth={gvcAvgWeth}
+      />
+      <PaymentLineChart
+        data={basketDailyData}
+        label="Leading ETH Collections"
+        avgEth={basketAvgEth}
+        avgWeth={basketAvgWeth}
+      />
+    </div>
+  ) : (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={gvcDailyData} margin={{ ...CHART_MARGINS.default, bottom: 20 }}>
+        <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
+        <XAxis
+          dataKey="date"
+          stroke={AXIS_STYLE.stroke}
+          fontSize={AXIS_STYLE.fontSize}
+          fontFamily={AXIS_STYLE.fontFamily}
+          interval={Math.max(0, Math.floor(gvcDailyData.length / 6) - 1)}
+          tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          axisLine={AXIS_STYLE.axisLine}
+          tickLine={AXIS_STYLE.tickLine}
+        />
+        <YAxis
+          stroke={AXIS_STYLE.stroke}
+          fontSize={AXIS_STYLE.fontSize}
+          fontFamily={AXIS_STYLE.fontFamily}
+          tickFormatter={(v) => `${v}%`}
+          domain={[0, 100]}
+          ticks={[0, 25, 50, 75, 100]}
+          width={40}
+          axisLine={AXIS_STYLE.axisLine}
+          tickLine={AXIS_STYLE.tickLine}
+        />
+        <Tooltip
+          contentStyle={getTooltipContentStyle()}
+          labelStyle={{ color: "#fafafa" }}
+          formatter={(value, name) => {
+            const labelText = name === "ethPct" ? "ETH" : "WETH";
+            return [`${Number(value).toFixed(1)}%`, labelText];
+          }}
+          labelFormatter={(l) => formatDate(l)}
+        />
+        <Line
+          type="monotone"
+          dataKey="ethPct"
+          stroke={CHART_COLORS.primary}
+          strokeWidth={2}
+          dot={{ r: 3, fill: CHART_COLORS.primary, strokeWidth: 0 }}
+          activeDot={{ r: 5, fill: CHART_COLORS.primary, stroke: "#0a0a0a", strokeWidth: 2 }}
+        />
+        <Line
+          type="monotone"
+          dataKey="wethPct"
+          stroke={CHART_COLORS.danger}
+          strokeWidth={2}
+          dot={{ r: 3, fill: CHART_COLORS.danger, strokeWidth: 0 }}
+          activeDot={{ r: 5, fill: CHART_COLORS.danger, stroke: "#0a0a0a", strokeWidth: 2 }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <Link href="/charts/payment-ratio" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
-            ETH vs WETH Payments
-          </Link>
-          <CardDescription>ETH vs WETH usage by volume (7D smoothed)</CardDescription>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex rounded-lg border border-border overflow-hidden">
-            <button
-              onClick={() => setShowComparison(false)}
-              className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
-                !showComparison
-                  ? "bg-brand text-background"
-                  : "text-foreground-muted hover:text-foreground hover:bg-border"
-              }`}
-            >
-              GVC
-            </button>
-            <button
-              onClick={() => setShowComparison(true)}
-              className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
-                showComparison
-                  ? "bg-brand text-background"
-                  : "text-foreground-muted hover:text-foreground hover:bg-border"
-              }`}
-            >
-              Compare{basketLoading && showComparison ? "..." : ""}
-            </button>
-          </div>
-          <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-        </div>
-      </CardHeader>
-
-      <div className="flex items-center px-3 mb-3">
-        <ChartLegendToggle items={legendItems} />
-      </div>
-
-      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        {/* Single or side-by-side line charts */}
-        {showComparison && !basketLoading && basketDailyData.length > 0 ? (
-          <div className="flex gap-4">
-            <PaymentLineChart
-              data={gvcDailyData}
-              label="Good Vibes Club"
-              avgEth={gvcAvgEth}
-              avgWeth={gvcAvgWeth}
-            />
-            <PaymentLineChart
-              data={basketDailyData}
-              label="Leading ETH Collections"
-              avgEth={basketAvgEth}
-              avgWeth={basketAvgWeth}
-            />
-          </div>
-        ) : (
-          <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={gvcDailyData} margin={{ ...CHART_MARGINS.default, bottom: 20 }}>
-                <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
-                <XAxis
-                  dataKey="date"
-                  stroke={AXIS_STYLE.stroke}
-                  fontSize={AXIS_STYLE.fontSize}
-                  fontFamily={AXIS_STYLE.fontFamily}
-                  interval={Math.max(0, Math.floor(gvcDailyData.length / 6) - 1)}
-                  tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  axisLine={AXIS_STYLE.axisLine}
-                  tickLine={AXIS_STYLE.tickLine}
-                />
-                <YAxis
-                  stroke={AXIS_STYLE.stroke}
-                  fontSize={AXIS_STYLE.fontSize}
-                  fontFamily={AXIS_STYLE.fontFamily}
-                  tickFormatter={(v) => `${v}%`}
-                  domain={[0, 100]}
-                  ticks={[0, 25, 50, 75, 100]}
-                  width={40}
-                  axisLine={AXIS_STYLE.axisLine}
-                  tickLine={AXIS_STYLE.tickLine}
-                />
-                <Tooltip
-                  contentStyle={getTooltipContentStyle()}
-                  labelStyle={{ color: "#fafafa" }}
-                  formatter={(value, name) => {
-                    const labelText = name === "ethPct" ? "ETH" : "WETH";
-                    return [`${Number(value).toFixed(1)}%`, labelText];
-                  }}
-                  labelFormatter={(l) => formatDate(l)}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="ethPct"
-                  stroke={CHART_COLORS.primary}
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: CHART_COLORS.primary, strokeWidth: 0 }}
-                  activeDot={{ r: 5, fill: CHART_COLORS.primary, stroke: "#0a0a0a", strokeWidth: 2 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="wethPct"
-                  stroke={CHART_COLORS.danger}
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: CHART_COLORS.danger, strokeWidth: 0 }}
-                  activeDot={{ r: 5, fill: CHART_COLORS.danger, stroke: "#0a0a0a", strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-      </div>
-
-      {/* Summary stats - hide in comparison mode since each chart shows its own */}
-      {!(showComparison && !basketLoading && basketDailyData.length > 0) && (
-        <ChartStatGrid columns={2}>
-          <ChartStatCard
-            label="ETH Usage"
-            value={`${gvcAvgEth.toFixed(0)}%`}
-          />
-          <ChartStatCard
-            label="WETH Usage"
-            value={`${gvcAvgWeth.toFixed(0)}%`}
-          />
-        </ChartStatGrid>
-      )}
-    </Card>
+    <StandardChartCard
+      title="ETH vs WETH Payments"
+      href="/charts/payment-ratio"
+      description="ETH vs WETH usage by volume (7D smoothed)"
+      legend={legendItems}
+      controls={comparisonControls}
+      exportConfig={exportConfig}
+      isLoading={isLoading}
+      error={error}
+      isEmpty={!priceHistory || gvcDailyData.length === 0}
+      emptyMessage="No payment data available"
+      stats={statsContent}
+    >
+      {chartContent}
+    </StandardChartCard>
   );
 }

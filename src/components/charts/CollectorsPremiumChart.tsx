@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   LineChart,
@@ -10,18 +10,14 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
-import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
-import { ChartExportButtons } from "./ChartExportButtons";
-import { ChartSkeleton } from "@/components/ui/Skeleton";
+import { StandardChartCard } from "@/components/charts/StandardChartCard";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useBasketPriceHistory } from "@/hooks/useBasketPriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Calculate 7-day rolling average for an array of values
 function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] {
@@ -128,7 +124,6 @@ function PremiumChartRow({
 }
 
 export function CollectorsPremiumChart() {
-  const chartRef = useRef<HTMLDivElement>(null);
   const [showComparison, setShowComparison] = useState(false);
   const { timeRange } = useChartSettings();
   const { data, isLoading, error } = usePriceHistory(timeRange);
@@ -210,99 +205,88 @@ export function CollectorsPremiumChart() {
     };
   }, [data, basketData]);
 
-  if (isLoading) return <ChartSkeleton />;
-  if (error || !data || data.length === 0) {
-    return (
-      <Card>
-        <CardHeader><span className="text-lg font-bold font-brice">Collector's Premium</span></CardHeader>
-        <p className="text-foreground-muted text-center py-8">No data available</p>
-      </Card>
-    );
-  }
+  const comparisonToggle = (
+    <div className="flex rounded-lg border border-border overflow-hidden">
+      <button
+        onClick={() => setShowComparison(false)}
+        className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
+          !showComparison
+            ? "bg-brand text-background"
+            : "text-foreground-muted hover:text-foreground hover:bg-border"
+        }`}
+      >
+        GVC
+      </button>
+      <button
+        onClick={() => setShowComparison(true)}
+        className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
+          showComparison
+            ? "bg-brand text-background"
+            : "text-foreground-muted hover:text-foreground hover:bg-border"
+        }`}
+      >
+        Compare{basketLoading && showComparison ? "..." : ""}
+      </button>
+    </div>
+  );
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <Link href="/charts/collectors-premium" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
-            Collector's Premium
-          </Link>
-          <CardDescription>% of daily sales priced above floor (7D smoothed)</CardDescription>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex rounded-lg border border-border overflow-hidden">
-            <button
-              onClick={() => setShowComparison(false)}
-              className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
-                !showComparison
-                  ? "bg-brand text-background"
-                  : "text-foreground-muted hover:text-foreground hover:bg-border"
-              }`}
-            >
-              GVC
-            </button>
-            <button
-              onClick={() => setShowComparison(true)}
-              className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
-                showComparison
-                  ? "bg-brand text-background"
-                  : "text-foreground-muted hover:text-foreground hover:bg-border"
-              }`}
-            >
-              Compare{basketLoading && showComparison ? "..." : ""}
-            </button>
+    <StandardChartCard
+      title="Collector's Premium"
+      href="/charts/collectors-premium"
+      description="% of daily sales priced above floor (7D smoothed)"
+      controls={comparisonToggle}
+      exportConfig={exportConfig}
+      isLoading={isLoading}
+      error={error}
+      isEmpty={!data || data.length === 0}
+      emptyMessage="No data available"
+    >
+      {/* Comparison legend when active */}
+      {showComparison && !basketLoading && (
+        <div className="flex items-center gap-4 mb-1 text-xs">
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-0.5 bg-brand rounded" />
+            <span className="text-foreground-muted">GVC</span>
           </div>
-          <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-        </div>
-      </CardHeader>
-
-      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container min-h-[320px] sm:min-h-[500px] flex flex-col">
-        {/* Legend when comparison is active */}
-        {showComparison && !basketLoading && (
-          <div className="flex items-center gap-4 mb-1 text-xs">
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-0.5 bg-brand rounded" />
-              <span className="text-foreground-muted">GVC</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-0.5 rounded bg-foreground-muted/50" style={{ backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 2px, #71717a 2px, #71717a 4px)" }} />
-              <span className="text-foreground-muted">Leading ETH</span>
-            </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-0.5 rounded bg-foreground-muted/50" style={{ backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 2px, #71717a 2px, #71717a 4px)" }} />
+            <span className="text-foreground-muted">Leading ETH</span>
           </div>
-        )}
-
-        {/* Three stacked line charts */}
-        <div className="space-y-0">
-          <PremiumChartRow
-            data={data10}
-            dataKey="salesAbove10Pct"
-            label=">10%"
-            color={CHART_COLORS.success}
-            avg={avg10}
-            basketAvg={basketAvg10}
-            showComparison={showComparison && !basketLoading}
-          />
-          <PremiumChartRow
-            data={data25}
-            dataKey="salesAbove25Pct"
-            label=">25%"
-            color={CHART_COLORS.primary}
-            avg={avg25}
-            basketAvg={basketAvg25}
-            showComparison={showComparison && !basketLoading}
-          />
-          <PremiumChartRow
-            data={data50}
-            dataKey="salesAbove50Pct"
-            label=">50%"
-            color={CHART_COLORS.accent}
-            avg={avg50}
-            basketAvg={basketAvg50}
-            showComparison={showComparison && !basketLoading}
-            showXAxis={true}
-          />
         </div>
+      )}
+
+      {/* Three stacked line charts */}
+      <div className="space-y-0">
+        <PremiumChartRow
+          data={data10}
+          dataKey="salesAbove10Pct"
+          label=">10%"
+          color={CHART_COLORS.success}
+          avg={avg10}
+          basketAvg={basketAvg10}
+          showComparison={showComparison && !basketLoading}
+        />
+        <PremiumChartRow
+          data={data25}
+          dataKey="salesAbove25Pct"
+          label=">25%"
+          color={CHART_COLORS.primary}
+          avg={avg25}
+          basketAvg={basketAvg25}
+          showComparison={showComparison && !basketLoading}
+        />
+        <PremiumChartRow
+          data={data50}
+          dataKey="salesAbove50Pct"
+          label=">50%"
+          color={CHART_COLORS.accent}
+          avg={avg50}
+          basketAvg={basketAvg50}
+          showComparison={showComparison && !basketLoading}
+          showXAxis={true}
+        />
       </div>
-    </Card>
+    </StandardChartCard>
   );
 }

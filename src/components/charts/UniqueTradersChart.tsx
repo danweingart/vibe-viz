@@ -13,13 +13,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function UniqueTradersChart() {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -93,6 +94,12 @@ export function UniqueTradersChart() {
     };
   }, [data, timeRange]);
 
+  const legendItems = [
+    { key: "buyers", label: "Buyers", color: CHART_COLORS.success },
+    { key: "sellers", label: "Sellers", color: CHART_COLORS.danger },
+    { key: "new", label: "New", color: CHART_COLORS.info },
+  ];
+
   if (isLoading) return <ChartSkeleton />;
   if (error || !data || data.dailyStats.length === 0) {
     return (
@@ -110,40 +117,29 @@ export function UniqueTradersChart() {
           <Link href="/charts/unique-traders" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             Unique Traders
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>Distinct wallets trading {isWeekly ? "each week (avg/day)" : "each day"}</CardDescription>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex gap-3 text-right text-xs">
-            <div>
-              <p className="font-bold text-chart-success">{avgBuyers.toFixed(1)}</p>
-              <p className="text-foreground-muted">Avg Buyers/Day</p>
-            </div>
-            <div>
-              <p className="font-bold text-chart-danger">{avgSellers.toFixed(1)}</p>
-              <p className="text-foreground-muted">Avg Sellers/Day</p>
-            </div>
-            <div>
-              <p className="font-bold text-chart-info">{newBuyerRate.toFixed(0)}%</p>
-              <p className="text-foreground-muted">New Buyers</p>
-            </div>
-          </div>
           <ChartExportButtons chartRef={chartRef} config={exportConfig} />
         </div>
       </CardHeader>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+      <div className="flex items-center px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
+
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+            <ComposedChart data={chartData} margin={CHART_MARGINS.default}>
+              <CartesianGrid {...GRID_STYLE} />
               <XAxis
                 dataKey="date"
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 interval={isWeekly ? 0 : Math.max(0, Math.floor(chartData.length / 6) - 1)}
                 tickFormatter={(v) => {
                   const date = new Date(v);
@@ -157,9 +153,16 @@ export function UniqueTradersChart() {
                   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
                 }}
               />
-              <YAxis stroke="#71717a" fontSize={11} fontFamily="var(--font-mundial)" axisLine={false} tickLine={false} width={40} />
+              <YAxis
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
+                width={40}
+              />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 labelStyle={{ color: "#fafafa" }}
                 formatter={(value, name) => {
                   const labels: Record<string, string> = {
@@ -205,25 +208,25 @@ export function UniqueTradersChart() {
           </ResponsiveContainer>
         </div>
 
-        {/* Legend + repeat buyer stat */}
-        <div className="flex items-center justify-between mt-2 text-xs">
-          <div className="flex gap-4">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: CHART_COLORS.success }} />
-              <span className="text-foreground-muted">Buyers</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: CHART_COLORS.danger }} />
-              <span className="text-foreground-muted">Sellers</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-0.5 rounded" style={{ backgroundColor: CHART_COLORS.info }} />
-              <span className="text-foreground-muted">New</span>
-            </div>
-          </div>
-          <span className="text-foreground-muted"><span className="font-medium text-brand">{data.repeatBuyerRate}%</span> repeat buyers</span>
-        </div>
       </div>
+      <ChartStatGrid columns={4}>
+        <ChartStatCard
+          label="Avg Buyers/Day"
+          value={avgBuyers.toFixed(1)}
+        />
+        <ChartStatCard
+          label="Avg Sellers/Day"
+          value={avgSellers.toFixed(1)}
+        />
+        <ChartStatCard
+          label="New Buyers"
+          value={`${newBuyerRate.toFixed(0)}%`}
+        />
+        <ChartStatCard
+          label="Repeat Buyers"
+          value={`${data.repeatBuyerRate}%`}
+        />
+      </ChartStatGrid>
     </Card>
   );
 }

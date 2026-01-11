@@ -13,13 +13,14 @@ import {
   Cell,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Dynamic buckets based on time range
 function getBucketsForRange(timeRange: number) {
@@ -145,6 +146,12 @@ export function HoldingPeriodChart() {
 
   const maxCount = Math.max(...chartData.map((d) => d.count));
 
+  const legendItems = [
+    { key: "flippers", label: "Flippers", color: CHART_COLORS.danger },
+    { key: "traders", label: "Traders", color: CHART_COLORS.primary },
+    { key: "holders", label: "Holders", color: CHART_COLORS.success },
+  ];
+
   return (
     <Card>
       {/* UI Header - hidden during export */}
@@ -153,40 +160,28 @@ export function HoldingPeriodChart() {
           <Link href="/charts/holding-period" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             Holding Period
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
+          <p className="export-branding hidden text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>Time between buy and sell for resales within this period</CardDescription>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex gap-3 text-right text-xs">
-            <div>
-              <p className="font-bold text-chart-info">{avgHoldingDays.toFixed(0)}d</p>
-              <p className="text-foreground-muted">Avg Hold</p>
-            </div>
-            <div>
-              <p className="font-bold text-chart-danger">{flipperRate.toFixed(0)}%</p>
-              <p className="text-foreground-muted">Flippers</p>
-            </div>
-            <div>
-              <p className="font-bold text-chart-success">{hodlerRate.toFixed(0)}%</p>
-              <p className="text-foreground-muted">Holders</p>
-            </div>
-          </div>
-          <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-        </div>
+        <ChartExportButtons chartRef={chartRef} config={exportConfig} />
       </CardHeader>
 
+      <div className="flex items-center px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
+
       {/* Chart container */}
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
         {/* Chart */}
         <div className="chart-wrapper flex-1 flex flex-col">
-          <div className="chart-height flex-1 min-h-[120px] sm:min-h-[280px]">
+          <div className="chart-height flex-1 min-h-[320px] sm:min-h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                <XAxis dataKey="label" stroke="#71717a" fontSize={11} axisLine={false} tickLine={false} fontFamily="var(--font-mundial)" />
-                <YAxis stroke="#71717a" fontSize={11} axisLine={false} tickLine={false} fontFamily="var(--font-mundial)" width={40} />
+              <BarChart data={chartData} margin={CHART_MARGINS.default}>
+                <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
+                <XAxis dataKey="label" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} fontFamily={AXIS_STYLE.fontFamily} />
+                <YAxis stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} fontFamily={AXIS_STYLE.fontFamily} width={40} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                  contentStyle={getTooltipContentStyle()}
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const d = payload[0]?.payload;
@@ -214,31 +209,22 @@ export function HoldingPeriodChart() {
           </div>
         </div>
 
-        {/* UI Legend - shown on frontend only */}
-        <div className="export-hide grid grid-cols-3 gap-1 sm:gap-2 mt-2 text-[10px] sm:text-xs text-center">
-          <div className="bg-background-tertiary rounded p-2">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <div className="w-2 h-2 rounded" style={{ backgroundColor: CHART_COLORS.danger }} />
-              <span className="text-foreground-muted">Flippers</span>
-            </div>
-            <p className="font-bold text-chart-danger">{bucketConfig.legend.flipper}</p>
-          </div>
-          <div className="bg-background-tertiary rounded p-2">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <div className="w-2 h-2 rounded" style={{ backgroundColor: CHART_COLORS.primary }} />
-              <span className="text-foreground-muted">Traders</span>
-            </div>
-            <p className="font-bold text-brand">{bucketConfig.legend.trader}</p>
-          </div>
-          <div className="bg-background-tertiary rounded p-2">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <div className="w-2 h-2 rounded" style={{ backgroundColor: CHART_COLORS.success }} />
-              <span className="text-foreground-muted">Holders</span>
-            </div>
-            <p className="font-bold text-chart-success">{bucketConfig.legend.holder}</p>
-          </div>
-        </div>
       </div>
+
+      <ChartStatGrid columns={3}>
+        <ChartStatCard
+          label="Avg Hold"
+          value={`${avgHoldingDays.toFixed(0)}d`}
+        />
+        <ChartStatCard
+          label="Flippers"
+          value={`${flipperRate.toFixed(0)}%`}
+        />
+        <ChartStatCard
+          label="Holders"
+          value={`${hodlerRate.toFixed(0)}%`}
+        />
+      </ChartStatGrid>
     </Card>
   );
 }

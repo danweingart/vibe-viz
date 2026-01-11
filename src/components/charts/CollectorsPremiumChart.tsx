@@ -21,6 +21,7 @@ import { useBasketPriceHistory } from "@/hooks/useBasketPriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Calculate 7-day rolling average for an array of values
 function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] {
@@ -65,34 +66,34 @@ function PremiumChartRow({
         </p>
       </div>
 
-      {/* Chart - add extra height when showing X-axis to keep chart area consistent */}
-      <div className={`flex-1 ${showXAxis ? "h-[142px]" : "h-[127px]"}`}>
+      {/* Chart */}
+      <div className="flex-1 h-[127px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 5, right: 8, left: 0, bottom: showXAxis ? 20 : 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={true} vertical={false} />
+          <LineChart data={data} margin={CHART_MARGINS.default}>
+            <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
             <XAxis
               dataKey="date"
-              stroke="#71717a"
-              fontSize={11}
-              fontFamily="var(--font-mundial)"
+              stroke={AXIS_STYLE.stroke}
+              fontSize={AXIS_STYLE.fontSize}
+              fontFamily={AXIS_STYLE.fontFamily}
               interval={Math.max(0, Math.floor(data.length / 8) - 1)}
               tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               hide={!showXAxis}
-              axisLine={false}
-              tickLine={false}
+              axisLine={AXIS_STYLE.axisLine}
+              tickLine={AXIS_STYLE.tickLine}
             />
             <YAxis
-              stroke="#71717a"
-              fontSize={11}
-              fontFamily="var(--font-mundial)"
+              stroke={AXIS_STYLE.stroke}
+              fontSize={AXIS_STYLE.fontSize}
+              fontFamily={AXIS_STYLE.fontFamily}
               tickFormatter={(v) => `${v}%`}
               domain={['auto', 'auto']}
               width={32}
-              axisLine={false}
-              tickLine={false}
+              axisLine={AXIS_STYLE.axisLine}
+              tickLine={AXIS_STYLE.tickLine}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+              contentStyle={getTooltipContentStyle()}
               labelStyle={{ color: "#fafafa" }}
               formatter={(value, name) => {
                 const labelText = name === "basketValue" ? "Leading ETH" : "GVC";
@@ -226,7 +227,6 @@ export function CollectorsPremiumChart() {
           <Link href="/charts/collectors-premium" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             Collector's Premium
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>% of daily sales priced above floor (7D smoothed)</CardDescription>
         </div>
         <div className="flex items-center gap-3">
@@ -256,7 +256,7 @@ export function CollectorsPremiumChart() {
         </div>
       </CardHeader>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container min-h-[320px] sm:min-h-[500px] flex flex-col">
         {/* Legend when comparison is active */}
         {showComparison && !basketLoading && (
           <div className="flex items-center gap-4 mb-1 text-xs">

@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
-import { exportChartForX, getChartFilename } from "@/lib/chartExport";
+import { useRef } from "react";
 import {
   LineChart,
   Line,
@@ -13,32 +12,20 @@ import {
   ReferenceLine,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription, Button } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
+import { ChartExportButtons } from "@/components/charts/ChartExportButtons";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { getChartFilename } from "@/lib/chartExport";
 
 export function FloorPriceChart() {
   const chartRef = useRef<HTMLDivElement>(null);
-  const [isExporting, setIsExporting] = useState(false);
   const { timeRange, currency } = useChartSettings();
   const { data, isLoading, error } = usePriceHistory(timeRange);
-
-  const handleDownload = useCallback(async () => {
-    if (!chartRef.current) return;
-    setIsExporting(true);
-    try {
-      await exportChartForX(chartRef.current, {
-        filename: getChartFilename("floor-price", timeRange),
-      });
-    } catch (error) {
-      console.error("Failed to export:", error);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [timeRange]);
 
   if (isLoading) return <ChartSkeleton />;
   if (error || !data || data.length === 0) {
@@ -62,6 +49,21 @@ export function FloorPriceChart() {
   const currentFloor = chartData[chartData.length - 1]?.displayFloor || 0;
   const avgFloor = chartData.reduce((sum, d) => sum + d.displayFloor, 0) / chartData.length;
 
+  const legendItems = [
+    { key: "floor", label: "Floor Price", color: CHART_COLORS.primary },
+    { key: "ma7", label: "7D MA", color: CHART_COLORS.info },
+  ];
+
+  const exportConfig = {
+    filename: getChartFilename("floor-price", timeRange),
+    title: "Floor Price",
+    subtitle: `${timeRange}D - Lowest sale price each day`,
+    legend: [
+      { color: CHART_COLORS.primary, label: "Floor Price", value: currency === "eth" ? "ETH" : "USD" },
+      { color: CHART_COLORS.info, label: "7D MA", value: currency === "eth" ? "ETH" : "USD" },
+    ],
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between">
@@ -72,45 +74,39 @@ export function FloorPriceChart() {
           <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>Lowest sale price each day + 7D trend line</CardDescription>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-sm font-bold text-foreground">
-              {currency === "eth" ? formatEth(currentFloor, 2) : formatUsd(currentFloor)}
-            </p>
-            <p className="text-[10px] text-foreground-muted">Current</p>
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleDownload} isLoading={isExporting}>
-            <DownloadIcon className="w-4 h-4" />
-          </Button>
-        </div>
+        <ChartExportButtons chartRef={chartRef} config={exportConfig} />
       </CardHeader>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+      <div className="flex items-center justify-between px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
+
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+            <LineChart data={chartData} margin={CHART_MARGINS.default}>
+              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
               <XAxis
                 dataKey="date"
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
                 tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               />
               <YAxis
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 width={40}
                 tickFormatter={(v) => currency === "eth" ? v.toFixed(2) : `$${v.toFixed(0)}`}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 labelStyle={{ color: "#fafafa" }}
                 formatter={(value) => [currency === "eth" ? formatEth(Number(value), 2) : formatUsd(Number(value))]}
                 labelFormatter={(label) => formatDate(label)}
@@ -121,27 +117,18 @@ export function FloorPriceChart() {
             </LineChart>
           </ResponsiveContainer>
         </div>
-
-        <div className="flex justify-center gap-6 mt-2 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-0.5 bg-brand" />
-            <span className="text-foreground-muted">Floor Price</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-0.5 bg-chart-info" style={{ borderStyle: "dashed" }} />
-            <span className="text-foreground-muted">7D Moving Avg</span>
-          </div>
-        </div>
-
       </div>
-    </Card>
-  );
-}
 
-function DownloadIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
+      <ChartStatGrid columns={2}>
+        <ChartStatCard
+          label="Current Floor"
+          value={currency === "eth" ? formatEth(currentFloor, 2) : formatUsd(currentFloor)}
+        />
+        <ChartStatCard
+          label={`${timeRange}D Average`}
+          value={currency === "eth" ? formatEth(avgFloor, 2) : formatUsd(avgFloor)}
+        />
+      </ChartStatGrid>
+    </Card>
   );
 }

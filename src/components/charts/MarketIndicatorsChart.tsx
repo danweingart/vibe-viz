@@ -8,6 +8,7 @@ import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { useMarketIndicators } from "@/hooks";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_HEIGHT } from "@/lib/chartConfig";
 
 // Gauge component for circular progress indicators
 function Gauge({
@@ -173,7 +174,6 @@ export function MarketIndicatorsChart() {
           <Link href="/charts/market-indicators" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             Market Indicators
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>RSI, momentum & liquidity scores for market sentiment</CardDescription>
         </div>
         <div className="flex items-center gap-2">
@@ -182,8 +182,8 @@ export function MarketIndicatorsChart() {
         </div>
       </CardHeader>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px] flex flex-col">
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px] flex flex-col">
         {/* Gauges row */}
         <div className="grid grid-cols-3 gap-3 mb-3">
           <button

@@ -13,13 +13,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber, formatEth, formatUsd } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Generate evenly spaced tick values for X-axis alignment across charts
 function getAlignedTicks(dates: string[], count: number): string[] {
@@ -81,11 +82,32 @@ export function SalesVolumeChart() {
     ? totalSales / data.length
     : totalVolume / data.length;
 
+  // Calculate week-over-week change
+  const lastWeek = chartData.slice(-7);
+  const prevWeek = chartData.slice(-14, -7);
+  const lastWeekTotal = viewMode === "sales"
+    ? lastWeek.reduce((sum, d) => sum + d.salesCount, 0)
+    : lastWeek.reduce((sum, d) => sum + d.displayVolume, 0);
+  const prevWeekTotal = viewMode === "sales"
+    ? prevWeek.reduce((sum, d) => sum + d.salesCount, 0)
+    : prevWeek.reduce((sum, d) => sum + d.displayVolume, 0);
+  const weekChange = prevWeekTotal > 0 ? ((lastWeekTotal - prevWeekTotal) / prevWeekTotal) * 100 : 0;
+
+  // Find peak day
+  const peakDay = viewMode === "sales"
+    ? Math.max(...chartData.map(d => d.salesCount))
+    : Math.max(...chartData.map(d => d.displayVolume));
+
   const title = viewMode === "sales" ? "Daily Sales Count" : "Daily Trading Volume";
   const description = viewMode === "sales"
     ? "Number of NFT sales per day with 7D rolling average"
     : `Total sales volume per day (${currency.toUpperCase()})`;
   const linkHref = viewMode === "sales" ? "/charts/sales-velocity" : "/charts/volume";
+
+  const legendItems = [
+    { key: "daily", label: viewMode === "sales" ? "Sales" : "Volume", color: CHART_COLORS.primary },
+    { key: "average", label: "7D Avg", color: CHART_COLORS.danger },
+  ];
 
   return (
     <Card>
@@ -94,14 +116,14 @@ export function SalesVolumeChart() {
           <Link href={linkHref} className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             {title}
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>{description}</CardDescription>
         </div>
         <ChartExportButtons chartRef={chartRef} config={exportConfig} />
       </CardHeader>
 
-      {/* View Mode Toggle - Outside chartRef so it's excluded from download */}
-      <div className="flex items-center justify-between px-4 mb-2">
+      {/* Legend Toggle - X/Twitter style */}
+      <div className="flex items-center justify-between px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
         <div className="flex rounded-lg border border-border overflow-hidden">
           <button
             onClick={() => setViewMode("sales")}
@@ -124,39 +146,30 @@ export function SalesVolumeChart() {
             Volume
           </button>
         </div>
-        <div className="text-right">
-          <p className="text-sm font-bold text-foreground">
-            {viewMode === "sales"
-              ? formatNumber(totalSales)
-              : currency === "eth" ? formatEth(totalVolume, 1) : formatUsd(totalVolume)
-            }
-          </p>
-          <p className="text-[10px] text-foreground-muted">{timeRange}D Total</p>
-        </div>
       </div>
 
       {/* Chart content - This gets captured in download */}
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+            <ComposedChart data={chartData} margin={CHART_MARGINS.default}>
+              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
               <XAxis
                 dataKey="date"
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                tickLine={false}
-                axisLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                tickLine={AXIS_STYLE.tickLine}
+                axisLine={AXIS_STYLE.axisLine}
                 ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
                 tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               />
               <YAxis
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 width={40}
                 tickFormatter={(v) =>
                   viewMode === "sales"
@@ -165,7 +178,7 @@ export function SalesVolumeChart() {
                 }
               />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 labelStyle={{ color: "#fafafa" }}
                 formatter={(value, name) => {
                   if (viewMode === "sales") {
@@ -193,26 +206,30 @@ export function SalesVolumeChart() {
           </ResponsiveContainer>
         </div>
 
-        <div className="flex justify-between items-center mt-2 text-xs">
-          <div className="flex gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-brand" />
-              <span className="text-foreground-muted">Daily {viewMode === "sales" ? "Sales" : "Volume"}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-0.5 bg-chart-danger" />
-              <span className="text-foreground-muted">7D Average</span>
-            </div>
-          </div>
-          <span className="text-foreground-muted">
-            Avg: {viewMode === "sales"
-              ? `${avgDaily.toFixed(1)}/day`
-              : currency === "eth" ? formatEth(avgDaily, 2) : formatUsd(avgDaily)
-            }
-          </span>
-        </div>
-
       </div>
+
+      {/* Stat Cards - X/Twitter style */}
+      <ChartStatGrid columns={2}>
+        <ChartStatCard
+          label={`${timeRange}D Total`}
+          value={viewMode === "sales"
+            ? formatNumber(totalSales)
+            : currency === "eth" ? formatEth(totalVolume, 1) : formatUsd(totalVolume)
+          }
+          subValue={viewMode === "sales"
+            ? `${avgDaily.toFixed(1)}/day`
+            : currency === "eth" ? `${formatEth(avgDaily, 2)}/day` : `${formatUsd(avgDaily)}/day`
+          }
+        />
+        <ChartStatCard
+          label="Last 7 Days"
+          value={viewMode === "sales"
+            ? formatNumber(lastWeekTotal)
+            : currency === "eth" ? formatEth(lastWeekTotal, 1) : formatUsd(lastWeekTotal)
+          }
+          change={weekChange}
+        />
+      </ChartStatGrid>
     </Card>
   );
 }

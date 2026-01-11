@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibe-Viz Design Mockups</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --brand-yellow: #ffe048;
+      --brand-yellow-light: #fff4b3;
+      --brand-yellow-dark: #e6c940;
+      --background: #0a0a0a;
+      --background-secondary: #141414;
+      --background-tertiary: #1a1a1a;
+      --foreground: #fafafa;
+      --foreground-muted: #a1a1aa;
+      --border: #27272a;
+      --border-light: #3f3f46;
+      --chart-primary: #ffe048;
+      --chart-success: #34d399;
+      --chart-danger: #f87171;
+      --chart-info: #60a5fa;
+      --chart-muted: #71717a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      line-height: 1.5;
+      padding: 40px;
+    }
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--brand-yellow);
+    }
+
+    .page-subtitle {
+      font-size: 16px;
+      color: var(--foreground-muted);
+      margin-bottom: 48px;
+    }
+
+    .section {
+      margin-bottom: 64px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-badge {
+      background: var(--brand-yellow);
+      color: var(--background);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .section-description {
+      color: var(--foreground-muted);
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    .mockup-container {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .mockup-frame {
+      background: var(--background-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      min-width: 300px;
+    }
+
+    .mockup-frame-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--foreground-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== TOOLTIP MOCKUPS ===== */
+    .tooltip-demo {
+      position: relative;
+      background: var(--background-tertiary);
+      border-radius: 8px;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 160px;
+    }
+
+    .tooltip {
+      background: #141414;
+      border: 1px solid #27272a;
+      border-radius: 8px;
+      padding: 8px 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      min-width: 180px;
+      animation: tooltipFadeIn 0.15s ease-out;
+    }
+
+    @keyframes tooltipFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tooltip-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: 8px;
+    }
+
+    .tooltip-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .tooltip-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .tooltip-row-label {
+      color: var(--foreground-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tooltip-row-label::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .tooltip-row-label.primary::before { background: var(--chart-primary); }
+    .tooltip-row-label.info::before { background: var(--chart-info); }
+    .tooltip-row-label.success::before { background: var(--chart-success); }
+    .tooltip-row-label.danger::before { background: var(--chart-danger); }
+
+    .tooltip-row-value {
+      font-weight: 600;
+    }
+
+    .tooltip-row-value.primary { color: var(--chart-primary); }
+    .tooltip-row-value.info { color: var(--chart-info); }
+    .tooltip-row-value.success { color: var(--chart-success); }
+    .tooltip-row-value.danger { color: var(--chart-danger); }
+
+    /* Spec annotations */
+    .spec-annotation {
+      position: absolute;
+      font-size: 10px;
+      color: var(--chart-info);
+      background: rgba(96, 165, 250, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px dashed var(--chart-info);
+    }
+
+    /* ===== STAT CARD MOCKUPS ===== */
+    .stat-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .stat-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .stat-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+    .stat-card {
+      background: var(--background-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .stat-card-compact {
+      padding: 12px;
+      border-radius: 10px;
+    }
+
+    .stat-card-label {
+      font-size: 12px;
+      color: var(--foreground-muted);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .stat-card-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--foreground);
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .stat-card-change {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .stat-card-change.positive { color: var(--chart-success); }
+    .stat-card-change.negative { color: var(--chart-danger); }
+
+    .stat-card-subvalue {
+      font-size: 12px;
+      color: var(--foreground-muted);
+      margin-top: 2px;
+    }
+
+    /* ===== CHART CARD MOCKUPS ===== */
+    .chart-card {
+      background: var(--background-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .chart-header {
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chart-header-left {
+      flex: 1;
+    }
+
+    .chart-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--foreground);
+      margin-bottom: 4px;
+    }
+
+    .chart-description {
+      font-size: 14px;
+      color: var(--foreground-muted);
+    }
+
+    .chart-export-btn {
+      background: var(--background-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--foreground-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .chart-export-btn:hover {
+      background: var(--border);
+      color: var(--foreground);
+    }
+
+    .chart-legend {
+      padding: 12px 16px;
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .legend-item:hover {
+      border-color: var(--border-light);
+    }
+
+    .legend-item.active {
+      opacity: 1;
+    }
+
+    .legend-item.inactive {
+      opacity: 0.5;
+    }
+
+    .legend-indicator {
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+    }
+
+    .legend-indicator.primary { background: var(--chart-primary); }
+    .legend-indicator.info { background: var(--chart-info); }
+
+    .chart-body {
+      padding: 16px;
+      background: var(--background-tertiary);
+    }
+
+    .chart-placeholder {
+      height: 280px;
+      background: linear-gradient(180deg, rgba(255,224,72,0.05) 0%, transparent 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--foreground-muted);
+      font-size: 14px;
+    }
+
+    .chart-stats {
+      padding: 16px;
+    }
+
+    /* ===== COMPARISON: BEFORE/AFTER ===== */
+    .comparison-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .comparison-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .comparison-label.before {
+      background: rgba(248, 113, 113, 0.1);
+      color: var(--chart-danger);
+    }
+
+    .comparison-label.after {
+      background: rgba(52, 211, 153, 0.1);
+      color: var(--chart-success);
+    }
+
+    /* ===== TYPOGRAPHY SPECS ===== */
+    .typography-spec {
+      display: grid;
+      gap: 16px;
+    }
+
+    .type-row {
+      display: flex;
+      align-items: baseline;
+      gap: 24px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .type-sample {
+      flex: 1;
+    }
+
+    .type-meta {
+      font-size: 11px;
+      color: var(--chart-info);
+      font-family: monospace;
+      min-width: 200px;
+    }
+
+    /* ===== COLOR PALETTE ===== */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+    }
+
+    .color-swatch {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .color-preview {
+      height: 60px;
+    }
+
+    .color-info {
+      padding: 8px;
+      background: var(--background-secondary);
+    }
+
+    .color-name {
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .color-value {
+      font-size: 10px;
+      color: var(--foreground-muted);
+      font-family: monospace;
+    }
+
+    /* ===== SPACING SPECS ===== */
+    .spacing-demo {
+      background: var(--background-tertiary);
+      border-radius: 8px;
+      padding: 24px;
+    }
+
+    .spacing-box {
+      background: rgba(255, 224, 72, 0.1);
+      border: 1px dashed var(--brand-yellow);
+      position: relative;
+    }
+
+    .spacing-label {
+      position: absolute;
+      font-size: 10px;
+      color: var(--brand-yellow);
+      font-family: monospace;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .comparison-container {
+        grid-template-columns: 1fr;
+      }
+      .stat-grid.cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="page-title">Vibe-Viz Design Mockups</h1>
+  <p class="page-subtitle">Visual specifications for chart visualization enhancements</p>
+
+  <!-- SECTION 1: TOOLTIP DESIGN -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="section-badge">01</span>
+      Tooltip Component Spec
+    </h2>
+    <p class="section-description">Unified tooltip design replacing inconsistent inline styles across all 15 charts</p>
+
+    <div class="mockup-container">
+      <div class="mockup-frame">
+        <div class="mockup-frame-title">Single Series Tooltip</div>
+        <div class="tooltip-demo">
+          <div class="tooltip">
+            <div class="tooltip-label">Jan 15, 2026</div>
+            <div class="tooltip-row">
+              <span class="tooltip-row-label primary">Floor Price</span>
+              <span class="tooltip-row-value primary">2.45 ETH</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-frame">
+        <div class="mockup-frame-title">Dual Series Tooltip</div>
+        <div class="tooltip-demo">
+          <div class="tooltip">
+            <div class="tooltip-label">Jan 15, 2026</div>
+            <div class="tooltip-row">
+              <span class="tooltip-row-label primary">Floor Price</span>
+              <span class="tooltip-row-value primary">2.45 ETH</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-row-label info">7-Day MA</span>
+              <span class="tooltip-row-value info">2.38 ETH</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-frame">
+        <div class="mockup-frame-title">Multi-Value Tooltip (Traders)</div>
+        <div class="tooltip-demo">
+          <div class="tooltip">
+            <div class="tooltip-label">Week of Jan 13</div>
+            <div class="tooltip-row">
+              <span class="tooltip-row-label success">Buyers</span>
+              <span class="tooltip-row-value success">24</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-row-label danger">Sellers</span>
+              <span class="tooltip-row-value danger">18</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-row-label info">New Buyers</span>
+              <span class="tooltip-row-value info">7</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup-frame" style="margin-top: 24px; max-width: 500px;">
+      <div class="mockup-frame-title">Tooltip Specifications</div>
+      <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Background</td>
+          <td style="padding: 8px 0; font-family: monospace;">#141414</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Border</td>
+          <td style="padding: 8px 0; font-family: monospace;">1px solid #27272a</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Border Radius</td>
+          <td style="padding: 8px 0; font-family: monospace;">8px</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Padding</td>
+          <td style="padding: 8px 0; font-family: monospace;">8px 12px</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Box Shadow</td>
+          <td style="padding: 8px 0; font-family: monospace;">0 4px 12px rgba(0,0,0,0.4)</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Label Font</td>
+          <td style="padding: 8px 0; font-family: monospace;">12px / 600 weight</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Value Font</td>
+          <td style="padding: 8px 0; font-family: monospace;">11px / 600 weight</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION 2: STAT CARD GRIDS -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="section-badge">02</span>
+      Stat Card Grid Layouts
+    </h2>
+    <p class="section-description">Standardized stat card layouts: 2 columns (simple), 3 columns (distribution), 4 columns (complex)</p>
+
+    <div class="mockup-container" style="flex-direction: column; gap: 32px;">
+
+      <div class="mockup-frame" style="width: 100%; max-width: 500px;">
+        <div class="mockup-frame-title">2-Column Layout (Price Charts)</div>
+        <div class="stat-grid cols-2">
+          <div class="stat-card">
+            <div class="stat-card-label">Current Floor</div>
+            <div class="stat-card-value">
+              2.45 ETH
+              <span class="stat-card-change positive">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M6 3L10 8H2L6 3Z"/></svg>
+                12.3%
+              </span>
+            </div>
+            <div class="stat-card-subvalue">$8,234 USD</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">7-Day Average</div>
+            <div class="stat-card-value">2.38 ETH</div>
+            <div class="stat-card-subvalue">$8,012 USD</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-frame" style="width: 100%; max-width: 650px;">
+        <div class="mockup-frame-title">3-Column Layout (Distribution Charts)</div>
+        <div class="stat-grid cols-3">
+          <div class="stat-card">
+            <div class="stat-card-label">Total Holders</div>
+            <div class="stat-card-value">1,247</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Single NFT %</div>
+            <div class="stat-card-value">68.4%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Whale Concentration</div>
+            <div class="stat-card-value">
+              8.2%
+              <span class="stat-card-change negative">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M6 9L2 4H10L6 9Z"/></svg>
+                2.1%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-frame" style="width: 100%; max-width: 800px;">
+        <div class="mockup-frame-title">4-Column Layout (Trader Insights)</div>
+        <div class="stat-grid cols-4">
+          <div class="stat-card">
+            <div class="stat-card-label">Avg Buyers/Day</div>
+            <div class="stat-card-value">12</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Avg Sellers/Day</div>
+            <div class="stat-card-value">9</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">New Buyer Rate</div>
+            <div class="stat-card-value">
+              34%
+              <span class="stat-card-change positive">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M6 3L10 8H2L6 3Z"/></svg>
+                5%
+              </span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Repeat Buyers</div>
+            <div class="stat-card-value">22%</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 3: FRONT END DESIGN -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="section-badge">03</span>
+      Front End Design
+    </h2>
+    <p class="section-description">How charts appear on the website dashboard (no branding - export only)</p>
+
+    <div style="display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start;">
+      <!-- Front End Chart Card -->
+      <div style="flex: 1; min-width: 400px; max-width: 600px;">
+        <div class="mockup-frame-title" style="margin-bottom: 12px;">Dashboard Chart Card</div>
+        <div class="chart-card" style="max-width: 100%;">
+          <div class="chart-header" style="padding: 12px 16px;">
+            <div class="chart-header-left">
+              <div class="chart-title" style="font-size: 16px;">Average Sale Price</div>
+              <div class="chart-description" style="font-size: 13px;">Mean sale price per day (all sales averaged)</div>
+            </div>
+            <button class="chart-export-btn" style="padding: 6px 10px; font-size: 11px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              Export
+            </button>
+          </div>
+
+          <div class="chart-legend" style="padding: 8px 16px;">
+            <div class="legend-item active">
+              <span class="legend-indicator primary"></span>
+              Avg Price
+            </div>
+            <div class="legend-item active">
+              <span class="legend-indicator info"></span>
+              7-Day MA
+            </div>
+          </div>
+
+          <div class="chart-body" style="padding: 12px;">
+            <div style="height: 320px; background: linear-gradient(180deg, rgba(255,224,72,0.06) 0%, transparent 100%); border-radius: 8px; position: relative; overflow: hidden;">
+              <!-- Simulated chart -->
+              <svg width="100%" height="100%" viewBox="0 0 500 320" preserveAspectRatio="none" style="position: absolute; top: 0; left: 0;">
+                <defs>
+                  <linearGradient id="frontendGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#ffe048" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#ffe048" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="0" y1="80" x2="500" y2="80" stroke="#27272a" stroke-dasharray="3 3"/>
+                <line x1="0" y1="160" x2="500" y2="160" stroke="#27272a" stroke-dasharray="3 3"/>
+                <line x1="0" y1="240" x2="500" y2="240" stroke="#27272a" stroke-dasharray="3 3"/>
+                <!-- Area fill -->
+                <path d="M0,260 Q80,240 120,200 T250,160 T380,90 T500,70 L500,320 L0,320 Z" fill="url(#frontendGradient)"/>
+                <!-- Line -->
+                <path d="M0,260 Q80,240 120,200 T250,160 T380,90 T500,70" stroke="#ffe048" stroke-width="2" fill="none"/>
+                <!-- MA line -->
+                <path d="M0,250 Q80,235 120,210 T250,175 T380,110 T500,95" stroke="#60a5fa" stroke-width="2" fill="none" stroke-dasharray="5 3"/>
+              </svg>
+              <!-- Axis labels -->
+              <div style="position: absolute; bottom: 8px; left: 12px; right: 12px; display: flex; justify-content: space-between; font-size: 11px; color: #71717a;">
+                <span>Dec 12</span>
+                <span>Dec 19</span>
+                <span>Dec 26</span>
+                <span>Jan 2</span>
+                <span>Jan 9</span>
+              </div>
+              <div style="position: absolute; top: 8px; left: 8px; bottom: 30px; display: flex; flex-direction: column; justify-content: space-between; font-size: 11px; color: #71717a; text-align: right;">
+                <span>3.0</span>
+                <span>2.5</span>
+                <span>2.0</span>
+                <span>1.5</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 12px 16px;">
+            <div class="stat-grid cols-2" style="gap: 10px; margin-top: 0;">
+              <div class="stat-card stat-card-compact">
+                <div class="stat-card-label" style="font-size: 11px;">Current Avg</div>
+                <div class="stat-card-value" style="font-size: 18px;">2.45 ETH</div>
+                <div class="stat-card-subvalue" style="font-size: 11px;">$8,234 USD</div>
+              </div>
+              <div class="stat-card stat-card-compact">
+                <div class="stat-card-label" style="font-size: 11px;">Last 7 Days</div>
+                <div class="stat-card-value" style="font-size: 18px;">
+                  2.38 ETH
+                  <span class="stat-card-change positive" style="font-size: 11px;">
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M6 3L10 8H2L6 3Z"/></svg>
+                    8.2%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Specifications -->
+      <div style="min-width: 280px;">
+        <div class="mockup-frame">
+          <div class="mockup-frame-title">Front End Specs</div>
+          <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 8px 0; color: var(--foreground-muted);">Chart Height</td>
+              <td style="padding: 8px 0; font-family: monospace;">320px</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 8px 0; color: var(--foreground-muted);">Title</td>
+              <td style="padding: 8px 0; font-family: monospace;">16px Brice Bold</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 8px 0; color: var(--foreground-muted);">Description</td>
+              <td style="padding: 8px 0; font-family: monospace;">13px Mundial</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 8px 0; color: var(--foreground-muted);">Stat Value</td>
+              <td style="padding: 8px 0; font-family: monospace;">18px Bold</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 8px 0; color: var(--foreground-muted);">Stat Label</td>
+              <td style="padding: 8px 0; font-family: monospace;">11px Medium</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: var(--foreground-muted);">Padding</td>
+              <td style="padding: 8px 0; font-family: monospace;">12px (compact)</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="mockup-frame" style="margin-top: 16px;">
+          <div class="mockup-frame-title">Key Differences from Export</div>
+          <ul style="font-size: 13px; color: var(--foreground-muted); padding-left: 20px; line-height: 2;">
+            <li>No "Good Vibes Club" branding</li>
+            <li>No yellow brand frame</li>
+            <li>Landscape orientation</li>
+            <li>Interactive (hover, tooltips)</li>
+            <li>Export button visible</li>
+            <li>Legend toggleable</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: EXPORT CHART SIZE COMPARISON (BEFORE/AFTER) -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="section-badge">04</span>
+      Export Size Comparison
+    </h2>
+    <p class="section-description">Before/After: Maximizing chart area within fixed 1080x1350 portrait export</p>
+
+    <div style="display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start;">
+      <!-- BEFORE -->
+      <div>
+        <span class="comparison-label before">Current Layout</span>
+        <div style="background: var(--brand-yellow); padding: 16px; border-radius: 16px; width: 270px;">
+          <div style="background: var(--background); border-radius: 12px; overflow: hidden; height: 540px; display: flex; flex-direction: column;">
+
+            <!-- Header -->
+            <div style="padding: 20px 16px 16px; display: flex; align-items: center; gap: 12px;">
+              <div style="width: 44px; height: 44px; background: var(--brand-yellow); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-size: 20px; font-weight: 800; color: var(--background);">G</span>
+              </div>
+              <div>
+                <div style="font-size: 15px; font-weight: 700; color: var(--foreground);">Good Vibes Club</div>
+                <div style="font-size: 11px; color: var(--foreground-muted);">Average Sale Price</div>
+              </div>
+            </div>
+
+            <!-- Chart Area -->
+            <div style="flex: 1; padding: 0 16px; position: relative;">
+              <div style="height: 100%; background: rgba(248,113,113,0.08); border: 2px dashed var(--chart-danger); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 12px; color: var(--chart-danger); text-align: center;">Chart Area<br/><strong style="font-size: 16px;">~50%</strong></span>
+              </div>
+            </div>
+
+            <!-- Stats Card (Large) -->
+            <div style="padding: 16px;">
+              <div style="background: var(--background-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                <div style="text-align: center; margin-bottom: 12px;">
+                  <div style="font-size: 11px; color: var(--foreground-muted); margin-bottom: 4px;">Current Average</div>
+                  <div style="font-size: 26px; font-weight: 700; color: var(--brand-yellow);">2.45 ETH</div>
+                </div>
+                <div style="display: flex; border-top: 1px solid var(--border); padding-top: 12px;">
+                  <div style="flex: 1; text-align: center; border-right: 1px solid var(--border);">
+                    <div style="font-size: 9px; color: var(--foreground-muted);">7D Avg</div>
+                    <div style="font-size: 13px; font-weight: 700;">2.38 ETH</div>
+                  </div>
+                  <div style="flex: 1; text-align: center;">
+                    <div style="font-size: 9px; color: var(--foreground-muted);">30D Change</div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--chart-success);">+12.3%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Brand Footer -->
+            <div style="background: var(--brand-yellow); padding: 14px 16px; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 18px; font-weight: 800; color: var(--background);">Good Vibes Club</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- AFTER -->
+      <div>
+        <span class="comparison-label after">Optimized Layout</span>
+        <div style="background: var(--brand-yellow); padding: 16px; border-radius: 16px; width: 270px;">
+          <div style="background: var(--background); border-radius: 12px; overflow: hidden; height: 540px; display: flex; flex-direction: column;">
+
+            <!-- Header (Compact) -->
+            <div style="padding: 14px 14px 10px; display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; background: var(--brand-yellow); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-size: 16px; font-weight: 800; color: var(--background);">G</span>
+              </div>
+              <div>
+                <div style="font-size: 13px; font-weight: 700; color: var(--foreground);">Good Vibes Club</div>
+                <div style="font-size: 10px; color: var(--foreground-muted);">Average Sale Price</div>
+              </div>
+            </div>
+
+            <!-- Chart Area (Larger) -->
+            <div style="flex: 1; padding: 0 12px; position: relative;">
+              <div style="height: 100%; background: rgba(52,211,153,0.08); border: 2px dashed var(--chart-success); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 12px; color: var(--chart-success); text-align: center;">Chart Area<br/><strong style="font-size: 16px;">~62%</strong></span>
+              </div>
+            </div>
+
+            <!-- Stats Card (Compact) -->
+            <div style="padding: 10px 12px;">
+              <div style="background: var(--background-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;">
+                <div style="text-align: center; margin-bottom: 8px;">
+                  <div style="font-size: 9px; color: var(--foreground-muted); margin-bottom: 2px;">Current Average</div>
+                  <div style="font-size: 22px; font-weight: 700; color: var(--brand-yellow);">2.45 ETH</div>
+                </div>
+                <div style="display: flex; border-top: 1px solid var(--border); padding-top: 8px;">
+                  <div style="flex: 1; text-align: center; border-right: 1px solid var(--border);">
+                    <div style="font-size: 8px; color: var(--foreground-muted);">7D Avg</div>
+                    <div style="font-size: 11px; font-weight: 700;">2.38 ETH</div>
+                  </div>
+                  <div style="flex: 1; text-align: center;">
+                    <div style="font-size: 8px; color: var(--foreground-muted);">30D Change</div>
+                    <div style="font-size: 11px; font-weight: 700; color: var(--chart-success);">+12.3%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Brand Footer (Compact) -->
+            <div style="background: var(--brand-yellow); padding: 10px 14px; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 14px; font-weight: 800; color: var(--background);">Good Vibes Club</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Specifications -->
+      <div class="mockup-frame" style="flex: 1; min-width: 280px;">
+        <div class="mockup-frame-title">Export Layout Optimization</div>
+        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Canvas Size</td>
+            <td style="padding: 8px 0; font-family: monospace;" colspan="2">1080 x 1350px (4:5 portrait)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Element</td>
+            <td style="padding: 8px 0; text-align: center;">Before</td>
+            <td style="padding: 8px 0; text-align: center;">After</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Chart Area</td>
+            <td style="padding: 8px 0; text-align: center; font-family: monospace;">~50%</td>
+            <td style="padding: 8px 0; text-align: center; font-family: monospace; color: var(--chart-success);">~62%</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Header</td>
+            <td style="padding: 8px 0; text-align: center; font-family: monospace;">80px</td>
+            <td style="padding: 8px 0; text-align: center; font-family: monospace;">60px</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Stats Card</td>
+            <td style="padding: 8px 0; text-align: center; font-family: monospace;">130px</td>
+            <td style="padding: 8px 0; text-align: center; font-family: monospace;">90px</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Footer</td>
+            <td style="padding: 8px 0; text-align: center; font-family: monospace;">46px</td>
+            <td style="padding: 8px 0; text-align: center; font-family: monospace;">34px</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: EXPORT PREVIEW WITH BRANDING -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="section-badge">05</span>
+      Export Preview (Social Sharing)
+    </h2>
+    <p class="section-description">PNG export (1080x1350) with bold brand framing for maximum social impact</p>
+
+    <div class="mockup-container" style="align-items: flex-start;">
+      <!-- Export Preview -->
+      <div class="mockup-frame" style="width: 100%; max-width: 420px; padding: 0; overflow: hidden;">
+        <div class="mockup-frame-title" style="padding: 16px 24px; margin: 0;">Export Image (1080 x 1350px)</div>
+
+        <!-- Simulated Export Image with Brand Frame -->
+        <div style="background: var(--brand-yellow); padding: 16px; border-top: 1px solid var(--border);">
+          <div style="background: var(--background); border-radius: 16px; overflow: hidden; aspect-ratio: 1080/1350; display: flex; flex-direction: column;">
+
+            <!-- Header -->
+            <div style="padding: 24px 28px 20px; display: flex; align-items: center; gap: 16px;">
+              <div style="width: 56px; height: 56px; background: var(--brand-yellow); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 28px; font-weight: 800; color: var(--background);">G</span>
+              </div>
+              <div>
+                <div style="font-size: 22px; font-weight: 700; color: var(--foreground);">Good Vibes Club</div>
+                <div style="font-size: 14px; color: var(--foreground-muted);">Average Sale Price</div>
+              </div>
+            </div>
+
+            <!-- Chart Area (Large) -->
+            <div style="flex: 1; padding: 0 20px; position: relative; min-height: 320px;">
+              <div style="height: 100%; background: linear-gradient(180deg, rgba(255,224,72,0.06) 0%, transparent 100%); border-radius: 12px; position: relative; overflow: hidden;">
+                <!-- Simulated chart -->
+                <svg width="100%" height="100%" viewBox="0 0 400 320" preserveAspectRatio="none" style="position: absolute; top: 0; left: 0;">
+                  <defs>
+                    <linearGradient id="exportGradient2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#ffe048" stop-opacity="0.4"/>
+                      <stop offset="100%" stop-color="#ffe048" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <!-- Grid lines -->
+                  <line x1="0" y1="80" x2="400" y2="80" stroke="#27272a" stroke-dasharray="3 3"/>
+                  <line x1="0" y1="160" x2="400" y2="160" stroke="#27272a" stroke-dasharray="3 3"/>
+                  <line x1="0" y1="240" x2="400" y2="240" stroke="#27272a" stroke-dasharray="3 3"/>
+                  <!-- Area fill -->
+                  <path d="M0,260 Q60,250 100,220 T200,180 T300,100 T400,80 L400,320 L0,320 Z" fill="url(#exportGradient2)"/>
+                  <!-- Line -->
+                  <path d="M0,260 Q60,250 100,220 T200,180 T300,100 T400,80" stroke="#ffe048" stroke-width="3" fill="none"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Stats Card (Overlay Style) -->
+            <div style="padding: 20px;">
+              <div style="background: var(--background-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px;">
+                <div style="text-align: center; margin-bottom: 16px;">
+                  <div style="font-size: 14px; color: var(--foreground-muted); margin-bottom: 4px;">Current Average</div>
+                  <div style="font-size: 36px; font-weight: 700; color: var(--brand-yellow);">2.45 ETH</div>
+                </div>
+                <div style="display: flex; border-top: 1px solid var(--border); padding-top: 16px;">
+                  <div style="flex: 1; text-align: center; border-right: 1px solid var(--border);">
+                    <div style="font-size: 12px; color: var(--foreground-muted); margin-bottom: 4px;">7D Avg</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--foreground);">2.38 ETH</div>
+                  </div>
+                  <div style="flex: 1; text-align: center;">
+                    <div style="font-size: 12px; color: var(--foreground-muted); margin-bottom: 4px;">30D Change</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--chart-success); display: flex; align-items: center; justify-content: center; gap: 4px;">
+                      <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor"><path d="M6 3L10 8H2L6 3Z"/></svg>
+                      +12.3%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Brand Footer -->
+            <div style="background: var(--brand-yellow); padding: 20px 28px; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 28px; font-weight: 800; color: var(--background); letter-spacing: -0.5px;">Good Vibes Club</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Specifications -->
+      <div style="flex: 1; min-width: 280px;">
+        <div class="mockup-frame">
+          <div class="mockup-frame-title">Export Design Principles</div>
+          <ul style="font-size: 13px; color: var(--foreground-muted); padding-left: 20px; line-height: 2.2;">
+            <li><strong style="color: var(--brand-yellow);">Bold brand frame</strong> — yellow border for instant recognition</li>
+            <li><strong style="color: var(--foreground);">Large chart area</strong> — visualization dominates the card</li>
+            <li><strong style="color: var(--foreground);">Centered stats overlay</strong> — key metrics pop</li>
+            <li><strong style="color: var(--foreground);">Minimal text</strong> — no clutter, maximum impact</li>
+            <li><strong style="color: var(--foreground);">Brand footer</strong> — reinforces identity</li>
+          </ul>
+        </div>
+
+        <div class="mockup-frame" style="margin-top: 16px;">
+          <div class="mockup-frame-title">Removed Elements</div>
+          <ul style="font-size: 13px; color: var(--foreground-muted); padding-left: 20px; line-height: 2;">
+            <li style="text-decoration: line-through; opacity: 0.6;">Generation date/timestamp</li>
+            <li style="text-decoration: line-through; opacity: 0.6;">Website URL</li>
+            <li style="text-decoration: line-through; opacity: 0.6;">"Data from OpenSea API"</li>
+            <li style="text-decoration: line-through; opacity: 0.6;">Detailed legend</li>
+          </ul>
+        </div>
+
+        <div class="mockup-frame" style="margin-top: 16px;">
+          <div class="mockup-frame-title">Dimensions</div>
+          <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 8px 0; color: var(--foreground-muted);">Canvas</td>
+              <td style="padding: 8px 0; font-family: monospace;">1080 x 1350px</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 8px 0; color: var(--foreground-muted);">Aspect Ratio</td>
+              <td style="padding: 8px 0; font-family: monospace;">4:5 (Instagram)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 8px 0; color: var(--foreground-muted);">Brand Frame</td>
+              <td style="padding: 8px 0; font-family: monospace;">16px padding</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: var(--foreground-muted);">Corner Radius</td>
+              <td style="padding: 8px 0; font-family: monospace;">16px</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: CHART CARD STRUCTURE -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="section-badge">06</span>
+      Chart Card Structure
+    </h2>
+    <p class="section-description">Standardized chart card layout (front-end display - no branding)</p>
+
+    <div style="margin-top: 16px;">
+      <div class="mockup-frame-title" style="margin-bottom: 16px;">Key Structural Elements</div>
+      <div class="mockup-container">
+        <div class="mockup-frame" style="flex: 1; min-width: 280px;">
+          <div class="mockup-frame-title">Header</div>
+          <ul style="font-size: 13px; color: var(--foreground-muted); padding-left: 20px;">
+            <li>Title: 16px, bold (Brice)</li>
+            <li>Description: 13px, muted</li>
+            <li>Export button: top-right</li>
+            <li>No branding (export only)</li>
+          </ul>
+        </div>
+        <div class="mockup-frame" style="flex: 1; min-width: 280px;">
+          <div class="mockup-frame-title">Legend</div>
+          <ul style="font-size: 13px; color: var(--foreground-muted); padding-left: 20px;">
+            <li>Pill-style buttons</li>
+            <li>Color indicator: 3x14px bar</li>
+            <li>10px text, medium weight</li>
+            <li>Toggleable (opacity change)</li>
+          </ul>
+        </div>
+        <div class="mockup-frame" style="flex: 1; min-width: 280px;">
+          <div class="mockup-frame-title">Chart Area</div>
+          <ul style="font-size: 13px; color: var(--foreground-muted); padding-left: 20px;">
+            <li>Height: <strong style="color: var(--chart-success);">320px</strong> (increased)</li>
+            <li>Background: tertiary</li>
+            <li>Padding: 12px (reduced)</li>
+            <li>Radial gradient overlay</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: COLOR PALETTE -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="section-badge">06</span>
+      Chart Color Palette
+    </h2>
+    <p class="section-description">Standardized color assignments by data type</p>
+
+    <div class="color-grid">
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #ffe048;"></div>
+        <div class="color-info">
+          <div class="color-name">Primary</div>
+          <div class="color-value">#ffe048</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #60a5fa;"></div>
+        <div class="color-info">
+          <div class="color-name">Info / MA Lines</div>
+          <div class="color-value">#60a5fa</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #34d399;"></div>
+        <div class="color-info">
+          <div class="color-name">Success / Gains</div>
+          <div class="color-value">#34d399</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #f87171;"></div>
+        <div class="color-info">
+          <div class="color-name">Danger / Losses</div>
+          <div class="color-value">#f87171</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #ff9500;"></div>
+        <div class="color-info">
+          <div class="color-name">Accent</div>
+          <div class="color-value">#ff9500</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #71717a;"></div>
+        <div class="color-info">
+          <div class="color-name">Muted / Axes</div>
+          <div class="color-value">#71717a</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup-frame" style="margin-top: 24px; max-width: 600px;">
+      <div class="mockup-frame-title">Color Usage Guidelines</div>
+      <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Price/Value data</td>
+          <td style="padding: 8px 0;"><span style="color: #ffe048;">Primary</span> + <span style="color: #60a5fa;">Info</span> for MA</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Volume/Count data</td>
+          <td style="padding: 8px 0;"><span style="color: #ffe048;">Primary</span> + <span style="color: #f87171;">Danger</span> for MA</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Buyers</td>
+          <td style="padding: 8px 0;"><span style="color: #34d399;">Success</span></td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Sellers</td>
+          <td style="padding: 8px 0;"><span style="color: #f87171;">Danger</span></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: var(--foreground-muted);">Axis labels & grid</td>
+          <td style="padding: 8px 0;"><span style="color: #71717a;">Muted</span></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION 7: TYPOGRAPHY -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="section-badge">07</span>
+      Typography Hierarchy
+    </h2>
+    <p class="section-description">Consistent type sizing across all chart components</p>
+
+    <div class="mockup-frame" style="width: 100%; max-width: 700px;">
+      <div class="typography-spec">
+        <div class="type-row">
+          <div class="type-sample" style="font-size: 16px; font-weight: 700;">Average Sale Price</div>
+          <div class="type-meta">Chart Title: <span style="text-decoration: line-through; opacity: 0.5;">18px</span> → <span style="color: var(--chart-success);">16px</span> / Bold (Brice)</div>
+        </div>
+        <div class="type-row">
+          <div class="type-sample" style="font-size: 13px; color: var(--foreground-muted);">Mean sale price per day (all sales averaged)</div>
+          <div class="type-meta">Description: <span style="text-decoration: line-through; opacity: 0.5;">14px</span> → <span style="color: var(--chart-success);">13px</span> / Regular (Mundial)</div>
+        </div>
+        <div class="type-row">
+          <div class="type-sample" style="font-size: 12px; font-weight: 600;">Jan 15, 2026</div>
+          <div class="type-meta">Tooltip Label: 12px / Semibold</div>
+        </div>
+        <div class="type-row">
+          <div class="type-sample" style="font-size: 11px; color: var(--foreground-muted);">Floor Price</div>
+          <div class="type-meta">Tooltip Row Label: 11px / Regular</div>
+        </div>
+        <div class="type-row">
+          <div class="type-sample" style="font-size: 11px; font-weight: 600; color: var(--chart-primary);">2.45 ETH</div>
+          <div class="type-meta">Tooltip Value: 11px / Semibold</div>
+        </div>
+        <div class="type-row">
+          <div class="type-sample" style="font-size: 11px; color: var(--chart-muted);">Jan 15</div>
+          <div class="type-meta">Axis Labels: 11px / Regular / #71717a</div>
+        </div>
+        <div class="type-row">
+          <div class="type-sample" style="font-size: 10px; font-weight: 500;">Avg Price</div>
+          <div class="type-meta">Legend: 10px / Medium</div>
+        </div>
+        <div class="type-row">
+          <div class="type-sample" style="font-size: 11px; color: var(--foreground-muted);">Current Floor</div>
+          <div class="type-meta">Stat Label: <span style="text-decoration: line-through; opacity: 0.5;">12px</span> → <span style="color: var(--chart-success);">11px</span> / Medium / Muted</div>
+        </div>
+        <div class="type-row">
+          <div class="type-sample" style="font-size: 18px; font-weight: 700;">2.45 ETH</div>
+          <div class="type-meta">Stat Value: <span style="text-decoration: line-through; opacity: 0.5;">20px</span> → <span style="color: var(--chart-success);">18px</span> / Bold</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8: AXIS & GRID -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="section-badge">08</span>
+      Axis & Grid Standardization
+    </h2>
+    <p class="section-description">Unified styling for chart axes and grid lines</p>
+
+    <div class="mockup-container">
+      <div class="mockup-frame" style="flex: 1; min-width: 300px;">
+        <div class="mockup-frame-title">Axis Specifications</div>
+        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Font Size</td>
+            <td style="padding: 8px 0; font-family: monospace;">11px</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Font Family</td>
+            <td style="padding: 8px 0; font-family: monospace;">Mundial</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Color</td>
+            <td style="padding: 8px 0; font-family: monospace;">#71717a</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Axis Line</td>
+            <td style="padding: 8px 0; font-family: monospace;">hidden</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Tick Line</td>
+            <td style="padding: 8px 0; font-family: monospace;">hidden</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="mockup-frame" style="flex: 1; min-width: 300px;">
+        <div class="mockup-frame-title">Grid Specifications</div>
+        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Stroke</td>
+            <td style="padding: 8px 0; font-family: monospace;">#27272a</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Dash Array</td>
+            <td style="padding: 8px 0; font-family: monospace;">3 3</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Vertical Lines</td>
+            <td style="padding: 8px 0; font-family: monospace;">hidden</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="mockup-frame" style="flex: 1; min-width: 300px;">
+        <div class="mockup-frame-title">Chart Margins</div>
+        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Default</td>
+            <td style="padding: 8px 0; font-family: monospace;">8, 12, 0, 0</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: var(--foreground-muted);">Horizontal</td>
+            <td style="padding: 8px 0; font-family: monospace;">8, 8, 70, 8</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer style="margin-top: 64px; padding-top: 32px; border-top: 1px solid var(--border); text-align: center; color: var(--foreground-muted); font-size: 14px;">
+    Vibe-Viz Design Specifications &bull; Generated for review
+  </footer>
+
+</body>
+</html>

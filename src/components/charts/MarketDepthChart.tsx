@@ -10,11 +10,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { useMarketDepth } from "@/hooks/useMarketDepth";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function MarketDepthChart() {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -29,6 +30,11 @@ export function MarketDepthChart() {
     ],
     filename: getChartFilename("market-depth", 0),
   }), []);
+
+  const legendItems = [
+    { key: "bids", label: "Bids", color: CHART_COLORS.success },
+    { key: "asks", label: "Asks", color: CHART_COLORS.danger },
+  ];
 
   const chartData = useMemo(() => {
     if (!data) return [];
@@ -88,6 +94,9 @@ export function MarketDepthChart() {
       .sort((a, b) => a.price - b.price);
   }, [data]);
 
+  const totalBids = chartData.reduce((sum, d) => sum + (d.bids || 0), 0);
+  const totalAsks = chartData.reduce((sum, d) => sum + (d.asks || 0), 0);
+
   if (isLoading) return <ChartSkeleton />;
   if (error || !data) {
     return (
@@ -103,20 +112,23 @@ export function MarketDepthChart() {
       <CardHeader className="flex flex-row items-start justify-between">
         <div>
           <span className="text-lg font-bold text-foreground font-brice">Market Depth</span>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>Order book depth by price level</CardDescription>
         </div>
         <ChartExportButtons chartRef={chartRef} config={exportConfig} />
       </CardHeader>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+      <div className="flex items-center px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
+
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 5, right: 8, left: 5, bottom: 0 }}>
-              <XAxis type="category" dataKey="label" stroke="#71717a" fontSize={10} axisLine={false} tickLine={false} fontFamily="var(--font-mundial)" />
-              <YAxis type="number" stroke="#71717a" fontSize={11} axisLine={false} tickLine={false} width={30} fontFamily="var(--font-mundial)" />
+            <BarChart data={chartData} margin={CHART_MARGINS.default}>
+              <XAxis type="category" dataKey="label" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} fontFamily={AXIS_STYLE.fontFamily} />
+              <YAxis type="number" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} width={30} fontFamily={AXIS_STYLE.fontFamily} />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
                   const d = payload[0]?.payload;
@@ -143,18 +155,18 @@ export function MarketDepthChart() {
           </ResponsiveContainer>
         </div>
 
-        {/* Legend */}
-        <div className="flex justify-center gap-5 mt-1 text-xs">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: CHART_COLORS.success }} />
-            <span className="text-foreground-muted">Bids</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: CHART_COLORS.danger }} />
-            <span className="text-foreground-muted">Asks</span>
-          </div>
-        </div>
       </div>
+
+      <ChartStatGrid columns={2}>
+        <ChartStatCard
+          label="Total Bids"
+          value={totalBids.toString()}
+        />
+        <ChartStatCard
+          label="Total Listings"
+          value={totalAsks.toString()}
+        />
+      </ChartStatGrid>
     </Card>
   );
 }

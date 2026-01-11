@@ -12,13 +12,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Link from "next/link";
-import { Card } from "@/components/ui";
+import { Card, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { usePriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function CumulativeVolumeChart() {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -33,6 +34,10 @@ export function CumulativeVolumeChart() {
     ],
     filename: getChartFilename("cumulative-volume", timeRange),
   }), [timeRange, currency]);
+
+  const legendItems = [
+    { key: "cumulative", label: "Cumulative", color: CHART_COLORS.primary },
+  ];
 
   const { chartData, totalVolume, dailyAvg, growthRate } = useMemo(() => {
     if (!data || data.length === 0) {
@@ -91,79 +96,66 @@ export function CumulativeVolumeChart() {
 
   return (
     <Card>
-      {/* Exportable content */}
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        {/* Header with title and metrics */}
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <Link href="/charts/cumulative-volume" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
-              Cumulative Volume
-            </Link>
-            <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
-            <p className="text-sm text-foreground-muted">
-              Running total over {timeRange} days ({currency.toUpperCase()})
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex gap-3 text-right text-xs">
-              <div>
-                <p className="font-bold text-brand">
-                  {currency === "eth" ? formatEth(totalVolume, 1) : formatUsd(totalVolume)}
-                </p>
-                <p className="text-foreground-muted text-[10px]">Total</p>
-              </div>
-              <div>
-                <p className="font-bold text-chart-info">
-                  {currency === "eth" ? formatEth(dailyAvg, 2) : formatUsd(dailyAvg)}
-                </p>
-                <p className="text-foreground-muted text-[10px]">Daily Avg</p>
-              </div>
-              <div>
-                <p
-                  className="font-bold"
-                  style={{ color: growthRate > 0 ? CHART_COLORS.success : growthRate < 0 ? CHART_COLORS.danger : CHART_COLORS.muted }}
-                >
-                  {growthRate > 0 ? "+" : ""}{growthRate.toFixed(0)}%
-                </p>
-                <p className="text-foreground-muted text-[10px]">Velocity Δ</p>
-              </div>
-            </div>
-            <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-          </div>
+      {/* Header - OUTSIDE chartRef so it doesn't appear in exported PNG */}
+      <div className="flex items-start justify-between p-3">
+        <div>
+          <Link href="/charts/cumulative-volume" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
+            Cumulative Volume
+          </Link>
+          <p className="text-sm text-foreground-muted">
+            Running total over {timeRange} days ({currency.toUpperCase()})
+          </p>
+        </div>
+        <ChartExportButtons chartRef={chartRef} config={exportConfig} />
+      </div>
+
+      <div className="flex items-center px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
+
+      {/* Exportable chart content */}
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        {/* Export-only branding */}
+        <div className="export-branding mb-2">
+          <p className="text-lg font-bold text-foreground font-brice">Cumulative Volume</p>
+          <p className="text-sm text-brand font-mundial">Good Vibes Club</p>
+          <p className="text-sm text-foreground-muted">
+            Running total over {timeRange} days ({currency.toUpperCase()})
+          </p>
         </div>
 
-        {/* Chart - minimal margins */}
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+        {/* Chart */}
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={CHART_MARGINS.default}>
               <defs>
                 <linearGradient id="cumulativeGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.6} />
                   <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0.1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
               <XAxis
                 dataKey="date"
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
                 interval={Math.max(0, Math.floor(chartData.length / 6) - 1) || 0}
                 tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                axisLine={false}
-                tickLine={false}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
               />
               <YAxis
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
                 width={40}
                 tickFormatter={(v) => currency === "eth" ? `${(v).toFixed(0)}` : `$${(v / 1000).toFixed(0)}k`}
-                axisLine={false}
-                tickLine={false}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 labelStyle={{ color: "#fafafa" }}
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length || !label) return null;
@@ -192,13 +184,20 @@ export function CumulativeVolumeChart() {
           </ResponsiveContainer>
         </div>
 
-        {/* Legend */}
-        <div className="flex justify-center gap-5 mt-2 text-xs">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-0.5 rounded" style={{ backgroundColor: CHART_COLORS.primary }} />
-            <span className="text-foreground-muted">Cumulative Volume</span>
-          </div>
-        </div>
+        <ChartStatGrid columns={3}>
+          <ChartStatCard
+            label="Total Volume"
+            value={currency === "eth" ? formatEth(totalVolume, 1) : formatUsd(totalVolume)}
+          />
+          <ChartStatCard
+            label="Daily Avg"
+            value={currency === "eth" ? formatEth(dailyAvg, 2) : formatUsd(dailyAvg)}
+          />
+          <ChartStatCard
+            label="Velocity Δ"
+            value={`${growthRate > 0 ? "+" : ""}${growthRate.toFixed(0)}%`}
+          />
+        </ChartStatGrid>
       </div>
     </Card>
   );

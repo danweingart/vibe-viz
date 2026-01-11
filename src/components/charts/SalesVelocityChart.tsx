@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
-import { exportChartForX, getChartFilename } from "@/lib/chartExport";
+import { useRef } from "react";
 import {
   ComposedChart,
   Bar,
@@ -13,32 +12,19 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription, Button } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
+import { ChartExportButtons } from "@/components/charts/ChartExportButtons";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function SalesVelocityChart() {
   const chartRef = useRef<HTMLDivElement>(null);
-  const [isExporting, setIsExporting] = useState(false);
   const { timeRange } = useChartSettings();
   const { data, isLoading, error } = usePriceHistory(timeRange);
-
-  const handleDownload = useCallback(async () => {
-    if (!chartRef.current) return;
-    setIsExporting(true);
-    try {
-      await exportChartForX(chartRef.current, {
-        filename: getChartFilename("sales-velocity", timeRange),
-      });
-    } catch (error) {
-      console.error("Failed to export:", error);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [timeRange]);
 
   if (isLoading) return <ChartSkeleton />;
   if (error || !data || data.length === 0) {
@@ -60,44 +46,62 @@ export function SalesVelocityChart() {
   const totalSales = data.reduce((sum, d) => sum + d.salesCount, 0);
   const avgDaily = totalSales / data.length;
 
+  const legendItems = [
+    { key: "sales", label: "Daily Sales", color: CHART_COLORS.primary },
+    { key: "ma7", label: "7D Avg", color: CHART_COLORS.danger },
+  ];
+
+  const lastWeek = chartData.slice(-7);
+  const prevWeek = chartData.slice(-14, -7);
+  const lastWeekTotal = lastWeek.reduce((sum, d) => sum + d.salesCount, 0);
+  const prevWeekTotal = prevWeek.reduce((sum, d) => sum + d.salesCount, 0);
+  const weekChange = prevWeekTotal > 0 ? ((lastWeekTotal - prevWeekTotal) / prevWeekTotal) * 100 : 0;
+
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
+      <CardHeader className="flex flex-row items-start justify-between p-3">
         <div>
           <Link href="/charts/sales-velocity" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             Sales Velocity
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
+          <p className="export-branding hidden text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>Number of sales per day with 7D moving average</CardDescription>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-sm font-bold text-foreground">{formatNumber(totalSales)}</p>
-            <p className="text-[10px] text-foreground-muted">{timeRange}D Total</p>
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleDownload} isLoading={isExporting}>
-            <DownloadIcon className="w-4 h-4" />
-          </Button>
-        </div>
+        <ChartExportButtons
+          chartRef={chartRef}
+          config={{
+            title: "Sales Velocity",
+            subtitle: `${timeRange}D Activity`,
+            filename: `sales-velocity-${timeRange}d`,
+            legend: [
+              { color: CHART_COLORS.primary, label: "Daily Sales", value: "count" },
+              { color: CHART_COLORS.danger, label: "7D Avg", value: "count" },
+            ],
+          }}
+        />
       </CardHeader>
 
-      <div ref={chartRef} className="px-1.5 py-3 bg-background-secondary rounded-lg chart-container">
-        <div className="min-h-[120px] sm:min-h-[300px]">
+      <div className="flex items-center px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
+
+      <div ref={chartRef} className="px-3 py-3 bg-background-secondary rounded-lg chart-container">
+        <div style={{ minHeight: CHART_HEIGHT.dashboard }}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+            <ComposedChart data={chartData} margin={CHART_MARGINS.default}>
+              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
               <XAxis
                 dataKey="date"
-                stroke="#71717a"
-                fontSize={13}
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
                 tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               />
-              <YAxis stroke="#71717a" fontSize={13} axisLine={false} tickLine={false} />
+              <YAxis stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 labelStyle={{ color: "#fafafa" }}
                 formatter={(value, name) => [formatNumber(Number(value)), name === "salesCount" ? "Sales" : "7D Avg"]}
                 labelFormatter={(label) => formatDate(label)}
@@ -107,30 +111,20 @@ export function SalesVelocityChart() {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-
-        <div className="flex justify-between items-center mt-2 text-xs">
-          <div className="flex gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-brand" />
-              <span className="text-foreground-muted">Daily Sales</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-0.5 bg-chart-danger" />
-              <span className="text-foreground-muted">7D Average</span>
-            </div>
-          </div>
-          <span className="text-foreground-muted">Avg: {avgDaily.toFixed(1)}/day</span>
-        </div>
-
       </div>
-    </Card>
-  );
-}
 
-function DownloadIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
+      <ChartStatGrid columns={2}>
+        <ChartStatCard
+          label={`${timeRange}D Total`}
+          value={formatNumber(totalSales)}
+          subValue={`${avgDaily.toFixed(1)}/day`}
+        />
+        <ChartStatCard
+          label="Last 7 Days"
+          value={formatNumber(lastWeekTotal)}
+          change={weekChange}
+        />
+      </ChartStatGrid>
+    </Card>
   );
 }

@@ -276,3 +276,100 @@ html {
     max-height: 35vh !important;
   }
 }
+
+/* ===== CHART MICRO-ANIMATIONS ===== */
+
+/* Tooltip fade-in animation */
+.chart-tooltip,
+.recharts-tooltip-wrapper {
+  animation: tooltipFadeIn 0.15s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Area chart gradient fade-in on load */
+.recharts-area-area {
+  animation: areaFadeIn 0.6s ease-out;
+}
+
+@keyframes areaFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Line chart draw animation */
+.recharts-line-curve {
+  animation: lineDrawIn 0.8s ease-out;
+}
+
+@keyframes lineDrawIn {
+  from {
+    stroke-dashoffset: 1000;
+    stroke-dasharray: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+    stroke-dasharray: 1000;
+  }
+}
+
+/* Bar chart grow animation */
+.recharts-bar-rectangle {
+  animation: barGrowIn 0.4s ease-out;
+  transform-origin: bottom;
+}
+
+@keyframes barGrowIn {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* Stat card change indicator pulse */
+.stat-change-animate {
+  animation: statPulse 0.3s ease-out;
+}
+
+@keyframes statPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Active dot hover scale */
+.recharts-active-dot circle {
+  transition: transform 0.15s ease, r 0.15s ease;
+}
+
+/* Legend toggle transition */
+.recharts-legend-item {
+  transition: opacity 0.2s ease;
+}
+
+.recharts-legend-item-inactive {
+  opacity: 0.4;
+}

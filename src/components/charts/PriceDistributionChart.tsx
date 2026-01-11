@@ -14,12 +14,13 @@ import {
   Cell,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { usePriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function PriceDistributionChart() {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -34,6 +35,10 @@ export function PriceDistributionChart() {
     ],
     filename: getChartFilename("price-distribution", timeRange),
   }), [timeRange]);
+
+  const legendItems = [
+    { key: "sales", label: "Sales by Price", color: CHART_COLORS.primary },
+  ];
 
   const { chartData, avgPrice, medianPrice } = useMemo(() => {
     if (!priceHistory || priceHistory.length === 0) {
@@ -104,55 +109,44 @@ export function PriceDistributionChart() {
           <Link href="/charts/price-distribution" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             Price Distribution
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>Sale count by ETH price bucket</CardDescription>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex gap-3 text-right text-xs">
-            <div>
-              <p className="font-bold text-foreground">
-                {formatEth(avgPrice, 2)}
-              </p>
-              <p className="text-[10px] text-foreground-muted">Avg</p>
-            </div>
-            <div>
-              <p className="font-bold text-foreground">
-                {formatEth(medianPrice, 2)}
-              </p>
-              <p className="text-[10px] text-foreground-muted">Median</p>
-            </div>
-          </div>
           <ChartExportButtons chartRef={chartRef} config={exportConfig} />
         </div>
       </CardHeader>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+      <div className="flex items-center px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
+
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+            <BarChart data={chartData} margin={CHART_MARGINS.default}>
+              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
               <XAxis
                 dataKey="displayMin"
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 angle={-45}
                 textAnchor="end"
                 height={50}
               />
               <YAxis
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 width={40}
                 domain={[0, 'auto']}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 labelStyle={{ color: "#fafafa" }}
                 formatter={(value) => [formatNumber(Number(value)), "Sales"]}
                 labelFormatter={(label, payload) => {
@@ -179,6 +173,17 @@ export function PriceDistributionChart() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      <ChartStatGrid columns={2}>
+        <ChartStatCard
+          label="Average"
+          value={formatEth(avgPrice, 2)}
+        />
+        <ChartStatCard
+          label="Median"
+          value={formatEth(medianPrice, 2)}
+        />
+      </ChartStatGrid>
     </Card>
   );
 }

@@ -14,13 +14,14 @@ import {
   Cell,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatPercent } from "@/lib/utils";
 import { CHART_COLORS, CONTRACT_ADDRESS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function FlipTrackerChart() {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -36,6 +37,11 @@ export function FlipTrackerChart() {
     ],
     filename: getChartFilename("flip-tracker", timeRange),
   }), [timeRange]);
+
+  const legendItems = [
+    { key: "profit", label: "Profit", color: CHART_COLORS.success },
+    { key: "loss", label: "Loss", color: CHART_COLORS.danger },
+  ];
 
   const { chartData, profitableFlips, avgProfit, avgHoldingDays } = useMemo(() => {
     if (!data || data.flips.length === 0) {
@@ -75,63 +81,47 @@ export function FlipTrackerChart() {
           <Link href="/charts/flip-tracker" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             Flip Tracker
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>Tokens bought & sold within {timeRange}D. X = hold time, Y = profit %</CardDescription>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex gap-3 text-right text-xs">
-            <div>
-              <p className="font-bold" style={{ color: profitableFlips > 50 ? CHART_COLORS.success : CHART_COLORS.danger }}>
-                {profitableFlips.toFixed(0)}%
-              </p>
-              <p className="text-foreground-muted">Profitable</p>
-            </div>
-            <div>
-              <p className="font-bold" style={{ color: avgProfit > 0 ? CHART_COLORS.success : CHART_COLORS.danger }}>
-                {avgProfit > 0 ? "+" : ""}{avgProfit.toFixed(1)}%
-              </p>
-              <p className="text-foreground-muted">Avg Return</p>
-            </div>
-            <div>
-              <p className="font-bold text-chart-info">{avgHoldingDays.toFixed(0)}d</p>
-              <p className="text-foreground-muted">Avg Hold</p>
-            </div>
-          </div>
           <ChartExportButtons chartRef={chartRef} config={exportConfig} />
         </div>
       </CardHeader>
+      <div className="flex items-center px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ top: 5, right: 12, left: 0, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
               <XAxis
                 type="number"
                 dataKey="holdingDays"
                 name="Holding Days"
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                axisLine={false}
-                tickLine={false}
-                label={{ value: "Hold Time (Days)", position: "bottom", fill: "#71717a", fontSize: 10 }}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
+                label={{ value: "Hold Time (Days)", position: "bottom", fill: AXIS_STYLE.stroke, fontSize: 10 }}
               />
               <YAxis
                 type="number"
                 dataKey="profitPercent"
                 name="Profit %"
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 width={40}
                 tickFormatter={(v) => `${v}%`}
-                label={{ value: "Return", angle: -90, position: "insideLeft", fill: "#71717a", fontSize: 10 }}
+                label={{ value: "Return", angle: -90, position: "insideLeft", fill: AXIS_STYLE.stroke, fontSize: 10 }}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 labelStyle={{ color: "#fafafa" }}
                 formatter={(value, name) => {
                   if (name === "Profit %") return [`${Number(value).toFixed(1)}%`, "Return"];
@@ -172,18 +162,21 @@ export function FlipTrackerChart() {
           </ResponsiveContainer>
         </div>
 
-        {/* Legend */}
-        <div className="flex justify-center gap-5 mt-2 text-xs">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS.success }} />
-            <span className="text-foreground-muted">Profit</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS.danger }} />
-            <span className="text-foreground-muted">Loss</span>
-          </div>
-        </div>
       </div>
+      <ChartStatGrid columns={3}>
+        <ChartStatCard
+          label="Profitable"
+          value={`${profitableFlips.toFixed(0)}%`}
+        />
+        <ChartStatCard
+          label="Avg Return"
+          value={`${avgProfit > 0 ? "+" : ""}${avgProfit.toFixed(1)}%`}
+        />
+        <ChartStatCard
+          label="Avg Hold"
+          value={`${avgHoldingDays.toFixed(0)}d`}
+        />
+      </ChartStatGrid>
     </Card>
   );
 }

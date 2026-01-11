@@ -3,5 +3,7 @@ export { Skeleton, StatCardSkeleton, ChartSkeleton } from "./Skeleton";
 export { Badge } from "./Badge";
 export { Button } from "./Button";
 export { ChartTitle } from "./ChartTitle";
+export { ChartLegendToggle } from "./ChartLegendToggle";
+export { ChartStatCard, ChartStatGrid } from "./ChartStatCard";
 export { Logo, LogoFallback } from "./Logo";
 export { OpenSeaLink, OpenSeaIcon } from "./OpenSeaLink";

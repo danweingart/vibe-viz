@@ -2,13 +2,14 @@
 
 import { useRef, useMemo } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { useCollectionStats } from "@/hooks";
 import { formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Simulated holder distribution based on common NFT patterns
 // In production, this would come from on-chain data or an indexer
@@ -46,6 +47,10 @@ export function HolderDistributionChart() {
   const whaleHolders = chartData.slice(3).reduce((sum, b) => sum + b.count, 0);
   const whalePercentage = totalHolders > 0 ? (whaleHolders / totalHolders) * 100 : 0;
 
+  const legendItems = [
+    { key: "holders", label: "Wallet Count", color: CHART_COLORS.primary },
+  ];
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between">
@@ -53,35 +58,28 @@ export function HolderDistributionChart() {
           <Link href="/charts/holder-distribution" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             Holder Distribution
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
+          <span className="export-branding text-sm text-brand font-mundial">Good Vibes Club</span>
           <CardDescription>
             Count of wallets by how many NFTs they hold
             <span className="ml-1 px-1.5 py-0.5 text-[9px] bg-chart-accent/20 text-chart-accent rounded">Estimated</span>
           </CardDescription>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex gap-3 text-right text-xs">
-            <div>
-              <p className="font-bold text-foreground">{formatNumber(totalHolders)}</p>
-              <p className="text-[10px] text-foreground-muted">Holders</p>
-            </div>
-            <div>
-              <p className="font-bold text-chart-accent">{whalePercentage.toFixed(1)}%</p>
-              <p className="text-[10px] text-foreground-muted">Whales</p>
-            </div>
-          </div>
-          <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-        </div>
+        <ChartExportButtons chartRef={chartRef} config={exportConfig} />
       </CardHeader>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+      <div className="flex items-center px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
+
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 8, left: 35, bottom: 5 }}>
-              <XAxis type="number" stroke="#71717a" fontSize={11} axisLine={false} tickLine={false} fontFamily="var(--font-mundial)" />
-              <YAxis type="category" dataKey="label" stroke="#71717a" fontSize={11} axisLine={false} tickLine={false} width={45} fontFamily="var(--font-mundial)" />
+            <BarChart data={chartData} layout="vertical" margin={CHART_MARGINS.horizontal}>
+              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
+              <XAxis type="number" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} fontFamily={AXIS_STYLE.fontFamily} />
+              <YAxis type="category" dataKey="label" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} width={45} fontFamily={AXIS_STYLE.fontFamily} />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
                   const d = payload[0]?.payload;
@@ -101,23 +99,22 @@ export function HolderDistributionChart() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-
-        <div className="grid grid-cols-3 gap-1 sm:gap-2 mt-2 text-[10px] sm:text-xs text-center">
-          <div className="p-2 rounded bg-background-tertiary">
-            <p className="font-bold text-brand">{chartData[0]?.percentage}%</p>
-            <p className="text-foreground-muted">Single NFT</p>
-          </div>
-          <div className="p-2 rounded bg-background-tertiary">
-            <p className="font-bold text-chart-info">{(chartData[1]?.percentage || 0) + (chartData[2]?.percentage || 0)}%</p>
-            <p className="text-foreground-muted">Collectors (2-10)</p>
-          </div>
-          <div className="p-2 rounded bg-background-tertiary">
-            <p className="font-bold text-chart-accent">{whalePercentage.toFixed(1)}%</p>
-            <p className="text-foreground-muted">Whales (11+)</p>
-          </div>
-        </div>
-
       </div>
+
+      <ChartStatGrid columns={3}>
+        <ChartStatCard
+          label="Total Holders"
+          value={formatNumber(totalHolders)}
+        />
+        <ChartStatCard
+          label="Single NFT"
+          value={`${chartData[0]?.percentage || 0}%`}
+        />
+        <ChartStatCard
+          label="Whales (11+)"
+          value={`${whalePercentage.toFixed(1)}%`}
+        />
+      </ChartStatGrid>
     </Card>
   );
 }

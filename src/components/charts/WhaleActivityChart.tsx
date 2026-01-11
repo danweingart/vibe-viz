@@ -13,13 +13,14 @@ import {
   Cell,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription, OpenSeaLink } from "@/components/ui";
+import { Card, CardHeader, CardDescription, OpenSeaLink, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Truncate address for display
 function truncateAddress(address: string): string {
@@ -79,6 +80,10 @@ export function WhaleActivityChart() {
 
   const color = viewMode === "buyers" ? CHART_COLORS.success : CHART_COLORS.danger;
 
+  const legendItems = [
+    { key: "volume", label: viewMode === "buyers" ? "Buy Volume" : "Sell Volume", color: viewMode === "buyers" ? CHART_COLORS.success : CHART_COLORS.danger },
+  ];
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between">
@@ -86,14 +91,10 @@ export function WhaleActivityChart() {
           <Link href="/charts/whale-activity" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             Whale Activity
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
+          <p className="export-branding hidden text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>Largest wallets ranked by total {viewMode === "buyers" ? "buy" : "sell"} volume</CardDescription>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-right text-xs">
-            <p className="font-bold text-foreground">{topWalletShare.toFixed(0)}%</p>
-            <p className="text-foreground-muted">Top 5 Share</p>
-          </div>
           <ChartExportButtons chartRef={chartRef} config={exportConfig} />
         </div>
       </CardHeader>
@@ -124,28 +125,32 @@ export function WhaleActivityChart() {
         </div>
       </div>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+      <div className="flex items-center px-4 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
+
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
               layout="vertical"
-              margin={{ top: 5, right: 8, left: 70, bottom: 5 }}
+              margin={CHART_MARGINS.horizontal}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} />
-              <XAxis type="number" stroke="#71717a" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => formatEth(v, 1)} fontFamily="var(--font-mundial)" />
+              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
+              <XAxis type="number" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} tickFormatter={(v) => formatEth(v, 1)} fontFamily={AXIS_STYLE.fontFamily} />
               <YAxis
                 type="category"
                 dataKey="shortAddress"
-                stroke="#71717a"
-                fontSize={11}
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 width={65}
-                fontFamily="var(--font-mundial)"
+                fontFamily={AXIS_STYLE.fontFamily}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 labelStyle={{ color: "#fafafa" }}
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
@@ -197,6 +202,17 @@ export function WhaleActivityChart() {
           })}
         </div>
       </div>
+
+      <ChartStatGrid columns={2}>
+        <ChartStatCard
+          label="Top 5 Share"
+          value={`${topWalletShare.toFixed(0)}%`}
+        />
+        <ChartStatCard
+          label="Total Volume"
+          value={formatEth(totalVolume, 1)}
+        />
+      </ChartStatGrid>
     </Card>
   );
 }

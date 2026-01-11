@@ -12,13 +12,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { usePriceHistory, useBasketPriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Calculate 7-day rolling average for an array of values
 function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] {
@@ -53,34 +54,34 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
           <span style={{ color: CHART_COLORS.danger }}>WETH: {avgWeth.toFixed(0)}%</span>
         </div>
       </div>
-      <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+      <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 5, right: 12, left: 0, bottom: showXAxis ? 20 : 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={true} vertical={false} />
+          <LineChart data={data} margin={{ ...CHART_MARGINS.default, bottom: showXAxis ? 20 : 5 }}>
+            <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
             <XAxis
               dataKey="date"
-              stroke="#71717a"
-              fontSize={11}
-              fontFamily="var(--font-mundial)"
+              stroke={AXIS_STYLE.stroke}
+              fontSize={AXIS_STYLE.fontSize}
+              fontFamily={AXIS_STYLE.fontFamily}
               interval={Math.max(0, Math.floor(data.length / 5) - 1)}
               tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               hide={!showXAxis}
-              axisLine={false}
-              tickLine={false}
+              axisLine={AXIS_STYLE.axisLine}
+              tickLine={AXIS_STYLE.tickLine}
             />
             <YAxis
-              stroke="#71717a"
-              fontSize={11}
-              fontFamily="var(--font-mundial)"
+              stroke={AXIS_STYLE.stroke}
+              fontSize={AXIS_STYLE.fontSize}
+              fontFamily={AXIS_STYLE.fontFamily}
               tickFormatter={(v) => `${v}%`}
               domain={[0, 100]}
               ticks={[0, 25, 50, 75, 100]}
               width={40}
-              axisLine={false}
-              tickLine={false}
+              axisLine={AXIS_STYLE.axisLine}
+              tickLine={AXIS_STYLE.tickLine}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+              contentStyle={getTooltipContentStyle()}
               labelStyle={{ color: "#fafafa" }}
               formatter={(value, name) => {
                 const labelText = name === "ethPct" ? "ETH" : "WETH";
@@ -201,6 +202,11 @@ export function PaymentRatioChart() {
     };
   }, [priceHistory, basketData]);
 
+  const legendItems = [
+    { key: "eth", label: "ETH", color: CHART_COLORS.primary },
+    { key: "weth", label: "WETH", color: CHART_COLORS.danger },
+  ];
+
   if (isLoading) return <ChartSkeleton />;
   if (error || !priceHistory) {
     return (
@@ -218,7 +224,6 @@ export function PaymentRatioChart() {
           <Link href="/charts/payment-ratio" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             ETH vs WETH Payments
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>ETH vs WETH usage by volume (7D smoothed)</CardDescription>
         </div>
         <div className="flex items-center gap-3">
@@ -248,19 +253,11 @@ export function PaymentRatioChart() {
         </div>
       </CardHeader>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        {/* Legend */}
-        <div className="flex items-center gap-4 mb-1 text-xs">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-0.5 rounded" style={{ backgroundColor: CHART_COLORS.primary }} />
-            <span className="text-foreground-muted">ETH</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-0.5 rounded" style={{ backgroundColor: CHART_COLORS.danger }} />
-            <span className="text-foreground-muted">WETH</span>
-          </div>
-        </div>
+      <div className="flex items-center px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
 
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
         {/* Single or side-by-side line charts */}
         {showComparison && !basketLoading && basketDailyData.length > 0 ? (
           <div className="flex gap-4">
@@ -278,33 +275,33 @@ export function PaymentRatioChart() {
             />
           </div>
         ) : (
-          <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+          <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={gvcDailyData} margin={{ top: 5, right: 12, left: 0, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+              <LineChart data={gvcDailyData} margin={{ ...CHART_MARGINS.default, bottom: 20 }}>
+                <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
                 <XAxis
                   dataKey="date"
-                  stroke="#71717a"
-                  fontSize={11}
-                  fontFamily="var(--font-mundial)"
+                  stroke={AXIS_STYLE.stroke}
+                  fontSize={AXIS_STYLE.fontSize}
+                  fontFamily={AXIS_STYLE.fontFamily}
                   interval={Math.max(0, Math.floor(gvcDailyData.length / 6) - 1)}
                   tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  axisLine={false}
-                  tickLine={false}
+                  axisLine={AXIS_STYLE.axisLine}
+                  tickLine={AXIS_STYLE.tickLine}
                 />
                 <YAxis
-                  stroke="#71717a"
-                  fontSize={11}
-                  fontFamily="var(--font-mundial)"
+                  stroke={AXIS_STYLE.stroke}
+                  fontSize={AXIS_STYLE.fontSize}
+                  fontFamily={AXIS_STYLE.fontFamily}
                   tickFormatter={(v) => `${v}%`}
                   domain={[0, 100]}
                   ticks={[0, 25, 50, 75, 100]}
                   width={40}
-                  axisLine={false}
-                  tickLine={false}
+                  axisLine={AXIS_STYLE.axisLine}
+                  tickLine={AXIS_STYLE.tickLine}
                 />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                  contentStyle={getTooltipContentStyle()}
                   labelStyle={{ color: "#fafafa" }}
                   formatter={(value, name) => {
                     const labelText = name === "ethPct" ? "ETH" : "WETH";
@@ -333,14 +330,21 @@ export function PaymentRatioChart() {
           </div>
         )}
 
-        {/* Summary stats - hide in comparison mode since each chart shows its own */}
-        {!(showComparison && !basketLoading && basketDailyData.length > 0) && (
-          <div className="flex justify-center gap-5 mt-2 text-xs text-foreground-muted">
-            <span>ETH: <span style={{ color: CHART_COLORS.primary }}>{gvcAvgEth.toFixed(0)}%</span></span>
-            <span>WETH: <span style={{ color: CHART_COLORS.danger }}>{gvcAvgWeth.toFixed(0)}%</span></span>
-          </div>
-        )}
       </div>
+
+      {/* Summary stats - hide in comparison mode since each chart shows its own */}
+      {!(showComparison && !basketLoading && basketDailyData.length > 0) && (
+        <ChartStatGrid columns={2}>
+          <ChartStatCard
+            label="ETH Usage"
+            value={`${gvcAvgEth.toFixed(0)}%`}
+          />
+          <ChartStatCard
+            label="WETH Usage"
+            value={`${gvcAvgWeth.toFixed(0)}%`}
+          />
+        </ChartStatGrid>
+      )}
     </Card>
   );
 }

@@ -13,13 +13,14 @@ import {
   ReferenceLine,
 } from "recharts";
 import Link from "next/link";
-import { Card, CardHeader, CardDescription } from "@/components/ui";
+import { Card, CardHeader, CardDescription, ChartLegendToggle, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { ChartExportButtons } from "./ChartExportButtons";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { usePriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, CHART_HEIGHT, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function PriceVolatilityChart() {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -114,6 +115,11 @@ export function PriceVolatilityChart() {
 
   const trend = trendConfig[volatilityTrend];
 
+  const legendItems = [
+    { key: "high", label: "7D Avg High", color: CHART_COLORS.success },
+    { key: "low", label: "7D Avg Low", color: CHART_COLORS.danger },
+  ];
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between">
@@ -121,30 +127,19 @@ export function PriceVolatilityChart() {
           <Link href="/charts/grail-activity" className="text-lg font-bold text-foreground font-brice hover:text-brand transition-colors">
             Grail Activity
           </Link>
-          <p className="export-branding text-sm text-brand font-mundial">Good Vibes Club</p>
           <CardDescription>7-day rolling avg of daily highs & lows</CardDescription>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex gap-3 text-right text-xs">
-            <div>
-              <p className="font-bold text-chart-accent">{avgVolatility.toFixed(1)}%</p>
-              <p className="text-foreground-muted text-[10px]">Avg Range</p>
-            </div>
-            <div>
-              <p className="font-bold" style={{ color: trend.color }}>
-                {trend.icon} {trend.label}
-              </p>
-              <p className="text-foreground-muted text-[10px]">Trend</p>
-            </div>
-          </div>
-          <ChartExportButtons chartRef={chartRef} config={exportConfig} />
-        </div>
+        <ChartExportButtons chartRef={chartRef} config={exportConfig} />
       </CardHeader>
 
-      <div ref={chartRef} className="px-1 pt-1 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
-        <div className="flex-1 min-h-[120px] sm:min-h-[280px]">
+      <div className="flex items-center px-3 mb-3">
+        <ChartLegendToggle items={legendItems} />
+      </div>
+
+      <div ref={chartRef} className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col">
+        <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={CHART_MARGINS.default}>
               <defs>
                 <linearGradient id="volatilityGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />
@@ -152,29 +147,29 @@ export function PriceVolatilityChart() {
                   <stop offset="100%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+              <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
               <XAxis
                 dataKey="date"
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
                 tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               />
               <YAxis
-                stroke="#71717a"
-                fontSize={11}
-                fontFamily="var(--font-mundial)"
-                axisLine={false}
-                tickLine={false}
+                stroke={AXIS_STYLE.stroke}
+                fontSize={AXIS_STYLE.fontSize}
+                fontFamily={AXIS_STYLE.fontFamily}
+                axisLine={AXIS_STYLE.axisLine}
+                tickLine={AXIS_STYLE.tickLine}
                 width={40}
                 tickFormatter={(v) => currency === "eth" ? v.toFixed(2) : `$${v.toFixed(0)}`}
                 domain={["dataMin", "dataMax"]}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: "#141414", border: "1px solid #27272a", borderRadius: "8px" }}
+                contentStyle={getTooltipContentStyle()}
                 labelStyle={{ color: "#fafafa" }}
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length || !label) return null;
@@ -216,22 +211,18 @@ export function PriceVolatilityChart() {
           </ResponsiveContainer>
         </div>
 
-        {/* Legend */}
-        <div className="flex justify-center gap-6 mt-2 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-0.5 rounded" style={{ backgroundColor: CHART_COLORS.success }} />
-            <span className="text-foreground-muted">7D Avg High</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-0.5 rounded" style={{ backgroundColor: CHART_COLORS.danger }} />
-            <span className="text-foreground-muted">7D Avg Low</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded opacity-30" style={{ backgroundColor: CHART_COLORS.accent }} />
-            <span className="text-foreground-muted">Rolling Band</span>
-          </div>
-        </div>
       </div>
+
+      <ChartStatGrid columns={2}>
+        <ChartStatCard
+          label="Avg Range"
+          value={`${avgVolatility.toFixed(1)}%`}
+        />
+        <ChartStatCard
+          label="Trend"
+          value={`${trend.icon} ${trend.label}`}
+        />
+      </ChartStatGrid>
     </Card>
   );
 }

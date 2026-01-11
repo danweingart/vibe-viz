@@ -11,9 +11,9 @@ export interface LegendItem {
   value: string;
 }
 
-// Canvas dimensions for X/Twitter optimal image (16:9)
-export const EXPORT_WIDTH = 1200;
-export const EXPORT_HEIGHT = 675;
+// Canvas dimensions for social media (4:5 portrait)
+export const EXPORT_WIDTH = 1080;
+export const EXPORT_HEIGHT = 1350;
 
 // Layout constants
 export const HEADER_HEIGHT = 105;

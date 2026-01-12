@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   ScatterChart,
@@ -19,7 +19,7 @@ import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth } from "@/lib/utils";
 import { CHART_COLORS, CONTRACT_ADDRESS } from "@/lib/constants";
-import { AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { AXIS_STYLE, EXPORT_AXIS_STYLE, EXPORT_MARGINS, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function FlipTrackerChart() {
   const { timeRange } = useChartSettings();
@@ -39,16 +39,6 @@ export function FlipTrackerChart() {
       return next;
     });
   };
-
-  const exportConfig = useMemo(() => ({
-    title: "Flip Tracker",
-    subtitle: `Tokens bought and sold within ${timeRange} days (X = hold time, Y = profit %)`,
-    legend: [
-      { color: CHART_COLORS.success, label: "Profitable Flip", value: "Gain" },
-      { color: CHART_COLORS.danger, label: "Loss Flip", value: "Loss" },
-    ],
-    filename: getChartFilename("flip-tracker", timeRange),
-  }), [timeRange]);
 
   const legendItems: LegendItem[] = [
     { key: "profit", label: "Profit", color: CHART_COLORS.success, active: visibleSeries.has("profit") },
@@ -83,6 +73,89 @@ export function FlipTrackerChart() {
     };
   }, [data, visibleSeries]);
 
+  const exportConfig = useMemo(() => ({
+    title: "Flip Tracker",
+    subtitle: `Tokens bought and sold within ${timeRange} days (X = hold time, Y = profit %)`,
+    legend: [
+      { color: CHART_COLORS.success, label: "Profitable Flip", value: "Gain" },
+      { color: CHART_COLORS.danger, label: "Loss Flip", value: "Loss" },
+    ],
+    filename: getChartFilename("flip-tracker", timeRange),
+    statCards: [
+      { label: "Profitable", value: `${profitableFlips.toFixed(0)}%` },
+      { label: "Avg Return", value: `${avgProfit > 0 ? "+" : ""}${avgProfit.toFixed(1)}%` },
+      { label: "Avg Hold", value: `${avgHoldingDays.toFixed(0)}d` },
+    ],
+  }), [timeRange, profitableFlips, avgProfit, avgHoldingDays]);
+
+  // Render function for export - renders chart at specified dimensions
+  // NOTE: Don't use ResponsiveContainer here - it doesn't work in off-screen portals
+  const renderChart = useCallback((width: number, height: number) => (
+    <ScatterChart width={width} height={height} margin={EXPORT_MARGINS.default}>
+      <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
+      <XAxis
+        type="number"
+        dataKey="holdingDays"
+        name="Holding Days"
+        stroke={EXPORT_AXIS_STYLE.stroke}
+        fontSize={EXPORT_AXIS_STYLE.fontSize}
+        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+        axisLine={EXPORT_AXIS_STYLE.axisLine}
+        tickLine={EXPORT_AXIS_STYLE.tickLine}
+      />
+      <YAxis
+        type="number"
+        dataKey="profitPercent"
+        name="Profit %"
+        stroke={EXPORT_AXIS_STYLE.stroke}
+        fontSize={EXPORT_AXIS_STYLE.fontSize}
+        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+        axisLine={EXPORT_AXIS_STYLE.axisLine}
+        tickLine={EXPORT_AXIS_STYLE.tickLine}
+        width={50}
+        tickFormatter={(v) => `${v}%`}
+      />
+      <Tooltip
+        contentStyle={getTooltipContentStyle()}
+        labelStyle={{ color: "#fafafa" }}
+        formatter={(value, name) => {
+          if (name === "Profit %") return [`${Number(value).toFixed(1)}%`, "Return"];
+          if (name === "Holding Days") return [`${value} days`, "Held"];
+          return [value, name];
+        }}
+        labelFormatter={() => ""}
+        content={({ active, payload }) => {
+          if (!active || !payload?.length) return null;
+          const d = payload[0]?.payload;
+          return (
+            <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+              <p className="font-bold text-foreground">Token #{d.tokenId}</p>
+              <p className="text-foreground-muted">
+                Buy: {formatEth(d.buyPrice, 3)} → Sell: {formatEth(d.sellPrice, 3)}
+              </p>
+              <p style={{ color: d.profitPercent > 0 ? CHART_COLORS.success : CHART_COLORS.danger }}>
+                {d.profitPercent > 0 ? "+" : ""}{d.profitPercent.toFixed(1)}% ({d.holdingDays}d)
+              </p>
+              <p className="text-[10px] text-foreground-muted mt-1 italic">Click to view on OpenSea</p>
+            </div>
+          );
+        }}
+      />
+      <ReferenceLine y={0} stroke={CHART_COLORS.muted} strokeDasharray="5 5" />
+      <Scatter name="Flips" data={chartData} className="cursor-pointer">
+        {chartData.map((entry, index) => (
+          <Cell
+            key={`cell-${index}`}
+            fill={entry.profitPercent > 0 ? CHART_COLORS.success : CHART_COLORS.danger}
+            opacity={0.7}
+            className="cursor-pointer"
+            onClick={() => window.open(`https://opensea.io/assets/ethereum/${CONTRACT_ADDRESS}/${entry.tokenId}`, "_blank")}
+          />
+        ))}
+      </Scatter>
+    </ScatterChart>
+  ), [chartData]);
+
   return (
     <StandardChartCard
       title="Flip Tracker"
@@ -91,6 +164,7 @@ export function FlipTrackerChart() {
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}
+      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!data || data.flips.length === 0}

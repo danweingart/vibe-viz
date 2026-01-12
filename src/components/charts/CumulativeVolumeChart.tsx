@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   AreaChart,
@@ -17,20 +17,11 @@ import { usePriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
 
 export function CumulativeVolumeChart() {
   const { timeRange, currency } = useChartSettings();
   const { data, isLoading, error } = usePriceHistory(timeRange);
-
-  const exportConfig = useMemo(() => ({
-    title: "Cumulative Volume",
-    subtitle: `Running total over ${timeRange} days (${currency.toUpperCase()})`,
-    legend: [
-      { color: CHART_COLORS.primary, label: "Cumulative Volume", value: currency === "eth" ? "ETH" : "USD" },
-    ],
-    filename: getChartFilename("cumulative-volume", timeRange),
-  }), [timeRange, currency]);
 
   const legendItems: LegendItem[] = [
     { key: "cumulative", label: "Cumulative", color: CHART_COLORS.primary, active: true },
@@ -79,6 +70,77 @@ export function CumulativeVolumeChart() {
     };
   }, [data, currency]);
 
+  const exportConfig = useMemo(() => ({
+    title: "Cumulative Volume",
+    subtitle: `Running total over ${timeRange} days (${currency.toUpperCase()})`,
+    legend: [
+      { color: CHART_COLORS.primary, label: "Cumulative Volume", value: currency === "eth" ? "ETH" : "USD" },
+    ],
+    filename: getChartFilename("cumulative-volume", timeRange),
+    statCards: [
+      { label: "Total Volume", value: currency === "eth" ? formatEth(totalVolume, 1) : formatUsd(totalVolume) },
+      { label: "Daily Avg", value: currency === "eth" ? formatEth(dailyAvg, 2) : formatUsd(dailyAvg) },
+      { label: "Velocity Δ", value: `${growthRate > 0 ? "+" : ""}${growthRate.toFixed(0)}%` },
+    ],
+  }), [timeRange, currency, totalVolume, dailyAvg, growthRate]);
+
+  const renderChart = useCallback((width: number, height: number) => (
+    <AreaChart data={chartData} width={width} height={height} margin={EXPORT_MARGINS.default}>
+      <defs>
+        <linearGradient id="cumulativeGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.6} />
+          <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0.1} />
+        </linearGradient>
+      </defs>
+      <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
+      <XAxis
+        dataKey="date"
+        stroke={EXPORT_AXIS_STYLE.stroke}
+        fontSize={EXPORT_AXIS_STYLE.fontSize}
+        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+        interval={Math.max(0, Math.floor(chartData.length / 6) - 1) || 0}
+        tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+        axisLine={EXPORT_AXIS_STYLE.axisLine}
+        tickLine={EXPORT_AXIS_STYLE.tickLine}
+      />
+      <YAxis
+        stroke={EXPORT_AXIS_STYLE.stroke}
+        fontSize={EXPORT_AXIS_STYLE.fontSize}
+        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+        width={50}
+        tickFormatter={(v) => currency === "eth" ? `${(v).toFixed(0)}` : `$${(v / 1000).toFixed(0)}k`}
+        axisLine={EXPORT_AXIS_STYLE.axisLine}
+        tickLine={EXPORT_AXIS_STYLE.tickLine}
+      />
+      <Tooltip
+        contentStyle={getTooltipContentStyle()}
+        labelStyle={{ color: "#fafafa" }}
+        content={({ active, payload, label }) => {
+          if (!active || !payload?.length || !label) return null;
+          const d = payload[0]?.payload;
+          return (
+            <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+              <p className="font-bold text-foreground">{formatDate(String(label))}</p>
+              <p className="text-brand">
+                Cumulative: {currency === "eth" ? formatEth(d.displayCumulative, 2) : formatUsd(d.displayCumulative)}
+              </p>
+              <p className="text-foreground-muted">
+                Daily: +{currency === "eth" ? formatEth(d.displayDaily, 2) : formatUsd(d.displayDaily)}
+              </p>
+            </div>
+          );
+        }}
+      />
+      <Area
+        type="monotone"
+        dataKey="displayCumulative"
+        stroke={CHART_COLORS.primary}
+        strokeWidth={2}
+        fill="url(#cumulativeGradient)"
+      />
+    </AreaChart>
+  ), [chartData, currency]);
+
   return (
     <StandardChartCard
       title="Cumulative Volume"
@@ -90,6 +152,7 @@ export function CumulativeVolumeChart() {
       error={error}
       isEmpty={!data || data.length === 0}
       emptyMessage="No data available"
+      renderChart={renderChart}
       stats={
         <ChartStatGrid columns={3}>
           <ChartStatCard

@@ -5,27 +5,31 @@ import {
   CHART_TOP,
   CHART_MARGIN,
   HEADER_HEIGHT,
+  STAT_CARDS_HEIGHT,
 } from "./types";
-import { drawBackground, drawHeader, drawLegendBar, downloadCanvas, ensureFontsLoaded, loadLogoImage } from "./canvas";
+import { drawBackground, drawHeader, drawLegendBar, drawStatCards, downloadCanvas, ensureFontsLoaded } from "./canvas";
 import { extractChartSVG, svgToImage } from "./svg";
 
-export type { ChartExportConfig, LegendItem } from "./types";
+export type { ChartExportConfig, LegendItem, StatCardData } from "./types";
 
 // Render at 2x for crisp output
 const SCALE = 2;
+
+export interface ExportOptions {
+  /** If true, the container SVG is already at export dimensions (from off-screen render) */
+  useExportDimensions?: boolean;
+}
 
 /**
  * Generate chart canvas without downloading
  */
 async function generateChartCanvas(
   chartContainer: HTMLElement,
-  config: ChartExportConfig
+  config: ChartExportConfig,
+  options?: ExportOptions
 ): Promise<HTMLCanvasElement> {
   // Ensure custom fonts are loaded before drawing
   await ensureFontsLoaded();
-
-  // Load logo image (cached after first load)
-  const logoImg = await loadLogoImage();
 
   const canvas = document.createElement("canvas");
   canvas.width = EXPORT_WIDTH * SCALE;
@@ -38,25 +42,38 @@ async function generateChartCanvas(
   // 1. Fill background
   drawBackground(ctx);
 
-  // 2. Draw header (brand name, title, subtitle) with logo
-  drawHeader(ctx, config.title, config.subtitle, logoImg);
+  // 2. Draw header (brand name, title, subtitle)
+  drawHeader(ctx, config.title, config.subtitle);
 
   // 3. Draw legend bar
   drawLegendBar(ctx, config.legend, HEADER_HEIGHT);
+
+  // Calculate chart area considering stat cards
+  const hasStatCards = config.statCards && config.statCards.length > 0;
+  const statCardsY = EXPORT_HEIGHT - STAT_CARDS_HEIGHT;
+  const chartBottom = hasStatCards ? statCardsY - CHART_MARGIN : EXPORT_HEIGHT - CHART_MARGIN;
 
   // 4. Extract and draw chart SVG
   const svg = extractChartSVG(chartContainer);
   if (svg) {
     const chartWidth = EXPORT_WIDTH - CHART_MARGIN * 2;
-    const chartHeight = EXPORT_HEIGHT - CHART_TOP - CHART_MARGIN;
+    const chartHeight = chartBottom - CHART_TOP;
 
     try {
       // Render SVG at 2x resolution for crispness
-      const chartImg = await svgToImage(svg, chartWidth * SCALE, chartHeight * SCALE);
+      // If useExportDimensions is true, the SVG is already at correct dimensions
+      const chartImg = await svgToImage(svg, chartWidth * SCALE, chartHeight * SCALE, {
+        alreadyAtTargetDimensions: options?.useExportDimensions,
+      });
       ctx.drawImage(chartImg, CHART_MARGIN, CHART_TOP, chartWidth, chartHeight);
     } catch (error) {
       console.error("Failed to render chart SVG:", error);
     }
+  }
+
+  // 5. Draw stat cards at bottom (if present)
+  if (hasStatCards) {
+    drawStatCards(ctx, config.statCards!, statCardsY);
   }
 
   return canvas;
@@ -68,9 +85,10 @@ async function generateChartCanvas(
  */
 export async function exportChartToCanvas(
   chartContainer: HTMLElement,
-  config: ChartExportConfig
+  config: ChartExportConfig,
+  options?: ExportOptions
 ): Promise<void> {
-  const canvas = await generateChartCanvas(chartContainer, config);
+  const canvas = await generateChartCanvas(chartContainer, config, options);
   downloadCanvas(canvas, config.filename);
 }
 
@@ -79,9 +97,10 @@ export async function exportChartToCanvas(
  */
 export async function shareChartToX(
   chartContainer: HTMLElement,
-  config: ChartExportConfig
+  config: ChartExportConfig,
+  options?: ExportOptions
 ): Promise<void> {
-  const canvas = await generateChartCanvas(chartContainer, config);
+  const canvas = await generateChartCanvas(chartContainer, config, options);
 
   // Convert canvas to blob
   const blob = await new Promise<Blob>((resolve) => {

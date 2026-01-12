@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   AreaChart,
@@ -17,7 +17,7 @@ import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
 
 // Generate evenly spaced tick values for X-axis alignment across charts
 function getAlignedTicks(dates: string[], count: number): string[] {
@@ -73,7 +73,72 @@ export function PriceHistoryChart() {
       { color: CHART_COLORS.primary, label: "Avg Sale Price", value: currency === "eth" ? "ETH" : "USD" },
     ],
     filename: getChartFilename("avg-price", timeRange),
-  }), [timeRange, currency]);
+    statCards: [
+      { label: "Current Avg", value: currency === "eth" ? formatEth(currentPrice, 2) : formatUsd(currentPrice) },
+      { label: "Last 7 Days", value: currency === "eth" ? formatEth(lastWeekAvg, 2) : formatUsd(lastWeekAvg) },
+    ],
+  }), [timeRange, currency, currentPrice, lastWeekAvg]);
+
+  // Render function for export - renders chart at specified dimensions
+  // NOTE: Don't use ResponsiveContainer here - it doesn't work in off-screen portals
+  const renderChart = useCallback((width: number, height: number) => (
+    <AreaChart data={chartData} width={width} height={height} margin={EXPORT_MARGINS.default}>
+      <defs>
+        <linearGradient id="priceGradientExport" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.3} />
+          <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <CartesianGrid
+        strokeDasharray={GRID_STYLE.strokeDasharray}
+        stroke={GRID_STYLE.stroke}
+        vertical={GRID_STYLE.vertical}
+      />
+      <XAxis
+        dataKey="date"
+        stroke={EXPORT_AXIS_STYLE.stroke}
+        fontSize={EXPORT_AXIS_STYLE.fontSize}
+        tickLine={EXPORT_AXIS_STYLE.tickLine}
+        axisLine={EXPORT_AXIS_STYLE.axisLine}
+        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+        ticks={getAlignedTicks(chartData.map((d) => d.date), 6)}
+        tickFormatter={(value) =>
+          new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        }
+      />
+      <YAxis
+        stroke={EXPORT_AXIS_STYLE.stroke}
+        fontSize={EXPORT_AXIS_STYLE.fontSize}
+        axisLine={EXPORT_AXIS_STYLE.axisLine}
+        tickLine={EXPORT_AXIS_STYLE.tickLine}
+        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+        width={50}
+        tickFormatter={(value) =>
+          currency === "eth" ? `${value.toFixed(2)}` : `$${value.toFixed(0)}`
+        }
+      />
+      <Tooltip
+        contentStyle={getTooltipContentStyle()}
+        labelStyle={{ color: "#fafafa" }}
+        formatter={(value) => [
+          currency === "eth" ? formatEth(Number(value), 2) : formatUsd(Number(value)),
+          "Avg Price",
+        ]}
+        labelFormatter={(label) => formatDate(label)}
+      />
+      {visibleSeries.price && (
+        <Area
+          type="monotone"
+          dataKey="displayPrice"
+          stroke={CHART_COLORS.primary}
+          strokeWidth={2}
+          fill="url(#priceGradientExport)"
+          dot={chartData.length > 30 ? false : { r: 3, fill: CHART_COLORS.primary, strokeWidth: 0 }}
+          activeDot={{ r: 5, fill: CHART_COLORS.primary, stroke: "#0a0a0a", strokeWidth: 2 }}
+        />
+      )}
+    </AreaChart>
+  ), [chartData, currency, visibleSeries]);
 
   return (
     <StandardChartCard
@@ -83,6 +148,7 @@ export function PriceHistoryChart() {
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}
+      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!data || data.length === 0}

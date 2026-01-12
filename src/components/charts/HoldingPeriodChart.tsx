@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -17,7 +17,7 @@ import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport/index";
 
 // Dynamic buckets based on time range
@@ -137,7 +137,63 @@ export function HoldingPeriodChart() {
       { color: CHART_COLORS.success, label: "Holders", value: bucketConfig.legend.holder },
     ],
     filename: getChartFilename("holding-period", timeRange),
-  }), [timeRange, bucketConfig]);
+    statCards: [
+      { label: "Avg Hold", value: `${avgHoldingDays.toFixed(0)}d` },
+      { label: "Flippers", value: `${flipperRate.toFixed(0)}%` },
+      { label: "Holders", value: `${hodlerRate.toFixed(0)}%` },
+    ],
+  }), [timeRange, bucketConfig, avgHoldingDays, flipperRate, hodlerRate]);
+
+  // Render chart function for export
+  const renderChart = useCallback((width: number, height: number) => (
+    <BarChart data={chartData} width={width} height={height} margin={EXPORT_MARGINS.default}>
+      <CartesianGrid
+        strokeDasharray={GRID_STYLE.strokeDasharray}
+        stroke={GRID_STYLE.stroke}
+        vertical={GRID_STYLE.vertical}
+      />
+      <XAxis
+        dataKey="label"
+        stroke={EXPORT_AXIS_STYLE.stroke}
+        fontSize={EXPORT_AXIS_STYLE.fontSize}
+        axisLine={EXPORT_AXIS_STYLE.axisLine}
+        tickLine={EXPORT_AXIS_STYLE.tickLine}
+        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+      />
+      <YAxis
+        stroke={EXPORT_AXIS_STYLE.stroke}
+        fontSize={EXPORT_AXIS_STYLE.fontSize}
+        axisLine={EXPORT_AXIS_STYLE.axisLine}
+        tickLine={EXPORT_AXIS_STYLE.tickLine}
+        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+        width={50}
+      />
+      <Tooltip
+        contentStyle={getTooltipContentStyle()}
+        content={({ active, payload }) => {
+          if (!active || !payload?.length) return null;
+          const d = payload[0]?.payload;
+          return (
+            <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+              <p className="font-bold text-brand">Holding: {d.label}</p>
+              <p className="text-foreground">{formatNumber(d.count)} resales ({d.percentage.toFixed(1)}%)</p>
+            </div>
+          );
+        }}
+      />
+      <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+        {chartData.map((entry, index) => {
+          // Color gradient: red for quick flips, yellow for medium, green for long holds
+          const color = index < 2
+            ? CHART_COLORS.danger
+            : index < 4
+              ? CHART_COLORS.primary
+              : CHART_COLORS.success;
+          return <Cell key={`cell-${index}`} fill={color} />;
+        })}
+      </Bar>
+    </BarChart>
+  ), [chartData]);
 
   return (
     <StandardChartCard
@@ -146,6 +202,7 @@ export function HoldingPeriodChart() {
       description="Hold duration distribution for resold tokens"
       legend={legendItems}
       exportConfig={exportConfig}
+      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!data || chartData.length === 0}

@@ -1,5 +1,6 @@
 import {
   LegendItem,
+  StatCardData,
   EXPORT_WIDTH,
   EXPORT_HEIGHT,
   HEADER_HEIGHT,
@@ -7,9 +8,6 @@ import {
   COLORS,
 } from "./types";
 import { EXPORT_BRANDING } from "@/lib/chartConfig";
-
-// Cache the loaded logo image
-let logoImageCache: HTMLImageElement | null = null;
 
 /**
  * Get the computed font-family from a CSS variable
@@ -20,28 +18,6 @@ function getFontFamily(cssVar: string, fallback: string): string {
   // next/font sets CSS variables on body, not :root
   const value = getComputedStyle(document.body).getPropertyValue(cssVar).trim();
   return value || fallback;
-}
-
-/**
- * Load and cache the logo image
- */
-export async function loadLogoImage(): Promise<HTMLImageElement | null> {
-  if (logoImageCache) return logoImageCache;
-  if (typeof document === "undefined") return null;
-
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      logoImageCache = img;
-      resolve(img);
-    };
-    img.onerror = () => {
-      console.warn("Failed to load logo image for export");
-      resolve(null);
-    };
-    img.src = EXPORT_BRANDING.header.logoPath;
-  });
 }
 
 /**
@@ -61,124 +37,127 @@ export function drawBackground(ctx: CanvasRenderingContext2D): void {
 }
 
 /**
- * Draw header with logo (left side) + brand name, title, and subtitle (centered)
+ * Draw header with brand name (centered), title, and subtitle
  * Uses Brice Bold for brand/title, Mundial for subtitle
  */
 export function drawHeader(
   ctx: CanvasRenderingContext2D,
   title: string,
-  subtitle: string,
-  logoImg?: HTMLImageElement | null
+  subtitle: string
 ): void {
   const centerX = EXPORT_WIDTH / 2;
-  const { logoSize, brandFontSize, titleFontSize, subtitleFontSize, padding, gap } =
+  const { brandFontSize, titleFontSize, subtitleFontSize } =
     EXPORT_BRANDING.header;
 
   // Get font families from CSS variables
   const brice = getFontFamily("--font-brice", "system-ui, sans-serif");
   const mundial = getFontFamily("--font-mundial", "system-ui, sans-serif");
 
-  // Calculate vertical center for logo + brand text row
-  const logoRowY = 32;
+  // Vertical positions - tighter spacing for more chart room
+  const brandY = 40;
+  const titleY = 82;
+  const subtitleY = 112;
 
-  if (logoImg) {
-    // Layout: logo + gap + "Good Vibes Club" centered together
-    ctx.font = `bold ${brandFontSize}px ${brice}`;
-    const brandTextWidth = ctx.measureText(EXPORT_BRANDING.header.brandText).width;
-    const totalWidth = logoSize + gap + brandTextWidth;
-    const startX = centerX - totalWidth / 2;
-
-    // Draw logo
-    ctx.drawImage(logoImg, startX, logoRowY - logoSize / 2, logoSize, logoSize);
-
-    // Draw brand name - "Good Vibes Club" in yellow (Brice Bold)
-    ctx.fillStyle = COLORS.brand;
-    ctx.font = `bold ${brandFontSize}px ${brice}`;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(EXPORT_BRANDING.header.brandText, startX + logoSize + gap, logoRowY);
-  } else {
-    // No logo - just center the brand text
-    ctx.fillStyle = COLORS.brand;
-    ctx.font = `bold ${brandFontSize}px ${brice}`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(EXPORT_BRANDING.header.brandText, centerX, logoRowY);
-  }
+  // Draw brand name - "Good Vibes Club" in yellow (Brice Bold, centered)
+  ctx.fillStyle = COLORS.brand;
+  ctx.font = `bold ${brandFontSize}px ${brice}`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(EXPORT_BRANDING.header.brandText, centerX, brandY);
 
   // Title in white (Brice Bold)
   ctx.fillStyle = COLORS.foreground;
   ctx.font = `bold ${titleFontSize}px ${brice}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(title, centerX, 68);
+  ctx.fillText(title, centerX, titleY);
 
   // Subtitle in muted gray (Mundial Regular)
   ctx.fillStyle = COLORS.foregroundMuted;
   ctx.font = `400 ${subtitleFontSize}px ${mundial}`;
-  ctx.fillText(subtitle, centerX, 92);
+  ctx.fillText(subtitle, centerX, subtitleY);
 }
 
 /**
- * Draw legend bar with equal-width columns and dividers
- * Stacked layout: dot + label on top, value below (both centered)
+ * Draw legend bar with pill-shaped buttons (matches front-end style)
+ * Each legend item is a rounded pill with colored dot + label : value
  */
 export function drawLegendBar(
   ctx: CanvasRenderingContext2D,
   items: LegendItem[],
   y: number
 ): void {
-  // Get Mundial font family
   const mundial = getFontFamily("--font-mundial", "system-ui, sans-serif");
+  const { itemFontSize, valueFontSize, dotSize, gap, pillPadding, pillRadius, pillGap } =
+    EXPORT_BRANDING.legendBar;
 
-  // Draw legend bar background
-  ctx.fillStyle = COLORS.legendBar;
-  ctx.fillRect(0, y, EXPORT_WIDTH, LEGEND_HEIGHT);
+  // Calculate pill dimensions for each item
+  const pillHeights: number[] = [];
+  const pillWidths: number[] = [];
 
-  const columnWidth = EXPORT_WIDTH / items.length;
-  const topLineY = y + 18;
-  const bottomLineY = y + 40;
+  items.forEach((item) => {
+    ctx.font = `500 ${itemFontSize}px ${mundial}`;
+    const labelWidth = ctx.measureText(item.label).width;
+    ctx.font = `600 ${valueFontSize}px ${mundial}`;
+    const valueWidth = ctx.measureText(item.value).width;
+
+    // Pill width: dot + gap + label + ":" + value + padding
+    const contentWidth = dotSize + gap + labelWidth + 8 + valueWidth;
+    pillWidths.push(contentWidth + pillPadding.h * 2);
+    pillHeights.push(28); // Fixed height for pills
+  });
+
+  // Calculate total width and starting X for centering
+  const totalWidth = pillWidths.reduce((sum, w) => sum + w, 0) + pillGap * (items.length - 1);
+  let currentX = (EXPORT_WIDTH - totalWidth) / 2;
+  const pillY = y + (LEGEND_HEIGHT - 28) / 2;
 
   items.forEach((item, index) => {
-    const columnCenterX = columnWidth * index + columnWidth / 2;
+    const pillWidth = pillWidths[index];
+    const pillHeight = pillHeights[index];
 
-    // Top line: dot + label (centered together)
-    const labelText = item.label;
-    ctx.font = `400 14px ${mundial}`;
-    const labelWidth = ctx.measureText(labelText).width;
-    const dotRadius = 5;
-    const gap = 8;
-    const totalWidth = dotRadius * 2 + gap + labelWidth;
-    const startX = columnCenterX - totalWidth / 2;
+    // Draw pill background
+    ctx.fillStyle = COLORS.pillBackground;
+    roundRect(ctx, currentX, pillY, pillWidth, pillHeight, pillRadius);
+    ctx.fill();
+
+    // Draw pill border
+    ctx.strokeStyle = COLORS.pillBorder;
+    ctx.lineWidth = 1;
+    roundRect(ctx, currentX, pillY, pillWidth, pillHeight, pillRadius);
+    ctx.stroke();
+
+    // Content positioning inside pill
+    const contentY = pillY + pillHeight / 2;
+    let contentX = currentX + pillPadding.h;
 
     // Draw colored dot
     ctx.fillStyle = item.color;
     ctx.beginPath();
-    ctx.arc(startX + dotRadius, topLineY, dotRadius, 0, Math.PI * 2);
+    ctx.arc(contentX + dotSize / 2, contentY, dotSize / 2, 0, Math.PI * 2);
     ctx.fill();
+    contentX += dotSize + gap;
 
-    // Draw label (Mundial Regular)
+    // Draw label
     ctx.fillStyle = COLORS.foregroundMuted;
-    ctx.font = `400 14px ${mundial}`;
+    ctx.font = `500 ${itemFontSize}px ${mundial}`;
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(labelText, startX + dotRadius * 2 + gap, topLineY);
+    ctx.fillText(item.label, contentX, contentY);
+    contentX += ctx.measureText(item.label).width;
 
-    // Bottom line: value (centered, bold, colored)
+    // Draw colon separator
+    ctx.fillStyle = COLORS.foregroundMuted;
+    ctx.fillText(":", contentX + 2, contentY);
+    contentX += 8;
+
+    // Draw value (colored, semi-bold)
     ctx.fillStyle = item.color;
-    ctx.font = `700 16px ${mundial}`;
-    ctx.textAlign = "center";
-    ctx.fillText(item.value, columnCenterX, bottomLineY);
+    ctx.font = `600 ${valueFontSize}px ${mundial}`;
+    ctx.fillText(item.value, contentX, contentY);
 
-    // Draw vertical divider (except after last item)
-    if (index < items.length - 1) {
-      ctx.strokeStyle = COLORS.divider;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(columnWidth * (index + 1), y + 8);
-      ctx.lineTo(columnWidth * (index + 1), y + LEGEND_HEIGHT - 8);
-      ctx.stroke();
-    }
+    // Move to next pill position
+    currentX += pillWidth + pillGap;
   });
 }
 
@@ -198,4 +177,96 @@ export function downloadCanvas(
     link.click();
     URL.revokeObjectURL(url);
   }, "image/png");
+}
+
+/**
+ * Helper function to draw a rounded rectangle path
+ */
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+): void {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+/**
+ * Draw stat cards at the bottom of the export (matches front-end bordered cards)
+ */
+export function drawStatCards(
+  ctx: CanvasRenderingContext2D,
+  statCards: StatCardData[],
+  y: number
+): void {
+  if (!statCards || statCards.length === 0) return;
+
+  const mundial = getFontFamily("--font-mundial", "system-ui, sans-serif");
+  const { padding, cardHeight, labelFontSize, valueFontSize, subValueFontSize, gap, borderRadius } =
+    EXPORT_BRANDING.statCards;
+
+  const availableWidth = EXPORT_WIDTH - padding * 2;
+  const cardWidth = (availableWidth - gap * (statCards.length - 1)) / statCards.length;
+
+  statCards.forEach((card, index) => {
+    const cardX = padding + index * (cardWidth + gap);
+    const cardY = y + 10; // Small top margin
+
+    // Draw card background
+    ctx.fillStyle = COLORS.cardBackground;
+    roundRect(ctx, cardX, cardY, cardWidth, cardHeight, borderRadius);
+    ctx.fill();
+
+    // Draw card border
+    ctx.strokeStyle = COLORS.cardBorder;
+    ctx.lineWidth = 1;
+    roundRect(ctx, cardX, cardY, cardWidth, cardHeight, borderRadius);
+    ctx.stroke();
+
+    // Calculate vertical positioning
+    const hasSubValue = card.subValue || card.change !== undefined;
+    const labelY = cardY + 16;
+    const valueY = hasSubValue ? cardY + cardHeight / 2 : cardY + cardHeight / 2 + 6;
+    const subValueY = cardY + cardHeight - 14;
+
+    // Draw label at top (muted, smaller)
+    ctx.fillStyle = COLORS.foregroundMuted;
+    ctx.font = `500 ${labelFontSize}px ${mundial}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText(card.label, cardX + cardWidth / 2, labelY);
+
+    // Draw value (large, bold, white)
+    ctx.fillStyle = COLORS.foreground;
+    ctx.font = `700 ${valueFontSize}px ${mundial}`;
+    ctx.textBaseline = "middle";
+    ctx.fillText(card.value, cardX + cardWidth / 2, valueY);
+
+    // Draw sub-value or change indicator at bottom if present
+    if (hasSubValue) {
+      ctx.font = `500 ${subValueFontSize}px ${mundial}`;
+      ctx.textBaseline = "bottom";
+
+      if (card.change !== undefined) {
+        ctx.fillStyle = card.change >= 0 ? COLORS.success : COLORS.danger;
+        const arrow = card.change >= 0 ? "↑" : "↓";
+        ctx.fillText(`${arrow} ${Math.abs(card.change).toFixed(1)}%`, cardX + cardWidth / 2, subValueY);
+      } else if (card.subValue) {
+        ctx.fillStyle = COLORS.foregroundMuted;
+        ctx.fillText(card.subValue, cardX + cardWidth / 2, subValueY);
+      }
+    }
+  });
 }

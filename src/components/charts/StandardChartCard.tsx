@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
-import Image from "next/image";
 import { Card, CardHeader, CardDescription } from "@/components/ui";
 import { ShareButton } from "@/components/charts/ShareButton";
-import type { ChartExportConfig, LegendItem as ExportLegendItem } from "@/lib/chartExport/types";
-import { EXPORT_BRANDING } from "@/lib/chartConfig";
+import { ExportTemplate, CHART_WIDTH, CHART_HEIGHT } from "@/components/charts/ExportTemplate";
+import type { LegendItem as ExportLegendItem, StatCardData } from "@/components/charts/ExportTemplate";
 
 // Legend item for interactive toggles (on-screen)
 export interface LegendItem {
@@ -15,6 +15,14 @@ export interface LegendItem {
   color: string;
   active?: boolean;
   value?: string;
+}
+
+export interface ChartExportConfig {
+  title: string;
+  subtitle: string;
+  filename: string;
+  legend?: ExportLegendItem[];
+  statCards?: StatCardData[];
 }
 
 export interface StandardChartCardProps {
@@ -42,6 +50,12 @@ export interface StandardChartCardProps {
   // Optional - export config
   exportConfig?: ChartExportConfig;
 
+  /**
+   * Render function for export - renders chart at export dimensions.
+   * Required for PNG export.
+   */
+  renderChart?: (width: number, height: number) => React.ReactNode;
+
   // Optional - loading/error states
   isLoading?: boolean;
   error?: Error | null;
@@ -65,13 +79,51 @@ export function StandardChartCard({
   stats,
   infoContent,
   exportConfig,
+  renderChart,
   isLoading,
   error,
   isEmpty,
   emptyMessage = "No data available",
   className,
 }: StandardChartCardProps) {
-  const chartRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportReady, setExportReady] = useState(false);
+  const resolveRef = useRef<((el: HTMLDivElement | null) => void) | null>(null);
+
+  // When export container mounts, wait for render then resolve
+  useEffect(() => {
+    if (isExporting && exportRef.current) {
+      // Wait for Recharts to fully render (needs more time for SVG generation)
+      const timer = setTimeout(() => {
+        setExportReady(true);
+        if (resolveRef.current) {
+          resolveRef.current(exportRef.current);
+          resolveRef.current = null;
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isExporting]);
+
+  // Trigger export and return the container element
+  const getExportElement = useCallback((): Promise<HTMLDivElement | null> => {
+    if (!renderChart || !exportConfig) {
+      return Promise.resolve(null);
+    }
+
+    return new Promise((resolve) => {
+      resolveRef.current = resolve;
+      setExportReady(false);
+      setIsExporting(true);
+    });
+  }, [renderChart, exportConfig]);
+
+  // Clean up after export
+  const finishExport = useCallback(() => {
+    setIsExporting(false);
+    setExportReady(false);
+  }, []);
 
   // Convert legend items for export format
   const exportLegend = useMemo((): ExportLegendItem[] => {
@@ -86,14 +138,6 @@ export function StandardChartCard({
       }));
   }, [legend, exportConfig?.legend]);
 
-  const finalExportConfig = useMemo((): ChartExportConfig | undefined => {
-    if (!exportConfig) return undefined;
-    return {
-      ...exportConfig,
-      legend: exportLegend,
-    };
-  }, [exportConfig, exportLegend]);
-
   // Loading state
   if (isLoading) {
     return (
@@ -104,9 +148,7 @@ export function StandardChartCard({
             {description && <CardDescription>{description}</CardDescription>}
           </div>
         </CardHeader>
-        <div
-          className="m-3 rounded-lg chart-skeleton min-h-[320px] sm:min-h-[400px]"
-        />
+        <div className="m-3 rounded-lg chart-skeleton min-h-[320px] sm:min-h-[400px]" />
       </Card>
     );
   }
@@ -124,9 +166,7 @@ export function StandardChartCard({
         <div className="m-3 rounded-lg bg-background-secondary flex flex-col items-center justify-center min-h-[320px] sm:min-h-[400px]">
           <ErrorIcon className="w-12 h-12 text-danger mb-4" />
           <p className="text-foreground-muted text-sm">Failed to load data</p>
-          <p className="text-foreground-muted text-xs mt-1 opacity-60">
-            {error.message}
-          </p>
+          <p className="text-foreground-muted text-xs mt-1 opacity-60">{error.message}</p>
         </div>
       </Card>
     );
@@ -162,7 +202,7 @@ export function StandardChartCard({
   // Main render
   return (
     <Card className={className}>
-      {/* Header - VISIBLE ON SCREEN ONLY (excluded from export via CardHeader being outside chartRef) */}
+      {/* Header */}
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -182,13 +222,17 @@ export function StandardChartCard({
         </div>
         <div className="flex items-center gap-2">
           {headerControls}
-          {finalExportConfig && (
-            <ShareButton chartRef={chartRef} config={finalExportConfig} />
+          {exportConfig && renderChart && (
+            <ShareButton
+              getExportElement={getExportElement}
+              finishExport={finishExport}
+              config={exportConfig}
+            />
           )}
         </div>
       </CardHeader>
 
-      {/* Legend row - OUTSIDE chartRef, excluded from export */}
+      {/* Legend row */}
       {legend && (
         <div className={`flex items-center px-3 mb-3 gap-4 ${controls ? "justify-between" : "justify-center"}`}>
           <div className="flex items-center gap-2 flex-wrap justify-center">
@@ -197,20 +241,13 @@ export function StandardChartCard({
                 key={item.key}
                 onClick={() => onLegendToggle?.(item.key)}
                 className={`flex items-center gap-1.5 px-2 py-1 rounded-full border border-border text-xs transition-all
-                  ${
-                    item.active !== false
-                      ? "bg-background-tertiary"
-                      : "opacity-50 text-foreground-muted"
-                  }
+                  ${item.active !== false ? "bg-background-tertiary" : "opacity-50 text-foreground-muted"}
                   ${onLegendToggle ? "hover:bg-background-tertiary cursor-pointer" : "cursor-default"}
                 `}
                 disabled={!onLegendToggle}
                 type="button"
               >
-                <span
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                 <span className="font-mundial">{item.label}</span>
               </button>
             ))}
@@ -219,82 +256,56 @@ export function StandardChartCard({
         </div>
       )}
 
-      {/* Info panel - OUTSIDE chartRef, hidden from export */}
-      {infoContent && (
-        <div className="px-3 mb-3 export-hide">{infoContent}</div>
-      )}
+      {/* Info panel */}
+      {infoContent && <div className="px-3 mb-3">{infoContent}</div>}
 
-      {/* Chart content - THIS GETS EXPORTED AT 1080x1350 */}
-      <div
-        ref={chartRef}
-        className="p-3 bg-background-secondary rounded-lg chart-container flex-1 flex flex-col mx-3 mb-3"
-      >
-        {/* Export-only branding header - HIDDEN ON SCREEN */}
-        <div className="export-only hidden flex-col items-center py-4 border-b border-border mb-4">
-          <div className="flex items-center gap-4">
-            <Image
-              src={EXPORT_BRANDING.header.logoPath}
-              alt="Good Vibes Club"
-              width={EXPORT_BRANDING.header.logoSize}
-              height={EXPORT_BRANDING.header.logoSize}
-              className="object-contain"
-            />
-            <span
-              className="font-brice text-brand"
-              style={{ fontSize: EXPORT_BRANDING.header.brandFontSize }}
-            >
-              {EXPORT_BRANDING.header.brandText}
-            </span>
-          </div>
-          <h2
-            className="font-brice text-foreground mt-2"
-            style={{ fontSize: EXPORT_BRANDING.header.titleFontSize }}
-          >
-            {exportConfig?.title || title}
-          </h2>
-          {exportConfig?.subtitle && (
-            <p
-              className="text-foreground-muted font-mundial mt-1"
-              style={{ fontSize: EXPORT_BRANDING.header.subtitleFontSize }}
-            >
-              {exportConfig.subtitle}
-            </p>
-          )}
-        </div>
-
-        {/* Export-only legend bar - HIDDEN ON SCREEN */}
-        {exportLegend.length > 0 && (
-          <div className="export-only hidden items-center justify-center gap-6 py-3 bg-background-tertiary rounded-lg mb-4">
-            {exportLegend.map((item, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-foreground-muted font-mundial text-sm">
-                  {item.label}
-                </span>
-                {item.value && (
-                  <span
-                    className="font-mundial font-bold text-sm"
-                    style={{ color: item.color }}
-                  >
-                    {item.value}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Chart visualization - responsive height for on-screen display */}
-        <div className="flex-1 min-h-[280px] sm:min-h-[360px]">
-          {children}
-        </div>
+      {/* Chart content */}
+      <div className="p-3 bg-background-secondary rounded-lg mx-3 mb-3">
+        <div className="h-[280px] sm:h-[360px]">{children}</div>
       </div>
 
-      {/* Stats grid - OUTSIDE chartRef, excluded from export */}
+      {/* Stats grid */}
       {stats}
+
+      {/* Export overlay + template */}
+      {isExporting && typeof document !== "undefined" && createPortal(
+        <>
+          {/* Export template rendered behind overlay */}
+          <div
+            ref={exportRef}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              zIndex: 99998,
+            }}
+          >
+            <ExportTemplate
+              title={exportConfig?.title || title}
+              subtitle={exportConfig?.subtitle || ""}
+              legend={exportLegend}
+              statCards={exportConfig?.statCards}
+            >
+              {renderChart && renderChart(CHART_WIDTH, CHART_HEIGHT)}
+            </ExportTemplate>
+          </div>
+          {/* Full-screen overlay to hide the export render */}
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "#0a0a0a",
+              zIndex: 99999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div className="text-foreground-muted text-sm">Generating image...</div>
+          </div>
+        </>,
+        document.body
+      )}
     </Card>
   );
 }
@@ -302,12 +313,7 @@ export function StandardChartCard({
 // Error icon
 function ErrorIcon({ className }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -321,12 +327,7 @@ function ErrorIcon({ className }: { className?: string }) {
 // Chart icon for empty state
 function ChartIcon({ className }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

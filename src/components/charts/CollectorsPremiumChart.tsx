@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   LineChart,
@@ -17,7 +17,7 @@ import { useBasketPriceHistory } from "@/hooks/useBasketPriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, EXPORT_MARGINS, EXPORT_AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Calculate 7-day rolling average for an array of values
 function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] {
@@ -203,6 +203,79 @@ export function CollectorsPremiumChart() {
     };
   }, [data, basketData]);
 
+  // Render function for export - renders all 3 stacked charts at specified dimensions
+  // NOTE: Don't use ResponsiveContainer here - it doesn't work in off-screen portals
+  const renderChart = useCallback((width: number, height: number) => {
+    const rowHeight = Math.floor(height / 3);
+    const chartRows = [
+      { data: data10, color: CHART_COLORS.success, label: ">10%", showXAxis: false },
+      { data: data25, color: CHART_COLORS.primary, label: ">25%", showXAxis: false },
+      { data: data50, color: CHART_COLORS.accent, label: ">50%", showXAxis: true },
+    ];
+
+    return (
+      <div style={{ width, height, display: "flex", flexDirection: "column" }}>
+        {chartRows.map((row, index) => (
+          <div key={row.label} style={{ display: "flex", alignItems: "center", height: rowHeight }}>
+            <div style={{ width: 60, textAlign: "right", paddingRight: 8, flexShrink: 0 }}>
+              <p style={{ fontSize: 10, color: "#a1a1aa", lineHeight: 1 }}>{row.label}</p>
+              <p style={{ fontSize: 12, fontWeight: "bold", color: row.color, lineHeight: 1.2 }}>
+                {index === 0 ? avg10.toFixed(0) : index === 1 ? avg25.toFixed(0) : avg50.toFixed(0)}%
+              </p>
+            </div>
+            <LineChart
+              data={row.data}
+              width={width - 60}
+              height={rowHeight}
+              margin={EXPORT_MARGINS.default}
+            >
+              <CartesianGrid
+                strokeDasharray={GRID_STYLE.strokeDasharray}
+                stroke={GRID_STYLE.stroke}
+                vertical={GRID_STYLE.vertical}
+              />
+              <XAxis
+                dataKey="date"
+                stroke={EXPORT_AXIS_STYLE.stroke}
+                fontSize={EXPORT_AXIS_STYLE.fontSize}
+                fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+                interval={Math.max(0, Math.floor(row.data.length / 8) - 1)}
+                tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                hide={!row.showXAxis}
+                axisLine={EXPORT_AXIS_STYLE.axisLine}
+                tickLine={EXPORT_AXIS_STYLE.tickLine}
+              />
+              <YAxis
+                stroke={EXPORT_AXIS_STYLE.stroke}
+                fontSize={EXPORT_AXIS_STYLE.fontSize}
+                fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+                tickFormatter={(v) => `${v}%`}
+                domain={["auto", "auto"]}
+                width={45}
+                axisLine={EXPORT_AXIS_STYLE.axisLine}
+                tickLine={EXPORT_AXIS_STYLE.tickLine}
+              />
+              <Tooltip
+                contentStyle={getTooltipContentStyle()}
+                labelStyle={{ color: "#fafafa" }}
+                formatter={(value) => [`${Number(value).toFixed(1)}%`, "GVC"]}
+                labelFormatter={(l) => formatDate(l)}
+              />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke={row.color}
+                strokeWidth={2}
+                dot={{ r: 3, fill: row.color, strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: row.color, stroke: "#0a0a0a", strokeWidth: 2 }}
+              />
+            </LineChart>
+          </div>
+        ))}
+      </div>
+    );
+  }, [data10, data25, data50, avg10, avg25, avg50]);
+
   const comparisonToggle = (
     <div className="flex rounded-lg border border-border overflow-hidden">
       <button
@@ -235,6 +308,7 @@ export function CollectorsPremiumChart() {
       description="% of daily sales priced above floor (7D smoothed)"
       headerControls={comparisonToggle}
       exportConfig={exportConfig}
+      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!data || data.length === 0}

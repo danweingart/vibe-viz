@@ -2,14 +2,19 @@
 
 import { useCallback, useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui";
-import { exportChartToCanvas, shareChartToX, ChartExportConfig } from "@/lib/chartExport/index";
+import { exportToPng, shareToX } from "@/lib/chartExport/simple";
+import type { ChartExportConfig } from "@/components/charts/StandardChartCard";
 
 interface ShareButtonProps {
-  chartRef: React.RefObject<HTMLDivElement | null>;
+  /** Callback to get the export element (renders ExportTemplate off-screen) */
+  getExportElement: () => Promise<HTMLDivElement | null>;
+  /** Clean up after export */
+  finishExport: () => void;
+  /** Export configuration */
   config: ChartExportConfig;
 }
 
-export function ShareButton({ chartRef, config }: ShareButtonProps) {
+export function ShareButton({ getExportElement, finishExport, config }: ShareButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -38,30 +43,36 @@ export function ShareButton({ chartRef, config }: ShareButtonProps) {
   }, []);
 
   const handleDownload = useCallback(async () => {
-    if (!chartRef.current) return;
     setIsExporting(true);
     try {
-      await exportChartToCanvas(chartRef.current, config);
+      const exportElement = await getExportElement();
+      if (!exportElement) return;
+
+      await exportToPng(exportElement, config.filename);
     } catch (error) {
       console.error("Failed to export:", error);
     } finally {
+      finishExport();
       setIsExporting(false);
       setIsOpen(false);
     }
-  }, [chartRef, config]);
+  }, [getExportElement, config.filename, finishExport]);
 
   const handleShareToX = useCallback(async () => {
-    if (!chartRef.current) return;
     setIsSharing(true);
     try {
-      await shareChartToX(chartRef.current, config);
+      const exportElement = await getExportElement();
+      if (!exportElement) return;
+
+      await shareToX(exportElement, config.title);
     } catch (error) {
       console.error("Failed to share:", error);
     } finally {
+      finishExport();
       setIsSharing(false);
       setIsOpen(false);
     }
-  }, [chartRef, config]);
+  }, [getExportElement, config.title, finishExport]);
 
   const isLoading = isExporting || isSharing;
 

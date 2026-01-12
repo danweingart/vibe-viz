@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -17,7 +17,7 @@ import { usePriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport/index";
 
 export function PriceDistributionChart() {
@@ -101,7 +101,67 @@ export function PriceDistributionChart() {
     legend: [
       { color: CHART_COLORS.primary, label: "Sales by Price", value: "Count" },
     ],
-  }), [timeRange]);
+    statCards: [
+      { label: "Average", value: formatEth(avgPrice, 2) },
+      { label: "Median", value: formatEth(medianPrice, 2) },
+    ],
+  }), [timeRange, avgPrice, medianPrice]);
+
+  const renderChart = useCallback((width: number, height: number) => (
+    <BarChart data={chartData} width={width} height={height} margin={EXPORT_MARGINS.default}>
+      <CartesianGrid
+        strokeDasharray={GRID_STYLE.strokeDasharray}
+        stroke={GRID_STYLE.stroke}
+        vertical={GRID_STYLE.vertical}
+      />
+      <XAxis
+        dataKey="displayMin"
+        stroke={EXPORT_AXIS_STYLE.stroke}
+        fontSize={EXPORT_AXIS_STYLE.fontSize}
+        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+        axisLine={EXPORT_AXIS_STYLE.axisLine}
+        tickLine={EXPORT_AXIS_STYLE.tickLine}
+        angle={-45}
+        textAnchor="end"
+        height={50}
+      />
+      <YAxis
+        stroke={EXPORT_AXIS_STYLE.stroke}
+        fontSize={EXPORT_AXIS_STYLE.fontSize}
+        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
+        axisLine={EXPORT_AXIS_STYLE.axisLine}
+        tickLine={EXPORT_AXIS_STYLE.tickLine}
+        width={50}
+        domain={[0, 'auto']}
+      />
+      <Tooltip
+        contentStyle={getTooltipContentStyle()}
+        labelStyle={{ color: "#fafafa" }}
+        formatter={(value) => [formatNumber(Number(value)), "Sales"]}
+        labelFormatter={(label, payload) => {
+          if (payload && payload[0]) {
+            return payload[0].payload.range + " ETH";
+          }
+          return label;
+        }}
+      />
+      {visibleSeries.sales && (
+        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+          {chartData.map((entry, index) => {
+            // Yellow -> Blue -> Orange gradient (matching Holder Distribution)
+            const color = index < 2
+              ? CHART_COLORS.primary
+              : index < 5
+                ? CHART_COLORS.info
+                : CHART_COLORS.accent;
+            return (
+              <Cell key={`cell-${index}`} fill={color} />
+            );
+          })}
+        </Bar>
+      )}
+    </BarChart>
+  ), [chartData, visibleSeries.sales]);
 
   return (
     <StandardChartCard
@@ -111,6 +171,7 @@ export function PriceDistributionChart() {
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}
+      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!priceHistory || priceHistory.length === 0 || chartData.length === 0}

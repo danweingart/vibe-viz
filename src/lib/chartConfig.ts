@@ -5,9 +5,24 @@ export const CHART_MARGINS = {
   horizontal: { top: 8, right: 8, left: 70, bottom: 8 },
 } as const;
 
+// Export-specific margins (larger to prevent text cutoff)
+export const EXPORT_MARGINS = {
+  default: { top: 20, right: 30, left: 10, bottom: 20 },
+  horizontal: { top: 20, right: 30, left: 80, bottom: 20 },
+} as const;
+
 export const AXIS_STYLE = {
   stroke: "#71717a",
   fontSize: 11,
+  fontFamily: "var(--font-mundial)",
+  axisLine: false,
+  tickLine: false,
+} as const;
+
+// Export-specific axis style (larger text for readability)
+export const EXPORT_AXIS_STYLE = {
+  stroke: "#71717a",
+  fontSize: 16,
   fontFamily: "var(--font-mundial)",
   axisLine: false,
   tickLine: false,
@@ -111,27 +126,38 @@ export const EXPORT_STYLE = {
 // Export branding configuration (shown ONLY in export, hidden on screen)
 export const EXPORT_BRANDING = {
   header: {
-    height: 120,          // Total header height including padding
-    logoSize: 48,         // Logo dimensions (square)
-    logoPath: "/images/shaka.png",
+    height: 130,          // Reduced for more chart space
     brandText: "Good Vibes Club",
-    brandFontSize: 36,    // "Good Vibes Club" text size
-    titleFontSize: 22,    // Chart title size
-    subtitleFontSize: 16, // Chart subtitle/description size
-    padding: 24,          // Horizontal padding
-    gap: 16,              // Gap between logo and text
+    brandFontSize: 50,    // Slightly reduced for tighter fit
+    titleFontSize: 30,    // Chart title size
+    subtitleFontSize: 20, // Chart subtitle/description size
+    padding: 20,          // Horizontal padding
+    gap: 8,               // Gap between text lines
   },
   legendBar: {
-    height: 55,           // Legend bar height
-    itemFontSize: 14,     // Legend label size
-    valueFontSize: 16,    // Legend value size
-    dotSize: 10,          // Color indicator dot diameter
-    gap: 8,               // Gap between dot and label
+    height: 48,           // Reduced - pill buttons need less height
+    itemFontSize: 13,     // Legend label size
+    valueFontSize: 14,    // Legend value size
+    dotSize: 8,           // Color indicator dot diameter
+    gap: 6,               // Gap between dot and label
+    pillPadding: { h: 14, v: 6 }, // Pill button padding (horizontal, vertical)
+    pillRadius: 16,       // Fully rounded pill
+    pillGap: 12,          // Gap between pills
   },
   chartArea: {
-    topMargin: 175,       // header + legend bar
-    bottomMargin: 24,
-    sideMargin: 24,
+    topMargin: 178,       // header + legend bar (reduced)
+    bottomMargin: 8,      // Minimal bottom margin
+    sideMargin: 8,        // Minimal side margins
+  },
+  statCards: {
+    height: 90,           // Reduced height
+    cardHeight: 68,       // Individual card height
+    padding: 16,          // Reduced padding around cards
+    labelFontSize: 13,    // Label text size
+    valueFontSize: 24,    // Value text size
+    subValueFontSize: 12, // Sub-value text size
+    gap: 12,              // Gap between cards
+    borderRadius: 16,     // More rounded (matches rounded-xl)
   },
 } as const;
 

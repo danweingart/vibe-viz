@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from "recharts";
 import { ChartStatCard, ChartStatGrid } from "@/components/ui";
@@ -8,7 +8,7 @@ import { StandardChartCard, LegendItem } from "@/components/charts/StandardChart
 import { useCollectionStats } from "@/hooks";
 import { formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
 
 // Simulated holder distribution based on common NFT patterns
 // In production, this would come from on-chain data or an indexer
@@ -49,7 +49,38 @@ export function HolderDistributionChart() {
     legend: [
       { color: CHART_COLORS.primary, label: "Wallet Count", value: "Holders" },
     ],
-  }), [totalHolders]);
+    statCards: [
+      { label: "Total Holders", value: formatNumber(totalHolders) },
+      { label: "Single NFT", value: `${chartData[0]?.percentage || 0}%` },
+      { label: "Whales (11+)", value: `${whalePercentage.toFixed(1)}%` },
+    ],
+  }), [totalHolders, chartData, whalePercentage]);
+
+  const renderChart = useCallback((width: number, height: number) => (
+    <BarChart data={chartData} layout="vertical" width={width} height={height} margin={EXPORT_MARGINS.horizontal}>
+      <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
+      <XAxis type="number" stroke={EXPORT_AXIS_STYLE.stroke} fontSize={EXPORT_AXIS_STYLE.fontSize} axisLine={EXPORT_AXIS_STYLE.axisLine} tickLine={EXPORT_AXIS_STYLE.tickLine} fontFamily={EXPORT_AXIS_STYLE.fontFamily} />
+      <YAxis type="category" dataKey="label" stroke={EXPORT_AXIS_STYLE.stroke} fontSize={EXPORT_AXIS_STYLE.fontSize} axisLine={EXPORT_AXIS_STYLE.axisLine} tickLine={EXPORT_AXIS_STYLE.tickLine} width={50} fontFamily={EXPORT_AXIS_STYLE.fontFamily} />
+      <Tooltip
+        contentStyle={getTooltipContentStyle()}
+        content={({ active, payload }) => {
+          if (!active || !payload?.length) return null;
+          const d = payload[0]?.payload;
+          return (
+            <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+              <p className="font-bold text-brand">{d.label} NFTs</p>
+              <p className="text-foreground">{formatNumber(d.count)} holders ({d.percentage}%)</p>
+            </div>
+          );
+        }}
+      />
+      <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+        {chartData.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={entry.color} />
+        ))}
+      </Bar>
+    </BarChart>
+  ), [chartData]);
 
   return (
     <StandardChartCard
@@ -59,6 +90,7 @@ export function HolderDistributionChart() {
       badge={<span className="px-1.5 py-0.5 text-[9px] bg-chart-accent/20 text-chart-accent rounded">Estimated</span>}
       legend={legendItems}
       exportConfig={exportConfig}
+      renderChart={renderChart}
       isEmpty={totalHolders === 0}
       emptyMessage="No holder data available"
       stats={

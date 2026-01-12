@@ -14,6 +14,11 @@ function getResolvedFont(cssVar: string): string {
   return value || "system-ui, sans-serif";
 }
 
+export interface SvgToImageOptions {
+  /** If true, the SVG is already rendered at export dimensions (from off-screen render) */
+  alreadyAtTargetDimensions?: boolean;
+}
+
 /**
  * Convert an SVG element to an HTMLImageElement at specified dimensions
  * Renders at 2x resolution for crispness
@@ -21,7 +26,8 @@ function getResolvedFont(cssVar: string): string {
 export async function svgToImage(
   svg: SVGElement,
   targetWidth: number,
-  targetHeight: number
+  targetHeight: number,
+  options?: SvgToImageOptions
 ): Promise<HTMLImageElement> {
   // Clone the SVG to avoid modifying the original
   const clonedSvg = svg.cloneNode(true) as SVGElement;
@@ -30,10 +36,19 @@ export async function svgToImage(
   const originalWidth = svg.clientWidth || parseInt(svg.getAttribute("width") || "0");
   const originalHeight = svg.clientHeight || parseInt(svg.getAttribute("height") || "0");
 
-  // Set explicit dimensions on the cloned SVG
-  clonedSvg.setAttribute("width", String(targetWidth));
-  clonedSvg.setAttribute("height", String(targetHeight));
-  clonedSvg.setAttribute("viewBox", `0 0 ${originalWidth} ${originalHeight}`);
+  if (options?.alreadyAtTargetDimensions) {
+    // SVG is already at export dimensions - just set the size directly
+    clonedSvg.setAttribute("width", String(targetWidth));
+    clonedSvg.setAttribute("height", String(targetHeight));
+    clonedSvg.setAttribute("viewBox", `0 0 ${originalWidth} ${originalHeight}`);
+  } else {
+    // Scale to fit within target area without cropping
+    // preserveAspectRatio="xMidYMid meet" scales to fit and centers
+    clonedSvg.setAttribute("width", String(targetWidth));
+    clonedSvg.setAttribute("height", String(targetHeight));
+    clonedSvg.setAttribute("viewBox", `0 0 ${originalWidth} ${originalHeight}`);
+    clonedSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  }
 
   // Resolve CSS variables in font-family attributes
   const mundialFont = getResolvedFont("--font-mundial");

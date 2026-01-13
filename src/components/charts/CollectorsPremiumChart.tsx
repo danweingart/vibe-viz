@@ -208,17 +208,17 @@ export function CollectorsPremiumChart() {
     <ChartStatGrid columns={3}>
       <ChartStatCard
         label=">10% Floor"
-        value={`${avg10.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.success }}>{avg10.toFixed(0)}%</span>}
         subValue={`${basketAvg10.toFixed(0)}%`}
       />
       <ChartStatCard
         label=">25% Floor"
-        value={`${avg25.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.primary }}>{avg25.toFixed(0)}%</span>}
         subValue={`${basketAvg25.toFixed(0)}%`}
       />
       <ChartStatCard
         label=">50% Floor"
-        value={`${avg50.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.accent }}>{avg50.toFixed(0)}%</span>}
         subValue={`${basketAvg50.toFixed(0)}%`}
       />
     </ChartStatGrid>
@@ -226,15 +226,15 @@ export function CollectorsPremiumChart() {
     <ChartStatGrid columns={3}>
       <ChartStatCard
         label=">10% Floor"
-        value={`${avg10.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.success }}>{avg10.toFixed(0)}%</span>}
       />
       <ChartStatCard
         label=">25% Floor"
-        value={`${avg25.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.primary }}>{avg25.toFixed(0)}%</span>}
       />
       <ChartStatCard
         label=">50% Floor"
-        value={`${avg50.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.accent }}>{avg50.toFixed(0)}%</span>}
       />
     </ChartStatGrid>
   );
@@ -263,7 +263,7 @@ export function CollectorsPremiumChart() {
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-4 h-0.5 rounded bg-foreground-muted/50" style={{ backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 2px, #71717a 2px, #71717a 4px)" }} />
-              <span className="text-foreground-muted">Leading ETH</span>
+              <span className="text-foreground-muted">Leading ETH Collections</span>
             </div>
           </div>
         )}

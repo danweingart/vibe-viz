@@ -5,7 +5,7 @@ import { SPACING, TEXT_STYLES } from "@/lib/tokens";
 
 interface ChartStatCardProps {
   label: string;
-  value: string | number;
+  value: string | number | ReactNode;
   subValue?: string | number;
   change?: number; // Percentage change (positive or negative)
   icon?: ReactNode;

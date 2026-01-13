@@ -202,7 +202,12 @@ export function StandardChartCard({
           {description && <CardDescription>{description}</CardDescription>}
         </div>
         <div className="flex items-center gap-2">
-          {headerControls}
+          {/* Hide toggle controls during export */}
+          {headerControls && (
+            <div className={showBranding ? "hidden" : ""}>
+              {headerControls}
+            </div>
+          )}
           {exportConfig && (
             <div className={showBranding ? "invisible" : ""}>
               <ShareButton

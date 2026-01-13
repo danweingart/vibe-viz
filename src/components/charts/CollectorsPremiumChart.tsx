@@ -212,20 +212,20 @@ export function CollectorsPremiumChart() {
       ]
     : undefined;
 
-  // Stats always visible - show GVC values (comparison visible in chart)
+  // Stats always visible - color coded to match chart lines
   const statsContent = (
     <ChartStatGrid columns={3}>
       <ChartStatCard
         label=">10% Floor"
-        value={`${avg10.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.success }}>{avg10.toFixed(0)}%</span>}
       />
       <ChartStatCard
         label=">25% Floor"
-        value={`${avg25.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.primary }}>{avg25.toFixed(0)}%</span>}
       />
       <ChartStatCard
         label=">50% Floor"
-        value={`${avg50.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.accent }}>{avg50.toFixed(0)}%</span>}
       />
     </ChartStatGrid>
   );

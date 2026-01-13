@@ -45,9 +45,14 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
             <NavLink href="/" active={pathname === "/"}>
               Collection
             </NavLink>
-            <NavLink href="/vibestr" active={pathname === "/vibestr"}>
-              VIBESTR
-            </NavLink>
+            <a
+              href="https://www.nftstrategy.fun/strategies/0xd0cc2b0efb168bfe1f94a948d8df70fa10257196"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium transition-all duration-200 px-4 py-2 rounded-full text-background bg-brand shadow-sm shadow-brand/20 hover:shadow-brand/30"
+            >
+              VIBESTR ↗
+            </a>
           </nav>
 
           {/* Actions */}
@@ -108,9 +113,15 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
               <MobileNavLink href="/" onClick={() => setMobileMenuOpen(false)} active={pathname === "/"}>
                 Collection
               </MobileNavLink>
-              <MobileNavLink href="/vibestr" onClick={() => setMobileMenuOpen(false)} active={pathname === "/vibestr"}>
-                VIBESTR
-              </MobileNavLink>
+              <a
+                href="https://www.nftstrategy.fun/strategies/0xd0cc2b0efb168bfe1f94a948d8df70fa10257196"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 text-base font-medium rounded-xl active:scale-[0.98] transition-all text-background bg-brand shadow-sm"
+              >
+                VIBESTR ↗
+              </a>
             </div>
           </nav>
         )}

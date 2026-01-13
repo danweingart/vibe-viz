@@ -32,8 +32,8 @@ export function WhaleActivityChart() {
   const { timeRange } = useChartSettings();
   const { data, isLoading, error } = useTraderAnalysis(timeRange);
 
-  const { chartData, totalVolume, topWalletShare } = useMemo(() => {
-    if (!data) return { chartData: [], totalVolume: 0, topWalletShare: 0 };
+  const { chartData, totalVolume, top5Count } = useMemo(() => {
+    if (!data) return { chartData: [], totalVolume: 0, top5Count: 0 };
 
     const activeData = viewMode === "buyers" ? data.topBuyers : data.topSellers;
     const crossData = viewMode === "buyers" ? data.topSellers : data.topBuyers;
@@ -43,7 +43,7 @@ export function WhaleActivityChart() {
 
     const top5 = activeData.slice(0, 5);
     const totalVol = activeData.reduce((sum, w) => sum + w.volume, 0);
-    const top5Vol = top5.reduce((sum, w) => sum + w.volume, 0);
+    const top5Total = top5.reduce((sum, w) => sum + w.count, 0);
 
     return {
       chartData: top5.map((w) => ({
@@ -53,7 +53,7 @@ export function WhaleActivityChart() {
         crossCount: crossMap.get(w.address) || 0, // How many times they did the opposite action
       })),
       totalVolume: totalVol,
-      topWalletShare: totalVol > 0 ? (top5Vol / totalVol) * 100 : 0,
+      top5Count: top5Total,
     };
   }, [data, viewMode]);
 
@@ -97,7 +97,7 @@ export function WhaleActivityChart() {
         <ChartStatGrid columns={2}>
           <ChartStatCard
             label="Top 5 Total Purchases"
-            value={`${topWalletShare.toFixed(0)}%`}
+            value={formatNumber(top5Count)}
           />
           <ChartStatCard
             label="Total Volume"

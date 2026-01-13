@@ -70,10 +70,10 @@ export default function WhalesPage() {
           </div>
 
           <ChartSettingsProvider>
-            <div className="mb-6">
+            <div className="mb-4">
               <ChartControls />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
               <HolderDistributionChart />
               <SalesVelocityChart />
             </div>

@@ -48,20 +48,21 @@ export default function HoldersPage() {
 
           {/* Main Chart */}
           <ChartSettingsProvider>
-            <div className="mb-6">
+            <div className="mb-4">
               <ChartControls />
             </div>
-            <div className="mb-8">
+            {/* Centered single chart with max-width for 1:1 tile */}
+            <div className="mx-auto max-w-[600px] mb-6">
               <HolderDistributionChart />
             </div>
           </ChartSettingsProvider>
 
           {/* Info */}
-          <Card>
+          <Card className="max-w-[600px] mx-auto">
             <CardHeader>
-              <CardTitle>About Holder Distribution</CardTitle>
+              <CardTitle className="text-sm">About Holder Distribution</CardTitle>
             </CardHeader>
-            <div className="text-sm text-foreground-muted space-y-2">
+            <div className="text-xs text-foreground-muted space-y-1.5">
               <p>
                 Holder distribution shows how NFTs are spread across wallets. A healthy distribution
                 typically shows most holders owning 1-5 NFTs, with a smaller percentage of "whales"

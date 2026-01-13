@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { SPACING, TEXT_STYLES } from "@/lib/tokens";
 
 interface ChartStatCardProps {
   label: string;
@@ -24,23 +25,57 @@ export function ChartStatCard({
     : "";
 
   const changeArrow = change !== undefined
-    ? change >= 0 ? "↑" : "↓"
+    ? change >= 0 ? "+" : ""
     : "";
 
   return (
-    <div className={`p-4 rounded-xl border border-border bg-background-secondary ${className}`}>
-      <div className="flex items-center gap-1.5 text-sm text-foreground-muted mb-2">
-        <span className="font-medium">{label}</span>
+    <div
+      className={`rounded-xl border border-border bg-background-secondary ${className}`}
+      style={{ padding: SPACING.statPadding }}
+    >
+      <div
+        className="flex items-center text-foreground-muted"
+        style={{
+          gap: SPACING.statLabelGap,
+          fontSize: TEXT_STYLES.statLabel.fontSize,
+          fontWeight: TEXT_STYLES.statLabel.fontWeight,
+          marginBottom: SPACING.statLabelGap,
+        }}
+      >
+        <span>{label}</span>
         {icon}
       </div>
-      <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-bold text-foreground">{value}</span>
+      <div
+        className="flex items-baseline"
+        style={{ gap: SPACING.legendGap }}
+      >
+        <span
+          className="font-bold text-foreground"
+          style={{
+            fontSize: TEXT_STYLES.statValue.fontSize,
+            lineHeight: TEXT_STYLES.statValue.lineHeight,
+          }}
+        >
+          {value}
+        </span>
         {subValue !== undefined && (
-          <span className="text-base text-foreground-muted">/ {subValue}</span>
+          <span
+            className="text-foreground-muted"
+            style={{
+              fontSize: TEXT_STYLES.statSubvalue.fontSize,
+            }}
+          >
+            / {subValue}
+          </span>
         )}
         {change !== undefined && (
-          <span className={`text-base font-medium ${changeColor}`}>
-            {changeArrow} {Math.abs(change).toFixed(0)}%
+          <span
+            className={`font-medium ${changeColor}`}
+            style={{
+              fontSize: TEXT_STYLES.statSubvalue.fontSize,
+            }}
+          >
+            {changeArrow}{change.toFixed(0)}%
           </span>
         )}
       </div>
@@ -61,7 +96,13 @@ export function ChartStatGrid({ children, columns = 2 }: ChartStatGridProps) {
   };
 
   return (
-    <div className={`grid ${gridCols[columns]} gap-3 mt-2`}>
+    <div
+      className={`grid ${gridCols[columns]}`}
+      style={{
+        gap: SPACING.statGridGap,
+        marginTop: SPACING.statLabelGap,
+      }}
+    >
       {children}
     </div>
   );

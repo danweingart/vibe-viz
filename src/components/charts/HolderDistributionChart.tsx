@@ -8,7 +8,7 @@ import { StandardChartCard, LegendItem } from "@/components/charts/StandardChart
 import { useCollectionStats } from "@/hooks";
 import { formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE, getYAxisWidth, getExportYAxisWidth } from "@/lib/chartConfig";
 
 // Simulated holder distribution based on common NFT patterns
 // In production, this would come from on-chain data or an indexer
@@ -60,7 +60,7 @@ export function HolderDistributionChart() {
     <BarChart data={chartData} layout="vertical" width={width} height={height} margin={EXPORT_MARGINS.horizontal}>
       <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
       <XAxis type="number" stroke={EXPORT_AXIS_STYLE.stroke} fontSize={EXPORT_AXIS_STYLE.fontSize} axisLine={EXPORT_AXIS_STYLE.axisLine} tickLine={EXPORT_AXIS_STYLE.tickLine} fontFamily={EXPORT_AXIS_STYLE.fontFamily} />
-      <YAxis type="category" dataKey="label" stroke={EXPORT_AXIS_STYLE.stroke} fontSize={EXPORT_AXIS_STYLE.fontSize} axisLine={EXPORT_AXIS_STYLE.axisLine} tickLine={EXPORT_AXIS_STYLE.tickLine} width={50} fontFamily={EXPORT_AXIS_STYLE.fontFamily} />
+      <YAxis type="category" dataKey="label" stroke={EXPORT_AXIS_STYLE.stroke} fontSize={EXPORT_AXIS_STYLE.fontSize} axisLine={EXPORT_AXIS_STYLE.axisLine} tickLine={EXPORT_AXIS_STYLE.tickLine} width={getExportYAxisWidth('horizontal')} fontFamily={EXPORT_AXIS_STYLE.fontFamily} />
       <Tooltip
         contentStyle={getTooltipContentStyle()}
         content={({ active, payload }) => {
@@ -114,7 +114,7 @@ export function HolderDistributionChart() {
         <BarChart data={chartData} layout="vertical" margin={CHART_MARGINS.horizontal}>
           <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
           <XAxis type="number" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} fontFamily={AXIS_STYLE.fontFamily} />
-          <YAxis type="category" dataKey="label" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} width={45} fontFamily={AXIS_STYLE.fontFamily} />
+          <YAxis type="category" dataKey="label" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} width={getYAxisWidth('horizontal')} fontFamily={AXIS_STYLE.fontFamily} />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
             content={({ active, payload }) => {

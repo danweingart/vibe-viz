@@ -55,23 +55,20 @@ export default function SalesPage() {
 
           {/* Charts */}
           <ChartSettingsProvider>
-            <div className="mb-6">
+            <div className="mb-4">
               <ChartControls />
             </div>
-            <div className="space-y-6">
-              <PriceHistoryChart />
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              {/* 2-column grid for all chart tiles */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <PriceHistoryChart />
                 <VolumeChart />
                 <CollectorsPremiumChart />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <PriceDistributionChart />
                 <PaymentRatioChart />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <RecentSales />
                 <TopSales />
               </div>

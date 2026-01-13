@@ -14,7 +14,7 @@ import { ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
 import { useMarketDepth } from "@/hooks/useMarketDepth";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, EXPORT_MARGINS, EXPORT_AXIS_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, EXPORT_MARGINS, EXPORT_AXIS_STYLE, getTooltipContentStyle, getYAxisWidth, getExportYAxisWidth } from "@/lib/chartConfig";
 
 export function MarketDepthChart() {
   const { data, isLoading, error } = useMarketDepth();
@@ -117,7 +117,7 @@ export function MarketDepthChart() {
   const renderChart = useCallback((width: number, height: number) => (
     <BarChart data={chartData} width={width} height={height} margin={EXPORT_MARGINS.default}>
       <XAxis type="category" dataKey="label" stroke={EXPORT_AXIS_STYLE.stroke} fontSize={EXPORT_AXIS_STYLE.fontSize} axisLine={EXPORT_AXIS_STYLE.axisLine} tickLine={EXPORT_AXIS_STYLE.tickLine} fontFamily={EXPORT_AXIS_STYLE.fontFamily} />
-      <YAxis type="number" stroke={EXPORT_AXIS_STYLE.stroke} fontSize={EXPORT_AXIS_STYLE.fontSize} axisLine={EXPORT_AXIS_STYLE.axisLine} tickLine={EXPORT_AXIS_STYLE.tickLine} width={50} fontFamily={EXPORT_AXIS_STYLE.fontFamily} />
+      <YAxis type="number" stroke={EXPORT_AXIS_STYLE.stroke} fontSize={EXPORT_AXIS_STYLE.fontSize} axisLine={EXPORT_AXIS_STYLE.axisLine} tickLine={EXPORT_AXIS_STYLE.tickLine} width={getExportYAxisWidth()} fontFamily={EXPORT_AXIS_STYLE.fontFamily} />
       <Tooltip
         contentStyle={getTooltipContentStyle()}
         content={({ active, payload }) => {
@@ -177,7 +177,7 @@ export function MarketDepthChart() {
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={CHART_MARGINS.default}>
           <XAxis type="category" dataKey="label" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} fontFamily={AXIS_STYLE.fontFamily} />
-          <YAxis type="number" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} width={30} fontFamily={AXIS_STYLE.fontFamily} />
+          <YAxis type="number" stroke={AXIS_STYLE.stroke} fontSize={AXIS_STYLE.fontSize} axisLine={AXIS_STYLE.axisLine} tickLine={AXIS_STYLE.tickLine} width={getYAxisWidth()} fontFamily={AXIS_STYLE.fontFamily} />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
             content={({ active, payload }) => {

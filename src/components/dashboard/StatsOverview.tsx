@@ -95,25 +95,32 @@ function StatCard({ label, value, subValue, change, highlight, animationDelay = 
   const delayClass = `animate-delay-${animationDelay}`;
   return (
     <Card
-      className={`relative overflow-hidden animate-fade-in p-3 ${delayClass} ${
-        highlight ? "border-brand/50 brand-glow-pulse" : ""
+      className={`relative overflow-hidden animate-fade-in p-4 ${delayClass} ${
+        highlight ? "border-brand/40 brand-glow-pulse" : "hover:border-border-light"
       }`}
     >
+      {/* Background gradient for all cards */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+
+      {/* Extra glow for highlighted card */}
       {highlight && (
-        <div className="absolute inset-0 bg-gradient-to-br from-brand/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-brand/8 via-brand/3 to-transparent" />
       )}
+
       <div className="relative text-center">
-        <p className="text-xs sm:text-[10px] text-foreground-muted uppercase tracking-wider mb-1.5">
+        <p className="text-[10px] sm:text-[11px] text-foreground-muted uppercase tracking-widest mb-2 font-medium">
           {label}
         </p>
-        <p className="text-lg font-bold text-foreground font-brice leading-tight">{value}</p>
-        <div className="flex items-center justify-center gap-1.5 mt-0.5">
+        <p className={`text-xl sm:text-2xl font-bold font-brice leading-none ${highlight ? "text-brand" : "text-foreground"}`}>
+          {value}
+        </p>
+        <div className="flex items-center justify-center gap-1.5 mt-1.5">
           {subValue && (
-            <span className="text-xs text-foreground-muted">{subValue}</span>
+            <span className="text-[11px] text-foreground-subtle">{subValue}</span>
           )}
           {change !== undefined && (
             <span
-              className={`text-[10px] font-medium ${
+              className={`text-[10px] font-semibold ${
                 change >= 0 ? "text-chart-success" : "text-chart-danger"
               }`}
             >

@@ -1,21 +1,34 @@
 "use client";
 
 import { ReactNode } from "react";
-import { ChartStatCard } from "@/components/ui/ChartStatCard";
+import { EXPORT_BRANDING } from "@/lib/chartConfig";
 
-// Export dimensions (4:5 portrait for social media)
+// Export dimensions (1:1 square for social media)
 export const EXPORT_WIDTH = 1080;
-export const EXPORT_HEIGHT = 1350;
+export const EXPORT_HEIGHT = 1080;
 
-// Layout heights
-const HEADER_HEIGHT = 130;
-const LEGEND_HEIGHT = 60;
-const STAT_CARDS_HEIGHT = 120;
-const PADDING = 24;
+// Layout heights for 1:1 square - more compact to fit everything
+const HEADER_HEIGHT = 100;
+const LEGEND_HEIGHT = 44;
+const STAT_CARDS_HEIGHT = 80;
+const BORDER_WIDTH = 2;
+const PADDING = 16;
 
-// Chart area = total - header - legend - stat cards - padding
-export const CHART_HEIGHT = EXPORT_HEIGHT - HEADER_HEIGHT - LEGEND_HEIGHT - STAT_CARDS_HEIGHT - PADDING * 2;
-export const CHART_WIDTH = EXPORT_WIDTH - PADDING * 2;
+// Chart area = total - header - legend - stat cards - borders - padding
+export const CHART_HEIGHT = EXPORT_HEIGHT - HEADER_HEIGHT - LEGEND_HEIGHT - STAT_CARDS_HEIGHT - BORDER_WIDTH * 2 - PADDING * 2;
+export const CHART_WIDTH = EXPORT_WIDTH - BORDER_WIDTH * 2 - PADDING * 2;
+
+// Explicit colors for export (CSS variables don't always work with html-to-image)
+const COLORS = {
+  background: "#0a0a0a",
+  backgroundSecondary: "#141414",
+  foreground: "#fafafa",
+  foregroundMuted: "#a1a1aa",
+  brand: "#ffe048",
+  border: "#27272a",
+  success: "#34d399",
+  danger: "#f87171",
+};
 
 export interface LegendItem {
   color: string;
@@ -38,15 +51,10 @@ interface ExportTemplateProps {
 }
 
 /**
- * ExportTemplate - A styled container for PNG exports
+ * ExportTemplate - 1:1 square branded container for PNG exports
  *
- * Renders at fixed 1080x1350 dimensions with:
- * - Branding header (Good Vibes Club + title + subtitle)
- * - Legend pills
- * - Chart visualization (children)
- * - Stat cards at bottom
- *
- * Uses actual Tailwind classes so exports match front-end styling exactly.
+ * Uses explicit inline styles (not CSS variables) to ensure html-to-image captures colors correctly.
+ * All spacing and typography aligned with EXPORT_BRANDING tokens.
  */
 export function ExportTemplate({
   title,
@@ -60,58 +68,123 @@ export function ExportTemplate({
       style={{
         width: EXPORT_WIDTH,
         height: EXPORT_HEIGHT,
-        backgroundColor: "#0a0a0a",
+        backgroundColor: COLORS.background,
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        color: COLORS.foreground,
+        fontFamily: "var(--font-mundial), system-ui, sans-serif",
       }}
-      className="flex flex-col text-foreground"
     >
-      {/* Header Section */}
+      {/* Thin border on left, right, bottom (not top - header extends to edge) */}
       <div
-        className="flex flex-col items-center justify-center pt-6 pb-4"
-        style={{ height: HEADER_HEIGHT }}
+        style={{
+          position: "absolute",
+          top: HEADER_HEIGHT,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          border: `${BORDER_WIDTH}px solid ${COLORS.border}`,
+          borderTop: "none",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Header Section - Text only, no logo */}
+      <div
+        style={{
+          height: HEADER_HEIGHT,
+          backgroundColor: COLORS.background,
+          borderBottom: `1px solid ${COLORS.border}`,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          paddingLeft: PADDING + 8,
+          paddingRight: PADDING + 8,
+        }}
       >
-        {/* Brand name */}
-        <span
-          className="font-brice text-brand"
-          style={{ fontSize: 48 }}
+        <div
+          style={{
+            fontSize: 36,
+            lineHeight: 1,
+            color: COLORS.brand,
+            fontFamily: "var(--font-brice), system-ui, sans-serif",
+            fontWeight: "bold",
+          }}
         >
           Good Vibes Club
-        </span>
-        {/* Chart title */}
+        </div>
         <h2
-          className="font-brice text-foreground mt-1"
-          style={{ fontSize: 28 }}
+          style={{
+            fontSize: 28,
+            lineHeight: 1.1,
+            color: COLORS.foreground,
+            fontFamily: "var(--font-brice), system-ui, sans-serif",
+            fontWeight: "bold",
+            marginTop: 6,
+          }}
         >
           {title}
         </h2>
-        {/* Subtitle */}
-        <p
-          className="font-mundial text-foreground-muted mt-1"
-          style={{ fontSize: 18 }}
-        >
-          {subtitle}
-        </p>
+        {subtitle && (
+          <p
+            style={{
+              fontSize: 16,
+              color: COLORS.foregroundMuted,
+              marginTop: 4,
+            }}
+          >
+            {subtitle}
+          </p>
+        )}
       </div>
 
       {/* Legend Bar */}
       <div
-        className="flex items-center justify-center gap-4 px-6"
-        style={{ height: LEGEND_HEIGHT }}
+        style={{
+          height: LEGEND_HEIGHT,
+          marginLeft: BORDER_WIDTH,
+          marginRight: BORDER_WIDTH,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          paddingLeft: PADDING,
+          paddingRight: PADDING,
+        }}
       >
         {legend.map((item, index) => (
           <div
             key={index}
-            className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background-secondary"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              paddingLeft: 10,
+              paddingRight: 10,
+              paddingTop: 4,
+              paddingBottom: 4,
+              borderRadius: 9999,
+              border: `1px solid ${COLORS.border}`,
+              backgroundColor: COLORS.backgroundSecondary,
+            }}
           >
             <span
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: item.color }}
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                backgroundColor: item.color,
+              }}
             />
-            <span className="text-foreground-muted font-mundial text-sm">
+            <span style={{ fontSize: 11, color: COLORS.foregroundMuted }}>
               {item.label}:
             </span>
             <span
-              className="font-mundial font-semibold text-sm"
-              style={{ color: item.color }}
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: item.color,
+              }}
             >
               {item.value}
             </span>
@@ -121,10 +194,23 @@ export function ExportTemplate({
 
       {/* Chart Area */}
       <div
-        className="flex-1 px-6"
-        style={{ height: CHART_HEIGHT }}
+        style={{
+          flex: 1,
+          paddingLeft: BORDER_WIDTH + PADDING,
+          paddingRight: BORDER_WIDTH + PADDING,
+          paddingTop: PADDING / 2,
+          paddingBottom: PADDING / 2,
+        }}
       >
-        <div className="w-full h-full bg-background-secondary rounded-lg overflow-hidden">
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: COLORS.backgroundSecondary,
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
           {children}
         </div>
       </div>
@@ -132,12 +218,23 @@ export function ExportTemplate({
       {/* Stat Cards */}
       {statCards && statCards.length > 0 && (
         <div
-          className="px-6 pb-6 pt-4"
-          style={{ height: STAT_CARDS_HEIGHT }}
+          style={{
+            height: STAT_CARDS_HEIGHT,
+            paddingLeft: BORDER_WIDTH + PADDING,
+            paddingRight: BORDER_WIDTH + PADDING,
+            paddingBottom: BORDER_WIDTH + PADDING,
+          }}
         >
-          <div className={`grid gap-4 h-full ${statCards.length === 2 ? 'grid-cols-2' : statCards.length === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
-            {statCards.map((card, index) => (
-              <ChartStatCard
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${Math.min(statCards.length, 4)}, 1fr)`,
+              gap: 8,
+              height: "100%",
+            }}
+          >
+            {statCards.slice(0, 4).map((card, index) => (
+              <ExportStatCard
                 key={index}
                 label={card.label}
                 value={card.value}
@@ -147,6 +244,63 @@ export function ExportTemplate({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Inline stat card component for export (doesn't rely on CSS variables)
+function ExportStatCard({
+  label,
+  value,
+  change,
+}: {
+  label: string;
+  value: string;
+  change?: number;
+}) {
+  return (
+    <div
+      style={{
+        padding: 10,
+        borderRadius: 10,
+        border: `1px solid ${COLORS.border}`,
+        backgroundColor: COLORS.backgroundSecondary,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          color: COLORS.foregroundMuted,
+          marginBottom: 2,
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+        <span
+          style={{
+            fontSize: 18,
+            fontWeight: "bold",
+            color: COLORS.foreground,
+          }}
+        >
+          {value}
+        </span>
+        {change !== undefined && (
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 500,
+              color: change >= 0 ? COLORS.success : COLORS.danger,
+            }}
+          >
+            {change >= 0 ? "+" : ""}{change.toFixed(1)}%
+          </span>
+        )}
+      </div>
     </div>
   );
 }

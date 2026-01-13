@@ -17,7 +17,7 @@ export function ChartPageLayout({ title, description, children }: ChartPageLayou
       <Header />
 
       <main className="flex-1">
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-[800px] px-4 sm:px-6 lg:px-8 py-8">
           {/* Breadcrumb */}
           <nav className="mb-4 text-sm">
             <Link href="/" className="text-foreground-muted hover:text-foreground">
@@ -27,16 +27,19 @@ export function ChartPageLayout({ title, description, children }: ChartPageLayou
             <span className="text-foreground">{title}</span>
           </nav>
 
-          <div className="mb-8">
-            <h1 className="text-3xl font-brice text-foreground mb-2">{title}</h1>
-            <p className="text-foreground-muted">{description}</p>
+          <div className="mb-6">
+            <h1 className="text-2xl font-brice text-foreground mb-1">{title}</h1>
+            <p className="text-foreground-muted text-sm">{description}</p>
           </div>
 
           <ChartSettingsProvider>
-            <div className="mb-6">
+            <div className="mb-4">
               <ChartControls />
             </div>
-            {children}
+            {/* Chart container - centered 1:1 tile */}
+            <div className="mx-auto max-w-[600px]">
+              {children}
+            </div>
           </ChartSettingsProvider>
         </div>
       </main>

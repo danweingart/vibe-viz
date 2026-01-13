@@ -14,7 +14,9 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-xl border border-border bg-background-secondary pt-3 px-3 pb-3 sm:pt-4 sm:px-4 sm:pb-4 card-hover flex flex-col",
+        "rounded-xl border border-border bg-background-secondary card-hover flex flex-col",
+        // Token-based padding: 8px mobile, 12px desktop
+        "p-[var(--card-padding-mobile)] sm:p-[var(--card-padding)]",
         variant === "glow" && "brand-glow",
         className
       )}
@@ -31,7 +33,10 @@ export function CardHeader({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("mb-3", className)} {...props}>
+    <div
+      className={cn("mb-[var(--section-gap)]", className)}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -44,7 +49,12 @@ export function CardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn("text-lg font-bold text-foreground font-brice", className)}
+      className={cn(
+        "font-bold text-foreground font-brice",
+        // Token-based font size: 16px
+        "text-[var(--text-xl)]"
+      )}
+      style={{ lineHeight: 1.1 }}
       {...props}
     >
       {children}
@@ -59,7 +69,11 @@ export function CardDescription({
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn("hidden sm:block text-sm text-foreground-muted", className)}
+      className={cn(
+        "hidden sm:block text-foreground-muted",
+        // Token-based font size: 13px
+        "text-[var(--text-md)]"
+      )}
       {...props}
     >
       {children}

@@ -18,25 +18,25 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/70 backdrop-blur-xl backdrop-saturate-150">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-brand flex items-center justify-center p-1.5">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative h-10 w-10 rounded-full bg-brand flex items-center justify-center p-1.5 shadow-lg shadow-brand/20 group-hover:shadow-brand/30 transition-shadow">
               <Image
                 src="/images/shaka.png"
                 alt="Good Vibes Club"
                 width={28}
                 height={28}
-                className="invert"
+                className="invert group-hover:scale-105 transition-transform"
               />
             </div>
             <div>
-              <h1 className="font-brice text-lg text-foreground leading-none">
+              <h1 className="font-brice text-lg text-foreground leading-none tracking-tight group-hover:text-brand transition-colors">
                 Good Vibes Club
               </h1>
-              <p className="text-xs text-foreground-muted">Analytics</p>
+              <p className="text-[11px] text-foreground-subtle uppercase tracking-wider">Analytics</p>
             </div>
           </Link>
 
@@ -131,9 +131,9 @@ function NavLink({
   return (
     <Link
       href={href}
-      className={`text-sm font-medium transition-all px-3 py-1.5 rounded-lg ${
+      className={`text-sm font-medium transition-all duration-200 px-4 py-2 rounded-full ${
         active
-          ? "text-brand bg-brand/10 nav-link-active"
+          ? "text-background bg-brand shadow-sm shadow-brand/20"
           : "text-foreground-muted hover:text-foreground hover:bg-border/50"
       }`}
     >
@@ -157,10 +157,10 @@ function MobileNavLink({
     <Link
       href={href}
       onClick={onClick}
-      className={`block px-4 py-3 text-base font-medium rounded-lg active:scale-[0.99] active:opacity-90 ${
+      className={`block px-4 py-3 text-base font-medium rounded-xl active:scale-[0.98] transition-all ${
         active
-          ? "text-brand bg-brand/10"
-          : "text-foreground-muted hover:text-foreground hover:bg-border"
+          ? "text-background bg-brand shadow-sm"
+          : "text-foreground-muted hover:text-foreground hover:bg-border/50"
       }`}
     >
       {children}

@@ -116,7 +116,7 @@ export function WhaleActivityChart() {
             return (
               <div key={i} className="bg-background-tertiary rounded p-2">
                 <p className="font-mono text-foreground-muted flex items-center justify-center gap-1" style={{ fontSize: FONT_SIZE.xs }}>
-                  {viewMode === "buyers" && <span>{medals[i]}</span>}
+                  {viewMode === "buyers" ? <span>{medals[i]}</span> : <span>💩</span>}
                   <span className="truncate">{whale.shortAddress}</span>
                   <OpenSeaLink type="wallet" value={whale.address} size={10} />
                 </p>

@@ -149,7 +149,9 @@ export function PriceDistributionChart() {
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
             width={40}
-            domain={[0, 'auto']}
+            scale="log"
+            domain={[1, 'auto']}
+            allowDataOverflow
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}

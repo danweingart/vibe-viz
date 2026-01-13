@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { StandardChartCard } from "@/components/charts/StandardChartCard";
+import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
 import { ToggleButtonGroup, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useBasketPriceHistory } from "@/hooks/useBasketPriceHistory";
@@ -204,46 +204,39 @@ export function CollectorsPremiumChart() {
     />
   );
 
-  const statsContent = showComparison && !basketLoading ? (
+  // Legend items for comparison mode (matches PaymentRatioChart style)
+  const legendItems: LegendItem[] | undefined = showComparison && !basketLoading
+    ? [
+        { key: "gvc", label: "GVC", color: CHART_COLORS.primary, lineStyle: "solid" },
+        { key: "basket", label: "Leading ETH Collections", color: CHART_COLORS.muted, lineStyle: "dashed" },
+      ]
+    : undefined;
+
+  // Hide stats in compare mode (like PaymentRatioChart)
+  const showStats = !(showComparison && !basketLoading);
+  const statsContent = showStats ? (
     <ChartStatGrid columns={3}>
       <ChartStatCard
         label=">10% Floor"
-        value={<span style={{ color: CHART_COLORS.success }}>{avg10.toFixed(0)}%</span>}
-        subValue={`${basketAvg10.toFixed(0)}%`}
+        value={`${avg10.toFixed(0)}%`}
       />
       <ChartStatCard
         label=">25% Floor"
-        value={<span style={{ color: CHART_COLORS.primary }}>{avg25.toFixed(0)}%</span>}
-        subValue={`${basketAvg25.toFixed(0)}%`}
+        value={`${avg25.toFixed(0)}%`}
       />
       <ChartStatCard
         label=">50% Floor"
-        value={<span style={{ color: CHART_COLORS.accent }}>{avg50.toFixed(0)}%</span>}
-        subValue={`${basketAvg50.toFixed(0)}%`}
+        value={`${avg50.toFixed(0)}%`}
       />
     </ChartStatGrid>
-  ) : (
-    <ChartStatGrid columns={3}>
-      <ChartStatCard
-        label=">10% Floor"
-        value={<span style={{ color: CHART_COLORS.success }}>{avg10.toFixed(0)}%</span>}
-      />
-      <ChartStatCard
-        label=">25% Floor"
-        value={<span style={{ color: CHART_COLORS.primary }}>{avg25.toFixed(0)}%</span>}
-      />
-      <ChartStatCard
-        label=">50% Floor"
-        value={<span style={{ color: CHART_COLORS.accent }}>{avg50.toFixed(0)}%</span>}
-      />
-    </ChartStatGrid>
-  );
+  ) : undefined;
 
   return (
     <StandardChartCard
       title="Collector's Premium"
       href="/charts/collectors-premium"
       description="% of daily sales priced above floor (7D smoothed)"
+      legend={legendItems}
       headerControls={comparisonToggle}
       exportConfig={exportConfig}
       isLoading={isLoading}
@@ -252,26 +245,8 @@ export function CollectorsPremiumChart() {
       emptyMessage="No data available"
       stats={statsContent}
     >
-      {/* Full-height container using CSS Grid for equal row distribution */}
-      <div className="h-full flex flex-col">
-        {/* Comparison legend when active */}
-        {showComparison && !basketLoading && (
-          <div className="flex items-center justify-between mb-1 shrink-0">
-            <div className="flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-0.5 bg-brand rounded" />
-                <span className="text-foreground-muted">GVC</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-0.5 rounded bg-foreground-muted/50" style={{ backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 2px, #71717a 2px, #71717a 4px)" }} />
-                <span className="text-foreground-muted">Leading ETH Collections</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Three stacked charts using grid with equal rows */}
-        <div className="flex-1 grid grid-rows-3 gap-2 min-h-0">
+      {/* Three stacked charts using grid with equal rows */}
+      <div className="h-full grid grid-rows-3 gap-2">
           <PremiumChartRow
             data={data10}
             label=">10%"
@@ -297,7 +272,6 @@ export function CollectorsPremiumChart() {
             showComparison={showComparison && !basketLoading}
             showXAxis={true}
           />
-        </div>
       </div>
     </StandardChartCard>
   );

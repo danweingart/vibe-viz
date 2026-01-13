@@ -15,6 +15,7 @@ export interface LegendItem {
   color: string;
   active?: boolean;
   value?: string;
+  lineStyle?: "dot" | "solid" | "dashed"; // Indicator style
 }
 
 export interface ChartExportConfig {

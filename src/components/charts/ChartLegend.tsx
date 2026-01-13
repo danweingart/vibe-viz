@@ -8,6 +8,7 @@ export interface LegendItem {
   color: string;
   active?: boolean;
   value?: string;
+  lineStyle?: "dot" | "solid" | "dashed"; // Indicator style
 }
 
 export interface ChartLegendProps {
@@ -64,15 +65,35 @@ export function ChartLegend({
               gap: LEGEND.dot.marginRight,
             }}
           >
-            {/* Color dot */}
-            <span
-              className="rounded-full flex-shrink-0"
-              style={{
-                width: dotSize,
-                height: dotSize,
-                backgroundColor: item.color,
-              }}
-            />
+            {/* Color indicator - dot, solid line, or dashed line */}
+            {item.lineStyle === "dashed" ? (
+              <span
+                className="flex-shrink-0 rounded"
+                style={{
+                  width: 16,
+                  height: 2,
+                  backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 2px, ${item.color} 2px, ${item.color} 4px)`,
+                }}
+              />
+            ) : item.lineStyle === "solid" ? (
+              <span
+                className="flex-shrink-0 rounded"
+                style={{
+                  width: 16,
+                  height: 2,
+                  backgroundColor: item.color,
+                }}
+              />
+            ) : (
+              <span
+                className="rounded-full flex-shrink-0"
+                style={{
+                  width: dotSize,
+                  height: dotSize,
+                  backgroundColor: item.color,
+                }}
+              />
+            )}
 
             {/* Label */}
             <span

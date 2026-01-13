@@ -13,12 +13,13 @@ import {
   Cell,
 } from "recharts";
 import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
-import { OpenSeaLink, ChartStatCard, ChartStatGrid } from "@/components/ui";
+import { OpenSeaLink, ChartStatCard, ChartStatGrid, ToggleButtonGroup } from "@/components/ui";
 import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getYAxisWidth } from "@/lib/chartConfig";
+import { FONT_SIZE } from "@/lib/tokens";
 
 // Truncate address for display
 function truncateAddress(address: string): string {
@@ -68,28 +69,16 @@ export function WhaleActivityChart() {
   ];
 
   const viewToggle = (
-    <div className="flex rounded-lg border border-border overflow-hidden">
-      <button
-        onClick={() => setViewMode("buyers")}
-        className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-          viewMode === "buyers"
-            ? "bg-chart-success text-background"
-            : "text-foreground-muted hover:text-foreground hover:bg-border"
-        }`}
-      >
-        Top Buyers
-      </button>
-      <button
-        onClick={() => setViewMode("sellers")}
-        className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-          viewMode === "sellers"
-            ? "bg-chart-danger text-background"
-            : "text-foreground-muted hover:text-foreground hover:bg-border"
-        }`}
-      >
-        Top Sellers
-      </button>
-    </div>
+    <ToggleButtonGroup
+      options={[
+        { value: "buyers", label: "Top Buyers" },
+        { value: "sellers", label: "Top Sellers" },
+      ]}
+      value={viewMode}
+      onChange={setViewMode}
+      activeColor={viewMode === "buyers" ? "bg-chart-success" : "bg-chart-danger"}
+      size="md"
+    />
   );
 
   return (
@@ -134,7 +123,7 @@ export function WhaleActivityChart() {
                 fontSize={AXIS_STYLE.fontSize}
                 axisLine={AXIS_STYLE.axisLine}
                 tickLine={AXIS_STYLE.tickLine}
-                width={65}
+                width={getYAxisWidth('horizontal')}
                 fontFamily={AXIS_STYLE.fontFamily}
               />
               <Tooltip
@@ -147,13 +136,13 @@ export function WhaleActivityChart() {
                   const crossLabel = viewMode === "buyers" ? "sells" : "buys";
                   return (
                     <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
-                      <p className="font-mono text-foreground text-[10px]">{d.address}</p>
+                      <p className="font-mono text-foreground" style={{ fontSize: FONT_SIZE.xs }}>{d.address}</p>
                       <p className="text-foreground-muted mt-1">
                         <span style={{ color }}>{formatNumber(d.count)} {viewMode === "buyers" ? "buys" : "sells"}</span>
                         <span style={{ color: d.crossCount > 0 ? crossColor : "#71717a" }}> • {formatNumber(d.crossCount)} {crossLabel}</span>
                       </p>
                       <p className="text-foreground-muted">{formatEth(d.volume, 2)} volume ({d.volumePercent.toFixed(1)}%)</p>
-                      <p className="text-[10px] text-foreground-muted mt-1 italic">Click bar to view on OpenSea</p>
+                      <p className="text-foreground-muted mt-1 italic" style={{ fontSize: FONT_SIZE.xs }}>Click bar to view on OpenSea</p>
                     </div>
                   );
                 }}
@@ -173,18 +162,18 @@ export function WhaleActivityChart() {
         </div>
 
         {/* Stats row - inside export area */}
-        <div className="grid grid-cols-3 gap-1 sm:gap-2 mt-2 text-[10px] sm:text-xs text-center">
+        <div className="grid grid-cols-3 gap-1 sm:gap-2 mt-2 sm:text-xs text-center" style={{ fontSize: FONT_SIZE.xs }}>
           {chartData.slice(0, 3).map((whale, i) => {
             const crossColor = viewMode === "buyers" ? CHART_COLORS.danger : CHART_COLORS.success;
             const crossLabel = viewMode === "buyers" ? "sells" : "buys";
             return (
               <div key={i} className="bg-background-tertiary rounded p-2">
-                <p className="font-mono text-[10px] text-foreground-muted flex items-center justify-center gap-1">
+                <p className="font-mono text-foreground-muted flex items-center justify-center gap-1" style={{ fontSize: FONT_SIZE.xs }}>
                   <span className="truncate">{whale.shortAddress}</span>
                   <OpenSeaLink type="wallet" value={whale.address} size={10} />
                 </p>
                 <p className="font-bold" style={{ color }}>{formatNumber(whale.count)} {viewMode === "buyers" ? "buys" : "sells"}</p>
-                <p className="text-[10px]" style={{ color: whale.crossCount > 0 ? crossColor : "#71717a" }}>{formatNumber(whale.crossCount)} {crossLabel}</p>
+                <p style={{ fontSize: FONT_SIZE.xs, color: whale.crossCount > 0 ? crossColor : "#71717a" }}>{formatNumber(whale.crossCount)} {crossLabel}</p>
               </div>
             );
           })}

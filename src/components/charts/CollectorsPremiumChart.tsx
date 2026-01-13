@@ -12,12 +12,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { StandardChartCard } from "@/components/charts/StandardChartCard";
+import { ToggleButtonGroup } from "@/components/ui";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useBasketPriceHistory } from "@/hooks/useBasketPriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { FONT_SIZE } from "@/lib/tokens";
 
 // Calculate 7-day rolling average for an array of values
 function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] {
@@ -51,11 +53,11 @@ function PremiumChartRow({
     <div className="flex items-center gap-2 h-full">
       {/* Y-axis label */}
       <div className="w-16 shrink-0 text-right">
-        <p className="text-[10px] text-foreground-muted leading-none">{label}</p>
+        <p className="text-foreground-muted leading-none" style={{ fontSize: FONT_SIZE.xs }}>{label}</p>
         <p className="text-xs font-bold leading-tight" style={{ color }}>
           {avg.toFixed(0)}%
           {showComparison && basketAvg !== undefined && (
-            <span className="text-foreground-muted font-normal text-[10px]"> vs {basketAvg.toFixed(0)}%</span>
+            <span className="text-foreground-muted font-normal" style={{ fontSize: FONT_SIZE.xs }}> vs {basketAvg.toFixed(0)}%</span>
           )}
         </p>
       </div>
@@ -198,28 +200,14 @@ export function CollectorsPremiumChart() {
   }, [data, basketData]);
 
   const comparisonToggle = (
-    <div className="flex rounded-lg border border-border overflow-hidden">
-      <button
-        onClick={() => setShowComparison(false)}
-        className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
-          !showComparison
-            ? "bg-brand text-background"
-            : "text-foreground-muted hover:text-foreground hover:bg-border"
-        }`}
-      >
-        GVC
-      </button>
-      <button
-        onClick={() => setShowComparison(true)}
-        className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
-          showComparison
-            ? "bg-brand text-background"
-            : "text-foreground-muted hover:text-foreground hover:bg-border"
-        }`}
-      >
-        Compare{basketLoading && showComparison ? "..." : ""}
-      </button>
-    </div>
+    <ToggleButtonGroup
+      options={[
+        { value: "gvc", label: "GVC" },
+        { value: "compare", label: basketLoading && showComparison ? "Compare..." : "Compare" },
+      ]}
+      value={showComparison ? "compare" : "gvc"}
+      onChange={(v) => setShowComparison(v === "compare")}
+    />
   );
 
   return (

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from "recharts";
-import { ChartStatCard, ChartStatGrid } from "@/components/ui";
+import { ChartStatCard, ChartStatGrid, Badge } from "@/components/ui";
 import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
 import { useCollectionStats } from "@/hooks";
 import { formatNumber } from "@/lib/utils";
@@ -52,7 +52,7 @@ export function HolderDistributionChart() {
       title="Holder Distribution"
       href="/charts/holder-distribution"
       description="Wallet distribution by collection size"
-      badge={<span className="px-1.5 py-0.5 text-[9px] bg-chart-accent/20 text-chart-accent rounded">Estimated</span>}
+      badge={<Badge variant="accent" size="xs">Estimated</Badge>}
       legend={legendItems}
       exportConfig={exportConfig}
       isEmpty={totalHolders === 0}

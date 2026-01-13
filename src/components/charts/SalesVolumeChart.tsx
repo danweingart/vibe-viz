@@ -12,7 +12,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ChartStatCard, ChartStatGrid } from "@/components/ui";
+import { ChartStatCard, ChartStatGrid, ToggleButtonGroup } from "@/components/ui";
 import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
@@ -137,28 +137,14 @@ export function SalesVolumeChart() {
   ];
 
   const viewToggle = (
-    <div className="flex rounded-lg border border-border overflow-hidden">
-      <button
-        onClick={() => setViewMode("sales")}
-        className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
-          viewMode === "sales"
-            ? "bg-brand text-background"
-            : "text-foreground-muted hover:text-foreground hover:bg-border"
-        }`}
-      >
-        Sales
-      </button>
-      <button
-        onClick={() => setViewMode("volume")}
-        className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
-          viewMode === "volume"
-            ? "bg-brand text-background"
-            : "text-foreground-muted hover:text-foreground hover:bg-border"
-        }`}
-      >
-        Volume
-      </button>
-    </div>
+    <ToggleButtonGroup
+      options={[
+        { value: "sales", label: "Sales" },
+        { value: "volume", label: "Volume" },
+      ]}
+      value={viewMode}
+      onChange={setViewMode}
+    />
   );
 
   return (

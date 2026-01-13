@@ -7,3 +7,4 @@ export { ChartLegendToggle } from "./ChartLegendToggle";
 export { ChartStatCard, ChartStatGrid } from "./ChartStatCard";
 export { Logo, LogoFallback } from "./Logo";
 export { OpenSeaLink, OpenSeaIcon } from "./OpenSeaLink";
+export { ToggleButtonGroup } from "./ToggleButtonGroup";

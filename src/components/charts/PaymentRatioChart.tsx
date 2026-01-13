@@ -12,12 +12,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
-import { ChartStatCard, ChartStatGrid } from "@/components/ui";
+import { ChartStatCard, ChartStatGrid, ToggleButtonGroup } from "@/components/ui";
 import { usePriceHistory, useBasketPriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { FONT_SIZE } from "@/lib/tokens";
 
 // Calculate 7-day rolling average for an array of values
 function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] {
@@ -47,7 +48,7 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between mb-1">
         <p className="text-xs text-foreground-muted font-medium">{label}</p>
-        <div className="flex gap-3 text-[10px]">
+        <div className="flex gap-3" style={{ fontSize: FONT_SIZE.xs }}>
           <span style={{ color: CHART_COLORS.primary }}>ETH: {avgEth.toFixed(0)}%</span>
           <span style={{ color: CHART_COLORS.danger }}>WETH: {avgWeth.toFixed(0)}%</span>
         </div>
@@ -201,28 +202,14 @@ export function PaymentRatioChart() {
 
   // Comparison toggle controls
   const comparisonControls = (
-    <div className="flex rounded-lg border border-border overflow-hidden">
-      <button
-        onClick={() => setShowComparison(false)}
-        className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
-          !showComparison
-            ? "bg-brand text-background"
-            : "text-foreground-muted hover:text-foreground hover:bg-border"
-        }`}
-      >
-        GVC
-      </button>
-      <button
-        onClick={() => setShowComparison(true)}
-        className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
-          showComparison
-            ? "bg-brand text-background"
-            : "text-foreground-muted hover:text-foreground hover:bg-border"
-        }`}
-      >
-        Compare{basketLoading && showComparison ? "..." : ""}
-      </button>
-    </div>
+    <ToggleButtonGroup
+      options={[
+        { value: "gvc", label: "GVC" },
+        { value: "compare", label: basketLoading && showComparison ? "Compare..." : "Compare" },
+      ]}
+      value={showComparison ? "compare" : "gvc"}
+      onChange={(v) => setShowComparison(v === "compare")}
+    />
   );
 
   // Stats - only shown when not in comparison mode

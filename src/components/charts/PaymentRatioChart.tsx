@@ -218,11 +218,11 @@ export function PaymentRatioChart() {
     <ChartStatGrid columns={2}>
       <ChartStatCard
         label="ETH Usage"
-        value={`${gvcAvgEth.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.primary }}>{gvcAvgEth.toFixed(0)}%</span>}
       />
       <ChartStatCard
         label="WETH Usage"
-        value={`${gvcAvgWeth.toFixed(0)}%`}
+        value={<span style={{ color: CHART_COLORS.danger }}>{gvcAvgWeth.toFixed(0)}%</span>}
       />
     </ChartStatGrid>
   ) : undefined;

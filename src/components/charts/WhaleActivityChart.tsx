@@ -97,11 +97,11 @@ export function WhaleActivityChart() {
         <ChartStatGrid columns={2}>
           <ChartStatCard
             label={viewMode === "buyers" ? "Top 5 Total Purchases" : "Top 5 Total Sales"}
-            value={formatNumber(top5Count)}
+            value={<span style={{ color }}>{formatNumber(top5Count)}</span>}
           />
           <ChartStatCard
             label="Total Volume"
-            value={formatEth(totalVolume, 1)}
+            value={<span style={{ color }}>{formatEth(totalVolume, 1)}</span>}
           />
         </ChartStatGrid>
       }

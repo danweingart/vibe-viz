@@ -148,15 +148,15 @@ export function HoldingPeriodChart() {
         <ChartStatGrid columns={3}>
           <ChartStatCard
             label="Avg Hold"
-            value={`${avgHoldingDays.toFixed(0)}d`}
+            value={<span style={{ color: CHART_COLORS.info }}>{avgHoldingDays.toFixed(0)}d</span>}
           />
           <ChartStatCard
             label="Flippers"
-            value={`${flipperRate.toFixed(0)}%`}
+            value={<span style={{ color: CHART_COLORS.accent }}>{flipperRate.toFixed(0)}%</span>}
           />
           <ChartStatCard
             label="Holders"
-            value={`${hodlerRate.toFixed(0)}%`}
+            value={<span style={{ color: CHART_COLORS.success }}>{hodlerRate.toFixed(0)}%</span>}
           />
         </ChartStatGrid>
       }

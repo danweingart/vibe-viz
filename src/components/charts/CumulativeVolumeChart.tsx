@@ -90,15 +90,15 @@ export function CumulativeVolumeChart() {
         <ChartStatGrid columns={3}>
           <ChartStatCard
             label="Total Volume"
-            value={currency === "eth" ? formatEth(totalVolume, 1) : formatUsd(totalVolume)}
+            value={<span style={{ color: CHART_COLORS.primary }}>{currency === "eth" ? formatEth(totalVolume, 1) : formatUsd(totalVolume)}</span>}
           />
           <ChartStatCard
             label="Daily Avg"
-            value={currency === "eth" ? formatEth(dailyAvg, 2) : formatUsd(dailyAvg)}
+            value={<span style={{ color: CHART_COLORS.info }}>{currency === "eth" ? formatEth(dailyAvg, 2) : formatUsd(dailyAvg)}</span>}
           />
           <ChartStatCard
             label="Velocity Δ"
-            value={`${growthRate > 0 ? "+" : ""}${growthRate.toFixed(0)}%`}
+            value={<span style={{ color: growthRate >= 0 ? CHART_COLORS.success : CHART_COLORS.danger }}>{growthRate > 0 ? "+" : ""}{growthRate.toFixed(0)}%</span>}
           />
         </ChartStatGrid>
       }

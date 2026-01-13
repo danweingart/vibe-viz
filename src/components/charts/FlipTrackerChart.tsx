@@ -94,15 +94,15 @@ export function FlipTrackerChart() {
         <ChartStatGrid columns={3}>
           <ChartStatCard
             label="Profitable"
-            value={`${profitableFlips.toFixed(0)}%`}
+            value={<span style={{ color: CHART_COLORS.success }}>{profitableFlips.toFixed(0)}%</span>}
           />
           <ChartStatCard
             label="Avg Return"
-            value={`${avgProfit > 0 ? "+" : ""}${avgProfit.toFixed(1)}%`}
+            value={<span style={{ color: avgProfit >= 0 ? CHART_COLORS.success : CHART_COLORS.danger }}>{avgProfit > 0 ? "+" : ""}{avgProfit.toFixed(1)}%</span>}
           />
           <ChartStatCard
             label="Avg Hold"
-            value={`${avgHoldingDays.toFixed(0)}d`}
+            value={<span style={{ color: CHART_COLORS.info }}>{avgHoldingDays.toFixed(0)}d</span>}
           />
         </ChartStatGrid>
       }

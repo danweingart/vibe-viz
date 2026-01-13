@@ -120,11 +120,11 @@ export function MarketDepthChart() {
         <ChartStatGrid columns={2}>
           <ChartStatCard
             label="Total Bids"
-            value={totalBids.toString()}
+            value={<span style={{ color: CHART_COLORS.success }}>{totalBids.toString()}</span>}
           />
           <ChartStatCard
             label="Total Listings"
-            value={totalAsks.toString()}
+            value={<span style={{ color: CHART_COLORS.danger }}>{totalAsks.toString()}</span>}
           />
         </ChartStatGrid>
       }

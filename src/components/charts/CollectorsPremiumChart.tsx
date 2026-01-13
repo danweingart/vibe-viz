@@ -256,20 +256,22 @@ export function CollectorsPremiumChart() {
       <div className="h-full flex flex-col">
         {/* Comparison legend when active */}
         {showComparison && !basketLoading && (
-          <div className="flex items-center gap-4 mb-2 text-xs shrink-0">
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-0.5 bg-brand rounded" />
-              <span className="text-foreground-muted">GVC</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-0.5 rounded bg-foreground-muted/50" style={{ backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 2px, #71717a 2px, #71717a 4px)" }} />
-              <span className="text-foreground-muted">Leading ETH Collections</span>
+          <div className="flex items-center justify-between mb-1 shrink-0">
+            <div className="flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-0.5 bg-brand rounded" />
+                <span className="text-foreground-muted">GVC</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-0.5 rounded bg-foreground-muted/50" style={{ backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 2px, #71717a 2px, #71717a 4px)" }} />
+                <span className="text-foreground-muted">Leading ETH Collections</span>
+              </div>
             </div>
           </div>
         )}
 
         {/* Three stacked charts using grid with equal rows */}
-        <div className="flex-1 grid grid-rows-3 gap-1 min-h-0">
+        <div className="flex-1 grid grid-rows-3 gap-2 min-h-0">
           <PremiumChartRow
             data={data10}
             label=">10%"

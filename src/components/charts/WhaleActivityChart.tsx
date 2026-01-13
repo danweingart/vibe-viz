@@ -96,7 +96,7 @@ export function WhaleActivityChart() {
       stats={
         <ChartStatGrid columns={2}>
           <ChartStatCard
-            label="Top 5 Total Purchases"
+            label={viewMode === "buyers" ? "Top 5 Total Purchases" : "Top 5 Total Sales"}
             value={formatNumber(top5Count)}
           />
           <ChartStatCard

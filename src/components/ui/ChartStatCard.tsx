@@ -30,11 +30,11 @@ export function ChartStatCard({
 
   return (
     <div
-      className={`rounded-xl border border-border bg-background-secondary ${className}`}
+      className={`rounded-xl border border-border bg-background-secondary text-center ${className}`}
       style={{ padding: SPACING.statPadding }}
     >
       <div
-        className="flex items-center text-foreground-muted"
+        className="flex items-center justify-center text-foreground-muted"
         style={{
           gap: SPACING.statLabelGap,
           fontSize: TEXT_STYLES.statLabel.fontSize,
@@ -46,7 +46,7 @@ export function ChartStatCard({
         {icon}
       </div>
       <div
-        className="flex items-baseline"
+        className="flex items-baseline justify-center"
         style={{ gap: SPACING.legendGap }}
       >
         <span

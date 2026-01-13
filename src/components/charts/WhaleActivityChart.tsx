@@ -96,7 +96,7 @@ export function WhaleActivityChart() {
       stats={
         <ChartStatGrid columns={2}>
           <ChartStatCard
-            label="Top 5 Share"
+            label="Top 5 Total Purchases"
             value={`${topWalletShare.toFixed(0)}%`}
           />
           <ChartStatCard

@@ -107,6 +107,26 @@ export function WhaleActivityChart() {
       }
     >
       <div className="flex flex-col h-full">
+        {/* Top 3 wallets - above chart */}
+        <div className="grid grid-cols-3 gap-1 sm:gap-2 mb-2 sm:text-xs text-center" style={{ fontSize: FONT_SIZE.xs }}>
+          {chartData.slice(0, 3).map((whale, i) => {
+            const crossColor = viewMode === "buyers" ? CHART_COLORS.danger : CHART_COLORS.success;
+            const crossLabel = viewMode === "buyers" ? "sells" : "buys";
+            const medals = ["🥇", "🥈", "🥉"];
+            return (
+              <div key={i} className="bg-background-tertiary rounded p-2">
+                <p className="font-mono text-foreground-muted flex items-center justify-center gap-1" style={{ fontSize: FONT_SIZE.xs }}>
+                  {viewMode === "buyers" && <span>{medals[i]}</span>}
+                  <span className="truncate">{whale.shortAddress}</span>
+                  <OpenSeaLink type="wallet" value={whale.address} size={10} />
+                </p>
+                <p className="font-bold" style={{ color }}>{formatNumber(whale.count)} {viewMode === "buyers" ? "buys" : "sells"}</p>
+                <p style={{ fontSize: FONT_SIZE.xs, color: whale.crossCount > 0 ? crossColor : "#71717a" }}>{formatNumber(whale.crossCount)} {crossLabel}</p>
+              </div>
+            );
+          })}
+        </div>
+
         <div className="flex-1 min-h-[280px] sm:min-h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -159,24 +179,6 @@ export function WhaleActivityChart() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
-
-        {/* Stats row - inside export area */}
-        <div className="grid grid-cols-3 gap-1 sm:gap-2 mt-2 sm:text-xs text-center" style={{ fontSize: FONT_SIZE.xs }}>
-          {chartData.slice(0, 3).map((whale, i) => {
-            const crossColor = viewMode === "buyers" ? CHART_COLORS.danger : CHART_COLORS.success;
-            const crossLabel = viewMode === "buyers" ? "sells" : "buys";
-            return (
-              <div key={i} className="bg-background-tertiary rounded p-2">
-                <p className="font-mono text-foreground-muted flex items-center justify-center gap-1" style={{ fontSize: FONT_SIZE.xs }}>
-                  <span className="truncate">{whale.shortAddress}</span>
-                  <OpenSeaLink type="wallet" value={whale.address} size={10} />
-                </p>
-                <p className="font-bold" style={{ color }}>{formatNumber(whale.count)} {viewMode === "buyers" ? "buys" : "sells"}</p>
-                <p style={{ fontSize: FONT_SIZE.xs, color: whale.crossCount > 0 ? crossColor : "#71717a" }}>{formatNumber(whale.crossCount)} {crossLabel}</p>
-              </div>
-            );
-          })}
         </div>
       </div>
     </StandardChartCard>

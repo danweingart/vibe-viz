@@ -18,7 +18,7 @@ import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getYAxisWidth } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { FONT_SIZE } from "@/lib/tokens";
 
 // Truncate address for display
@@ -143,7 +143,7 @@ export function WhaleActivityChart() {
                 fontSize={AXIS_STYLE.fontSize}
                 axisLine={AXIS_STYLE.axisLine}
                 tickLine={AXIS_STYLE.tickLine}
-                width={getYAxisWidth('horizontal')}
+                width={60}
                 fontFamily={AXIS_STYLE.fontFamily}
               />
               <Tooltip

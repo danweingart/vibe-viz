@@ -192,6 +192,9 @@ export function StandardChartCard({
   return (
     <div ref={cardRef}>
     <Card className={cardClasses}>
+      {/* Export branding bar - only visible during export, at top */}
+      <ExportBrandingBar visible={showBranding} />
+
       {/* Header - compact */}
       <div className="flex flex-row items-start justify-between p-3 pb-2">
         <div className="flex-1 min-w-0">
@@ -261,9 +264,6 @@ export function StandardChartCard({
           {stats}
         </div>
       )}
-
-      {/* Export branding bar - only visible during export */}
-      <ExportBrandingBar visible={showBranding} />
     </Card>
     </div>
   );

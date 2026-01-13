@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -16,7 +16,7 @@ import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport";
 
 export function VolumeChart() {
@@ -63,66 +63,8 @@ export function VolumeChart() {
   // Export configuration
   const exportConfig = useMemo(() => ({
     title: "Trading Volume",
-    subtitle: `${timeRange}D - Total ${currency === "eth" ? "ETH" : "USD"} traded per day`,
     filename: getChartFilename("volume", timeRange),
-    legend: [
-      { color: CHART_COLORS.primary, label: "Daily Volume", value: currency === "eth" ? "ETH" : "USD" },
-    ],
-    statCards: [
-      { label: `${timeRange}D Total`, value: currency === "eth" ? formatEth(totalVolume, 1) : formatUsd(totalVolume) },
-      { label: "Last 7 Days", value: currency === "eth" ? formatEth(lastWeekTotal, 1) : formatUsd(lastWeekTotal), change: weekChange },
-    ],
-  }), [timeRange, currency, totalVolume, lastWeekTotal, weekChange]);
-
-  // Render chart function for StandardChartCard
-  const renderChart = useCallback((width: number, height: number) => (
-    <BarChart data={chartData} width={width} height={height} margin={EXPORT_MARGINS.default}>
-      <CartesianGrid
-        strokeDasharray={GRID_STYLE.strokeDasharray}
-        stroke={GRID_STYLE.stroke}
-        vertical={GRID_STYLE.vertical}
-      />
-      <XAxis
-        dataKey="date"
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-        interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
-        tickFormatter={(v) =>
-          new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-        }
-      />
-      <YAxis
-        width={50}
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-        tickFormatter={(v) =>
-          currency === "eth" ? `${v.toFixed(1)}` : `$${(v / 1000).toFixed(0)}k`
-        }
-      />
-      <Tooltip
-        contentStyle={getTooltipContentStyle()}
-        labelStyle={{ color: "#fafafa" }}
-        formatter={(value) => [
-          currency === "eth" ? formatEth(Number(value), 2) : formatUsd(Number(value)),
-          "Volume",
-        ]}
-        labelFormatter={(label) => formatDate(label)}
-      />
-      {visibleSeries.volume && (
-        <Bar
-          dataKey="displayVolume"
-          fill={CHART_COLORS.primary}
-          radius={[4, 4, 0, 0]}
-        />
-      )}
-    </BarChart>
-  ), [chartData, currency, visibleSeries.volume]);
+  }), [timeRange]);
 
   return (
     <StandardChartCard
@@ -132,7 +74,6 @@ export function VolumeChart() {
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}
-      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!data || data.length === 0}

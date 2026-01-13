@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   LineChart,
@@ -17,7 +17,7 @@ import { usePriceHistory, useBasketPriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Calculate 7-day rolling average for an array of values
 function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] {
@@ -196,17 +196,8 @@ export function PaymentRatioChart() {
 
   const exportConfig = useMemo(() => ({
     title: "ETH vs WETH Payments",
-    subtitle: `Payment method usage by volume over ${timeRange} days (7D smoothed)`,
-    legend: [
-      { color: CHART_COLORS.primary, label: "ETH", value: "Native" },
-      { color: CHART_COLORS.danger, label: "WETH", value: "Wrapped" },
-    ],
     filename: getChartFilename("payment-ratio", timeRange),
-    statCards: [
-      { label: "ETH Usage", value: `${gvcAvgEth.toFixed(0)}%` },
-      { label: "WETH Usage", value: `${gvcAvgWeth.toFixed(0)}%` },
-    ],
-  }), [timeRange, gvcAvgEth, gvcAvgWeth]);
+  }), [timeRange]);
 
   // Comparison toggle controls
   const comparisonControls = (
@@ -248,59 +239,6 @@ export function PaymentRatioChart() {
       />
     </ChartStatGrid>
   ) : undefined;
-
-  // Render chart function for export
-  const renderChart = useCallback((width: number, height: number) => (
-    <LineChart data={gvcDailyData} width={width} height={height} margin={{ ...EXPORT_MARGINS.default, bottom: 20 }}>
-      <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
-      <XAxis
-        dataKey="date"
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        interval={Math.max(0, Math.floor(gvcDailyData.length / 6) - 1)}
-        tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-      />
-      <YAxis
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        tickFormatter={(v) => `${v}%`}
-        domain={[0, 100]}
-        ticks={[0, 25, 50, 75, 100]}
-        width={50}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-      />
-      <Tooltip
-        contentStyle={getTooltipContentStyle()}
-        labelStyle={{ color: "#fafafa" }}
-        formatter={(value, name) => {
-          const labelText = name === "ethPct" ? "ETH" : "WETH";
-          return [`${Number(value).toFixed(1)}%`, labelText];
-        }}
-        labelFormatter={(l) => formatDate(l)}
-      />
-      <Line
-        type="monotone"
-        dataKey="ethPct"
-        stroke={CHART_COLORS.primary}
-        strokeWidth={2}
-        dot={{ r: 3, fill: CHART_COLORS.primary, strokeWidth: 0 }}
-        activeDot={{ r: 5, fill: CHART_COLORS.primary, stroke: "#0a0a0a", strokeWidth: 2 }}
-      />
-      <Line
-        type="monotone"
-        dataKey="wethPct"
-        stroke={CHART_COLORS.danger}
-        strokeWidth={2}
-        dot={{ r: 3, fill: CHART_COLORS.danger, strokeWidth: 0 }}
-        activeDot={{ r: 5, fill: CHART_COLORS.danger, stroke: "#0a0a0a", strokeWidth: 2 }}
-      />
-    </LineChart>
-  ), [gvcDailyData]);
 
   // Chart content
   const chartContent = showComparison && !basketLoading && basketDailyData.length > 0 ? (
@@ -380,7 +318,6 @@ export function PaymentRatioChart() {
       legend={legendItems}
       headerControls={comparisonControls}
       exportConfig={exportConfig}
-      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!priceHistory || gvcDailyData.length === 0}

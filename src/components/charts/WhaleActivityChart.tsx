@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   BarChart,
@@ -18,7 +18,7 @@ import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Truncate address for display
 function truncateAddress(address: string): string {
@@ -58,16 +58,8 @@ export function WhaleActivityChart() {
 
   const exportConfig = useMemo(() => ({
     title: "Whale Activity",
-    subtitle: `Top 5 ${viewMode === "buyers" ? "buyers" : "sellers"} by volume over ${timeRange} days`,
-    legend: [
-      { color: viewMode === "buyers" ? CHART_COLORS.success : CHART_COLORS.danger, label: viewMode === "buyers" ? "Buy Volume" : "Sell Volume", value: "ETH" },
-    ],
     filename: getChartFilename(`whale-${viewMode}`, timeRange),
-    statCards: [
-      { label: "Top 5 Share", value: `${topWalletShare.toFixed(0)}%` },
-      { label: "Total Volume", value: formatEth(totalVolume, 1) },
-    ],
-  }), [timeRange, viewMode, topWalletShare, totalVolume]);
+  }), [timeRange, viewMode]);
 
   const color = viewMode === "buyers" ? CHART_COLORS.success : CHART_COLORS.danger;
 
@@ -100,62 +92,6 @@ export function WhaleActivityChart() {
     </div>
   );
 
-  // Render function for export - renders chart at specified dimensions
-  // NOTE: Don't use ResponsiveContainer here - it doesn't work in off-screen portals
-  const renderChart = useCallback((width: number, height: number) => (
-    <BarChart
-      data={chartData}
-      layout="vertical"
-      width={width}
-      height={height}
-      margin={EXPORT_MARGINS.horizontal}
-    >
-      <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
-      <XAxis type="number" stroke={EXPORT_AXIS_STYLE.stroke} fontSize={EXPORT_AXIS_STYLE.fontSize} axisLine={EXPORT_AXIS_STYLE.axisLine} tickLine={EXPORT_AXIS_STYLE.tickLine} tickFormatter={(v) => formatEth(v, 1)} fontFamily={EXPORT_AXIS_STYLE.fontFamily} />
-      <YAxis
-        type="category"
-        dataKey="shortAddress"
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-        width={80}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-      />
-      <Tooltip
-        contentStyle={getTooltipContentStyle()}
-        labelStyle={{ color: "#fafafa" }}
-        content={({ active, payload }) => {
-          if (!active || !payload?.length) return null;
-          const d = payload[0]?.payload;
-          const crossColor = viewMode === "buyers" ? CHART_COLORS.danger : CHART_COLORS.success;
-          const crossLabel = viewMode === "buyers" ? "sells" : "buys";
-          return (
-            <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
-              <p className="font-mono text-foreground text-[10px]">{d.address}</p>
-              <p className="text-foreground-muted mt-1">
-                <span style={{ color }}>{formatNumber(d.count)} {viewMode === "buyers" ? "buys" : "sells"}</span>
-                <span style={{ color: d.crossCount > 0 ? crossColor : "#71717a" }}> • {formatNumber(d.crossCount)} {crossLabel}</span>
-              </p>
-              <p className="text-foreground-muted">{formatEth(d.volume, 2)} volume ({d.volumePercent.toFixed(1)}%)</p>
-              <p className="text-[10px] text-foreground-muted mt-1 italic">Click bar to view on OpenSea</p>
-            </div>
-          );
-        }}
-      />
-      <Bar dataKey="volume" radius={[0, 4, 4, 0]} className="cursor-pointer">
-        {chartData.map((entry, index) => (
-          <Cell
-            key={`cell-${index}`}
-            fill={color}
-            className="cursor-pointer"
-            onClick={() => window.open(`https://opensea.io/${entry.address}`, "_blank")}
-          />
-        ))}
-      </Bar>
-    </BarChart>
-  ), [chartData, viewMode, color]);
-
   return (
     <StandardChartCard
       title="Whale Activity"
@@ -164,7 +100,6 @@ export function WhaleActivityChart() {
       legend={legendItems}
       headerControls={viewToggle}
       exportConfig={exportConfig}
-      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!data || chartData.length === 0}

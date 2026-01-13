@@ -9,7 +9,6 @@ interface SharePreviewModalProps {
   imageDataUrl: string | null;
   isLoading: boolean;
   title: string;
-  onShareToX: () => Promise<void>;
   onCopyImage: () => Promise<boolean>;
   onDownload: () => void;
 }
@@ -20,14 +19,11 @@ export function SharePreviewModal({
   imageDataUrl,
   isLoading,
   title,
-  onShareToX,
   onCopyImage,
   onDownload,
 }: SharePreviewModalProps) {
-  const [isSharing, setIsSharing] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [copyFailed, setCopyFailed] = useState(false);
 
   // Close on escape key
   useEffect(() => {
@@ -56,36 +52,20 @@ export function SharePreviewModal({
   useEffect(() => {
     if (isOpen) {
       setCopySuccess(false);
-      setCopyFailed(false);
     }
   }, [isOpen]);
-
-  const handleShareToX = useCallback(async () => {
-    setIsSharing(true);
-    try {
-      await onShareToX();
-      onClose();
-    } catch {
-      // Error handled in parent
-    } finally {
-      setIsSharing(false);
-    }
-  }, [onShareToX, onClose]);
 
   const handleCopyImage = useCallback(async () => {
     setIsCopying(true);
     setCopySuccess(false);
-    setCopyFailed(false);
     try {
       const success = await onCopyImage();
       if (success) {
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
-      } else {
-        setCopyFailed(true);
       }
     } catch {
-      setCopyFailed(true);
+      // Copy failed silently - user can use download instead
     } finally {
       setIsCopying(false);
     }
@@ -108,7 +88,7 @@ export function SharePreviewModal({
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="share-modal-title"
+      aria-labelledby="export-modal-title"
     >
       {/* Modal content */}
       <div className="relative bg-background-secondary rounded-2xl border border-border p-5 max-w-[520px] w-full mx-4 shadow-2xl animate-fade-in">
@@ -123,14 +103,14 @@ export function SharePreviewModal({
 
         {/* Title */}
         <h2
-          id="share-modal-title"
+          id="export-modal-title"
           className="font-brice text-lg text-foreground mb-4 pr-8"
         >
-          Share {title}
+          Export {title}
         </h2>
 
         {/* Image preview */}
-        <div className="aspect-[4/5] bg-background rounded-xl overflow-hidden mb-5 border border-border/50">
+        <div className="aspect-square bg-background rounded-xl overflow-hidden mb-5 border border-border/50">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-full gap-3">
               <LoadingSpinner className="w-8 h-8 text-brand" />
@@ -152,21 +132,12 @@ export function SharePreviewModal({
         {/* Action buttons */}
         <div className="flex gap-3">
           <button
-            onClick={handleShareToX}
-            disabled={isLoading || !imageDataUrl || isSharing}
+            onClick={onDownload}
+            disabled={isLoading || !imageDataUrl}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand text-background font-medium text-sm transition-all hover:bg-brand-dark active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSharing ? (
-              <>
-                <LoadingSpinner className="w-4 h-4" />
-                <span>Sharing...</span>
-              </>
-            ) : (
-              <>
-                <XIcon className="w-4 h-4" />
-                <span>Share to X</span>
-              </>
-            )}
+            <DownloadIcon className="w-4 h-4" />
+            <span>Download PNG</span>
           </button>
 
           <button
@@ -175,8 +146,6 @@ export function SharePreviewModal({
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border font-medium text-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${
               copySuccess
                 ? "border-chart-success bg-chart-success/10 text-chart-success"
-                : copyFailed
-                ? "border-chart-danger bg-chart-danger/10 text-chart-danger"
                 : "border-border hover:border-border-hover hover:bg-border/30 text-foreground"
             }`}
           >
@@ -190,11 +159,6 @@ export function SharePreviewModal({
                 <CheckIcon className="w-4 h-4" />
                 <span>Copied!</span>
               </>
-            ) : copyFailed ? (
-              <>
-                <DownloadIcon className="w-4 h-4" />
-                <span onClick={onDownload}>Download instead</span>
-              </>
             ) : (
               <>
                 <CopyIcon className="w-4 h-4" />
@@ -203,17 +167,6 @@ export function SharePreviewModal({
             )}
           </button>
         </div>
-
-        {/* Download fallback - shown when copy fails */}
-        {copyFailed && (
-          <button
-            onClick={onDownload}
-            className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-foreground-muted hover:text-foreground hover:bg-border/30 text-sm transition-colors"
-          >
-            <DownloadIcon className="w-4 h-4" />
-            <span>Download PNG</span>
-          </button>
-        )}
       </div>
     </div>
   );
@@ -228,14 +181,6 @@ function CloseIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  );
-}
-
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
   );
 }

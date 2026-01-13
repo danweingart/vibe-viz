@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { getChartFilename } from "@/lib/chartExport/index";
+import { useMemo, useState } from "react";
+import { getChartFilename } from "@/lib/chartExport";
 import {
   ComposedChart,
   Bar,
@@ -18,7 +18,7 @@ import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, EXPORT_MARGINS, EXPORT_AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 export function UniqueTradersChart() {
   const { timeRange } = useChartSettings();
@@ -98,103 +98,8 @@ export function UniqueTradersChart() {
 
   const exportConfig = useMemo(() => ({
     title: "Unique Traders",
-    subtitle: `Distinct wallets trading each day over ${timeRange} days`,
-    legend: [
-      { color: CHART_COLORS.success, label: "Unique Buyers", value: "Daily" },
-      { color: CHART_COLORS.danger, label: "Unique Sellers", value: "Daily" },
-      { color: CHART_COLORS.info, label: "New Buyers", value: "First-time" },
-    ],
     filename: getChartFilename("unique-traders", timeRange),
-    statCards: data ? [
-      { label: "Avg Buyers/Day", value: avgBuyers.toFixed(1) },
-      { label: "Avg Sellers/Day", value: avgSellers.toFixed(1) },
-      { label: "New Buyers", value: `${newBuyerRate.toFixed(0)}%` },
-      { label: "Repeat Buyers", value: `${data.repeatBuyerRate}%` },
-    ] : [],
-  }), [timeRange, avgBuyers, avgSellers, newBuyerRate, data]);
-
-  const renderChart = useCallback((width: number, height: number) => (
-    <ComposedChart data={chartData} width={width} height={height} margin={EXPORT_MARGINS.default}>
-      <CartesianGrid {...GRID_STYLE} />
-      <XAxis
-        dataKey="date"
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-        interval={isWeekly ? 0 : Math.max(0, Math.floor(chartData.length / 6) - 1)}
-        tickFormatter={(v) => {
-          const date = new Date(v);
-          if (isWeekly) {
-            const endDate = new Date(date);
-            endDate.setDate(date.getDate() + 6);
-            const startStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-            const endStr = endDate.getDate().toString();
-            return `${startStr}-${endStr}`;
-          }
-          return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        }}
-      />
-      <YAxis
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-        width={50}
-      />
-      <Tooltip
-        contentStyle={getTooltipContentStyle()}
-        labelStyle={{ color: "#fafafa" }}
-        formatter={(value, name) => {
-          const labels: Record<string, string> = {
-            uniqueBuyers: "Unique Buyers",
-            uniqueSellers: "Unique Sellers",
-            newBuyers: "New Buyers",
-          };
-          return [formatNumber(Number(value)), labels[name as string] || name];
-        }}
-        labelFormatter={(l) => {
-          if (isWeekly) {
-            const date = new Date(l);
-            const endDate = new Date(date);
-            endDate.setDate(date.getDate() + 6);
-            return `${formatDate(l)} - ${formatDate(endDate.toISOString())}`;
-          }
-          return formatDate(l);
-        }}
-      />
-      {visibleSeries.buyers && (
-        <Bar
-          dataKey="uniqueBuyers"
-          name="uniqueBuyers"
-          fill={CHART_COLORS.success}
-          radius={[4, 4, 0, 0]}
-          opacity={0.8}
-        />
-      )}
-      {visibleSeries.sellers && (
-        <Bar
-          dataKey="uniqueSellers"
-          name="uniqueSellers"
-          fill={CHART_COLORS.danger}
-          radius={[4, 4, 0, 0]}
-          opacity={0.8}
-        />
-      )}
-      {visibleSeries.new && (
-        <Line
-          type="monotone"
-          dataKey="newBuyers"
-          name="newBuyers"
-          stroke={CHART_COLORS.info}
-          strokeWidth={2}
-          dot={false}
-        />
-      )}
-    </ComposedChart>
-  ), [chartData, isWeekly, visibleSeries]);
+  }), [timeRange]);
 
   const statsContent = data ? (
     <ChartStatGrid columns={4}>
@@ -230,7 +135,6 @@ export function UniqueTradersChart() {
       isEmpty={!data || data.dailyStats.length === 0}
       emptyMessage="No trader data available"
       stats={statsContent}
-      renderChart={renderChart}
     >
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={chartData} margin={CHART_MARGINS.default}>

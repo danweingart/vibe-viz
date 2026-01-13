@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ComposedChart,
   Bar,
@@ -17,7 +17,7 @@ import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, EXPORT_MARGINS, EXPORT_AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport";
 
 export function SalesVelocityChart() {
@@ -66,77 +66,9 @@ export function SalesVelocityChart() {
 
   // Export configuration
   const exportConfig = useMemo(() => ({
-    filename: getChartFilename("sales-velocity", timeRange),
     title: "Sales Velocity",
-    subtitle: `${timeRange}D - Number of sales per day`,
-    legend: [
-      { color: CHART_COLORS.primary, label: "Daily Sales", value: "count" },
-      { color: CHART_COLORS.danger, label: "7D Avg", value: "count" },
-    ],
-    statCards: [
-      { label: `${timeRange}D Total`, value: formatNumber(totalSales) },
-      { label: "Last 7 Days", value: formatNumber(lastWeekTotal), change: weekChange },
-    ],
-  }), [timeRange, totalSales, lastWeekTotal, weekChange]);
-
-  // Render chart for export
-  const renderChart = useCallback((width: number, height: number) => (
-    <ComposedChart data={chartData} width={width} height={height} margin={EXPORT_MARGINS.default}>
-      <CartesianGrid
-        strokeDasharray={GRID_STYLE.strokeDasharray}
-        stroke={GRID_STYLE.stroke}
-        vertical={GRID_STYLE.vertical}
-      />
-      <XAxis
-        dataKey="date"
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-        interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
-        tickFormatter={(v) =>
-          new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-        }
-      />
-      <YAxis
-        width={50}
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-      />
-      <Tooltip
-        contentStyle={getTooltipContentStyle()}
-        labelStyle={{ color: "#fafafa" }}
-        formatter={(value, name) => [
-          formatNumber(Number(value)),
-          name === "salesCount" ? "Sales" : "7D Avg",
-        ]}
-        labelFormatter={(label) => formatDate(label)}
-      />
-      {visibleSeries.sales && (
-        <Bar
-          dataKey="salesCount"
-          name="Daily Sales"
-          fill={CHART_COLORS.primary}
-          radius={[4, 4, 0, 0]}
-          opacity={0.8}
-        />
-      )}
-      {visibleSeries.ma7 && (
-        <Line
-          type="monotone"
-          dataKey="ma7"
-          name="7D Average"
-          stroke={CHART_COLORS.danger}
-          strokeWidth={2}
-          dot={false}
-        />
-      )}
-    </ComposedChart>
-  ), [chartData, visibleSeries.sales, visibleSeries.ma7]);
+    filename: getChartFilename("sales-velocity", timeRange),
+  }), [timeRange]);
 
   return (
     <StandardChartCard
@@ -146,7 +78,6 @@ export function SalesVelocityChart() {
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}
-      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!data || data.length === 0}

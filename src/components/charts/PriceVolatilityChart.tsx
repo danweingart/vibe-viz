@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -16,7 +16,7 @@ import { usePriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport/index";
 
 export function PriceVolatilityChart() {
@@ -111,94 +111,8 @@ export function PriceVolatilityChart() {
   // Export configuration
   const exportConfig = useMemo(() => ({
     title: "Grail Activity",
-    subtitle: `7-day rolling average of daily high/low prices over ${timeRange} days`,
-    legend: [
-      { color: CHART_COLORS.success, label: "7D Avg High", value: currency === "eth" ? "ETH" : "USD" },
-      { color: CHART_COLORS.danger, label: "7D Avg Low", value: currency === "eth" ? "ETH" : "USD" },
-    ],
     filename: getChartFilename("grail-activity", timeRange),
-    statCards: [
-      { label: "Avg Range", value: `${avgVolatility.toFixed(1)}%` },
-      { label: "Trend", value: `${trend.icon} ${trend.label}` },
-    ],
-  }), [timeRange, currency, avgVolatility, trend]);
-
-  // Render chart function for export
-  const renderChart = useCallback((width: number, height: number) => (
-    <AreaChart data={chartData} width={width} height={height} margin={EXPORT_MARGINS.default}>
-      <defs>
-        <linearGradient id="volatilityGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />
-          <stop offset="50%" stopColor={CHART_COLORS.primary} stopOpacity={0.2} />
-          <stop offset="100%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />
-        </linearGradient>
-      </defs>
-      <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
-      <XAxis
-        dataKey="date"
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-        interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
-        tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-      />
-      <YAxis
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-        width={50}
-        tickFormatter={(v) => currency === "eth" ? v.toFixed(2) : `$${v.toFixed(0)}`}
-        domain={["dataMin", "dataMax"]}
-      />
-      <Tooltip
-        contentStyle={getTooltipContentStyle()}
-        labelStyle={{ color: "#fafafa" }}
-        content={({ active, payload, label }) => {
-          if (!active || !payload?.length || !label) return null;
-          const d = payload[0]?.payload;
-          return (
-            <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
-              <p className="font-bold text-foreground">{formatDate(String(label))}</p>
-              <p className="text-chart-success">
-                7D Avg High: {currency === "eth" ? formatEth(d.displayMaxMA, 3) : formatUsd(d.displayMaxMA)}
-              </p>
-              <p className="text-chart-danger">
-                7D Avg Low: {currency === "eth" ? formatEth(d.displayMinMA, 3) : formatUsd(d.displayMinMA)}
-              </p>
-              <p className="text-chart-accent">
-                Daily Range: {d.volatilityPct.toFixed(1)}%
-              </p>
-            </div>
-          );
-        }}
-      />
-      {/* Price band - 7-day rolling average */}
-      {visibleSeries.high && (
-        <Area
-          type="monotone"
-          dataKey="displayMaxMA"
-          stroke={CHART_COLORS.success}
-          strokeWidth={1.5}
-          fill="url(#volatilityGradient)"
-          fillOpacity={1}
-        />
-      )}
-      {visibleSeries.low && (
-        <Area
-          type="monotone"
-          dataKey="displayMinMA"
-          stroke={CHART_COLORS.danger}
-          strokeWidth={1.5}
-          fill="#0a0a0a"
-          fillOpacity={1}
-        />
-      )}
-    </AreaChart>
-  ), [chartData, currency, visibleSeries.high, visibleSeries.low]);
+  }), [timeRange]);
 
   return (
     <StandardChartCard
@@ -208,7 +122,6 @@ export function PriceVolatilityChart() {
       legend={legendItems}
       onLegendToggle={handleLegendToggle}
       exportConfig={exportConfig}
-      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!data || data.length === 0}

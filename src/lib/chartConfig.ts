@@ -33,9 +33,6 @@ export {
 /** Recharts margins for display */
 export const CHART_MARGINS = CHART_CONTAINER.margins.display;
 
-/** Recharts margins for export (larger to prevent text cutoff) */
-export const EXPORT_MARGINS = CHART_CONTAINER.margins.export;
-
 /** Axis styling for display */
 export const AXIS_STYLE = {
   stroke: AXIS.display.stroke,
@@ -43,15 +40,6 @@ export const AXIS_STYLE = {
   fontFamily: AXIS.display.fontFamily,
   axisLine: AXIS.display.axisLine,
   tickLine: AXIS.display.tickLine,
-} as const;
-
-/** Axis styling for export (larger text for readability) */
-export const EXPORT_AXIS_STYLE = {
-  stroke: AXIS.export.stroke,
-  fontSize: AXIS.export.fontSize,
-  fontFamily: AXIS.export.fontFamily,
-  axisLine: AXIS.export.axisLine,
-  tickLine: AXIS.export.tickLine,
 } as const;
 
 /** Grid styling */
@@ -148,45 +136,6 @@ export const EXPORT_STYLE = {
   },
 } as const;
 
-/** Export branding configuration (shown ONLY in export, hidden on screen) */
-export const EXPORT_BRANDING = {
-  header: {
-    height: 130,
-    logoSize: 56,
-    brandText: 'Good Vibes Club',
-    brandFontSize: 50,
-    titleFontSize: 30,
-    subtitleFontSize: 20,
-    padding: 20,
-    gap: 8,
-  },
-  legendBar: {
-    height: 48,
-    itemFontSize: TEXT_STYLES.legendLabel.fontSize + 3, // 13px
-    valueFontSize: TEXT_STYLES.legendValue.fontSize + 4, // 14px
-    dotSize: LEGEND.dot.size.sm, // 8px
-    gap: 6,
-    pillPadding: { h: 14, v: 6 },
-    pillRadius: 16,
-    pillGap: 12,
-  },
-  chartArea: {
-    topMargin: 178,
-    bottomMargin: 8,
-    sideMargin: 8,
-  },
-  statCards: {
-    height: 90,
-    cardHeight: 68,
-    padding: 16,
-    labelFontSize: 13,
-    valueFontSize: 24,
-    subValueFontSize: 12,
-    gap: 12,
-    borderRadius: 16,
-  },
-} as const;
-
 /** State styling for loading, empty, error states */
 export const STATE_STYLE = {
   skeleton: {
@@ -221,15 +170,6 @@ export const getAxisProps = () => ({
   tickLine: AXIS_STYLE.tickLine,
 });
 
-/** Recharts-compatible export axis props helper */
-export const getExportAxisProps = () => ({
-  stroke: EXPORT_AXIS_STYLE.stroke,
-  fontSize: EXPORT_AXIS_STYLE.fontSize,
-  fontFamily: EXPORT_AXIS_STYLE.fontFamily,
-  axisLine: EXPORT_AXIS_STYLE.axisLine,
-  tickLine: EXPORT_AXIS_STYLE.tickLine,
-});
-
 /** Recharts-compatible grid props helper */
 export const getGridProps = () => ({
   strokeDasharray: GRID_STYLE.strokeDasharray,
@@ -248,7 +188,3 @@ export const getTooltipContentStyle = () => ({
 /** Get standardized YAxis width for display */
 export const getYAxisWidth = (layout: 'default' | 'horizontal' = 'default') =>
   CHART_CONTAINER.yAxisWidth.display[layout];
-
-/** Get standardized YAxis width for export */
-export const getExportYAxisWidth = (layout: 'default' | 'horizontal' = 'default') =>
-  CHART_CONTAINER.yAxisWidth.export[layout];

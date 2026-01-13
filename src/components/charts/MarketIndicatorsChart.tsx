@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import { StandardChartCard } from "@/components/charts/StandardChartCard";
 import { useMarketIndicators } from "@/hooks";
@@ -137,91 +137,10 @@ export function MarketIndicatorsChart() {
         : CHART_COLORS.danger
     : CHART_COLORS.primary;
 
-  const exportConfig = useMemo(() => {
-    // Use actual data values in export when available
-    const rsiLabel = data ? `${data.rsi}` : "N/A";
-    const momentumLabel = data ? `${data.momentum > 0 ? "+" : ""}${data.momentum}%` : "N/A";
-    const liquidityLabel = data ? `${data.liquidityScore}` : "N/A";
-
-    return {
-      title: "Market Indicators",
-      subtitle: "RSI, momentum & liquidity scores for market sentiment",
-      legend: [
-        { color: rsiColor, label: "RSI (14D)", value: rsiLabel },
-        { color: momentumColor, label: "Momentum", value: momentumLabel },
-        { color: liquidityColor, label: "Liquidity", value: liquidityLabel },
-      ],
-      filename: getChartFilename("market-indicators"),
-    };
-  }, [data, rsiColor, momentumColor, liquidityColor]);
-
-  const renderChart = useCallback(
-    (width: number, height: number) => {
-      if (!data) return null;
-
-      return (
-        <div style={{ width, height }} className="flex flex-col">
-          {/* Gauges row - takes available space */}
-          <div className="flex-1 grid grid-cols-3 gap-2 min-h-0">
-            <div className="flex flex-col items-center justify-center">
-              <Gauge value={data.rsi} max={100} label="RSI (14D)" color={rsiColor} />
-              <span className="text-[10px] text-foreground-muted mt-1">
-                {data.rsi > 70 ? "Overbought" : data.rsi < 30 ? "Oversold" : "Neutral"}
-              </span>
-            </div>
-
-            <div className="flex flex-col items-center justify-center">
-              <Gauge
-                value={Math.abs(data.momentum)}
-                max={100}
-                label="Momentum"
-                color={momentumColor}
-              />
-              <span className="text-[10px] text-foreground-muted mt-1">
-                {data.momentum > 0 ? "+" : ""}{data.momentum}%
-              </span>
-            </div>
-
-            <div className="flex flex-col items-center justify-center">
-              <Gauge
-                value={data.liquidityScore}
-                max={100}
-                label="Liquidity"
-                color={liquidityColor}
-              />
-              <span className="text-[10px] text-foreground-muted mt-1">
-                {data.liquidityScore > 60 ? "High" : data.liquidityScore > 30 ? "Medium" : "Low"}
-              </span>
-            </div>
-          </div>
-
-          {/* Info cards - fixed at bottom */}
-          <div className="grid grid-cols-2 gap-3 mt-auto shrink-0">
-            <div className="bg-background-tertiary rounded-lg p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-foreground-muted">Price Trend</span>
-                <TrendBadge trend={data.priceTrend} type="price" />
-              </div>
-              <p className="text-[10px] text-foreground-muted">
-                Based on RSI and price momentum over 14 days
-              </p>
-            </div>
-
-            <div className="bg-background-tertiary rounded-lg p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-foreground-muted">Volume Trend</span>
-                <TrendBadge trend={data.volumeTrend} type="volume" />
-              </div>
-              <p className="text-[10px] text-foreground-muted">
-                7-day vs previous 7-day volume comparison
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-    },
-    [data, rsiColor, momentumColor, liquidityColor]
-  );
+  const exportConfig = useMemo(() => ({
+    title: "Market Indicators",
+    filename: getChartFilename("market-indicators"),
+  }), []);
 
   return (
     <StandardChartCard
@@ -234,7 +153,6 @@ export function MarketIndicatorsChart() {
       error={error}
       isEmpty={!data}
       emptyMessage="Failed to load indicators"
-      renderChart={renderChart}
     >
       {data && (
         <div className="h-full flex flex-col">

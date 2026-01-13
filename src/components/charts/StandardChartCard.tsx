@@ -1,14 +1,12 @@
 "use client";
 
-import { useRef, useMemo, useState, useCallback, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardDescription } from "@/components/ui";
 import { ShareButton } from "@/components/charts/ShareButton";
-import { ExportTemplate, CHART_WIDTH, CHART_HEIGHT } from "@/components/charts/ExportTemplate";
+import { ExportBrandingBar } from "@/components/charts/ExportBrandingBar";
 import { ChartLegend } from "@/components/charts/ChartLegend";
 import { SPACING, TEXT_STYLES } from "@/lib/tokens";
-import type { LegendItem as ExportLegendItem, StatCardData } from "@/components/charts/ExportTemplate";
 
 // Legend item for interactive toggles (on-screen)
 export interface LegendItem {
@@ -21,10 +19,7 @@ export interface LegendItem {
 
 export interface ChartExportConfig {
   title: string;
-  subtitle: string;
   filename: string;
-  legend?: ExportLegendItem[];
-  statCards?: StatCardData[];
 }
 
 export interface StandardChartCardProps {
@@ -52,12 +47,6 @@ export interface StandardChartCardProps {
   // Optional - export config
   exportConfig?: ChartExportConfig;
 
-  /**
-   * Render function for export - renders chart at export dimensions.
-   * Required for PNG export.
-   */
-  renderChart?: (width: number, height: number) => React.ReactNode;
-
   // Optional - loading/error states
   isLoading?: boolean;
   error?: Error | null;
@@ -81,60 +70,41 @@ export function StandardChartCard({
   stats,
   infoContent,
   exportConfig,
-  renderChart,
   isLoading,
   error,
   isEmpty,
   emptyMessage = "No data available",
   className,
 }: StandardChartCardProps) {
-  const exportRef = useRef<HTMLDivElement>(null);
-  const [isExporting, setIsExporting] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [showBranding, setShowBranding] = useState(false);
   const resolveRef = useRef<((el: HTMLDivElement | null) => void) | null>(null);
 
-  // When export container mounts, wait for render then resolve
-  useEffect(() => {
-    if (isExporting && exportRef.current) {
-      // Wait for Recharts to fully render (needs more time for SVG generation)
-      const timer = setTimeout(() => {
-        if (resolveRef.current) {
-          resolveRef.current(exportRef.current);
-          resolveRef.current = null;
-        }
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isExporting]);
-
-  // Trigger export and return the container element
+  // Trigger export and return the card element
   const getExportElement = useCallback((): Promise<HTMLDivElement | null> => {
-    if (!renderChart || !exportConfig) {
+    if (!cardRef.current || !exportConfig) {
       return Promise.resolve(null);
     }
 
     return new Promise((resolve) => {
       resolveRef.current = resolve;
-      setIsExporting(true);
+      setShowBranding(true);
+      // Wait for branding bar to render
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (resolveRef.current) {
+            resolveRef.current(cardRef.current);
+            resolveRef.current = null;
+          }
+        }, 100);
+      });
     });
-  }, [renderChart, exportConfig]);
+  }, [exportConfig]);
 
   // Clean up after export
   const finishExport = useCallback(() => {
-    setIsExporting(false);
+    setShowBranding(false);
   }, []);
-
-  // Convert legend items for export format
-  const exportLegend = useMemo((): ExportLegendItem[] => {
-    if (exportConfig?.legend) return exportConfig.legend;
-    if (!legend) return [];
-    return legend
-      .filter((item) => item.active !== false)
-      .map((item) => ({
-        color: item.color,
-        label: item.label,
-        value: item.value || "",
-      }));
-  }, [legend, exportConfig?.legend]);
 
   // Title element (shared across states)
   const titleElement = href ? (
@@ -219,6 +189,7 @@ export function StandardChartCard({
 
   // Main render - 1:1 aspect ratio card
   return (
+    <div ref={cardRef}>
     <Card className={cardClasses}>
       {/* Header - compact */}
       <div className="flex flex-row items-start justify-between p-3 pb-2">
@@ -231,12 +202,14 @@ export function StandardChartCard({
         </div>
         <div className="flex items-center gap-2">
           {headerControls}
-          {exportConfig && renderChart && (
-            <ShareButton
-              getExportElement={getExportElement}
-              finishExport={finishExport}
-              config={exportConfig}
-            />
+          {exportConfig && (
+            <div className={showBranding ? "invisible" : ""}>
+              <ShareButton
+                getExportElement={getExportElement}
+                finishExport={finishExport}
+                config={exportConfig}
+              />
+            </div>
           )}
         </div>
       </div>
@@ -283,30 +256,10 @@ export function StandardChartCard({
         </div>
       )}
 
-      {/* Export template rendered for PNG capture - visible but covered by modal */}
-      {isExporting && typeof document !== "undefined" && createPortal(
-        <div
-          ref={exportRef}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            zIndex: 50,
-            pointerEvents: "none",
-          }}
-        >
-          <ExportTemplate
-            title={exportConfig?.title || title}
-            subtitle={exportConfig?.subtitle || ""}
-            legend={exportLegend}
-            statCards={exportConfig?.statCards}
-          >
-            {renderChart && renderChart(CHART_WIDTH, CHART_HEIGHT)}
-          </ExportTemplate>
-        </div>,
-        document.body
-      )}
+      {/* Export branding bar - only visible during export */}
+      <ExportBrandingBar visible={showBranding} />
     </Card>
+    </div>
   );
 }
 

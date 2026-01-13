@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState } from "react";
 import { getChartFilename } from "@/lib/chartExport/index";
 import {
   ComposedChart,
@@ -18,7 +18,7 @@ import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber, formatEth, formatUsd } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, EXPORT_MARGINS, EXPORT_AXIS_STYLE } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Generate evenly spaced tick values for X-axis alignment across charts
 function getAlignedTicks(dates: string[], count: number): string[] {
@@ -77,19 +77,8 @@ export function SalesVolumeChart() {
 
   const exportConfig = useMemo(() => ({
     title: viewMode === "sales" ? "Daily Sales Count" : "Daily Trading Volume",
-    subtitle: viewMode === "sales"
-      ? `Number of NFT sales per day over ${timeRange} days`
-      : `Total sales volume per day (${currency.toUpperCase()})`,
-    legend: [
-      { color: CHART_COLORS.primary, label: viewMode === "sales" ? "Daily Sales" : "Daily Volume", value: viewMode === "sales" ? "Count" : currency.toUpperCase() },
-      { color: CHART_COLORS.danger, label: "7D Average", value: "Trend" },
-    ],
     filename: getChartFilename(viewMode === "sales" ? "sales-count" : "volume", timeRange),
-    statCards: [
-      { label: `${timeRange}D Total`, value: exportStats.total },
-      { label: "Last 7 Days", value: exportStats.lastWeek, change: exportStats.weekChange },
-    ],
-  }), [timeRange, viewMode, currency, exportStats]);
+  }), [timeRange, viewMode]);
 
   const stats = useMemo(() => {
     if (!data || data.length === 0 || chartData.length === 0) return null;
@@ -172,61 +161,6 @@ export function SalesVolumeChart() {
     </div>
   );
 
-  // Render function for export - renders chart at specified dimensions
-  const renderChart = useCallback((width: number, height: number) => (
-    <ComposedChart data={chartData} width={width} height={height} margin={EXPORT_MARGINS.default}>
-      <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />
-      <XAxis
-        dataKey="date"
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
-        tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-      />
-      <YAxis
-        stroke={EXPORT_AXIS_STYLE.stroke}
-        fontSize={EXPORT_AXIS_STYLE.fontSize}
-        fontFamily={EXPORT_AXIS_STYLE.fontFamily}
-        axisLine={EXPORT_AXIS_STYLE.axisLine}
-        tickLine={EXPORT_AXIS_STYLE.tickLine}
-        width={50}
-        tickFormatter={(v) =>
-          viewMode === "sales"
-            ? String(v)
-            : currency === "eth" ? `${v.toFixed(1)}` : `$${(v/1000).toFixed(0)}k`
-        }
-      />
-      <Tooltip
-        contentStyle={getTooltipContentStyle()}
-        labelStyle={{ color: "#fafafa" }}
-        formatter={(value, name) => {
-          if (viewMode === "sales") {
-            return [formatNumber(Number(value)), name === "salesCount" ? "Sales" : "7D Avg"];
-          }
-          return [
-            currency === "eth" ? formatEth(Number(value), 2) : formatUsd(Number(value)),
-            name === "displayVolume" ? "Volume" : "7D Avg"
-          ];
-        }}
-        labelFormatter={(label) => formatDate(label)}
-      />
-      {viewMode === "sales" ? (
-        <>
-          <Bar dataKey="salesCount" name="Daily Sales" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} opacity={0.8} />
-          <Line type="monotone" dataKey="salesMa7" name="7D Average" stroke={CHART_COLORS.danger} strokeWidth={2} dot={false} />
-        </>
-      ) : (
-        <>
-          <Bar dataKey="displayVolume" name="Volume" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} opacity={0.8} />
-          <Line type="monotone" dataKey="displayVolumeMa7" name="7D Average" stroke={CHART_COLORS.danger} strokeWidth={2} dot={false} />
-        </>
-      )}
-    </ComposedChart>
-  ), [chartData, viewMode, currency]);
-
   return (
     <StandardChartCard
       title={title}
@@ -235,7 +169,6 @@ export function SalesVolumeChart() {
       legend={legendItems}
       headerControls={viewToggle}
       exportConfig={exportConfig}
-      renderChart={renderChart}
       isLoading={isLoading}
       error={error}
       isEmpty={!data || data.length === 0}

@@ -212,9 +212,8 @@ export function CollectorsPremiumChart() {
       ]
     : undefined;
 
-  // Hide stats in compare mode (like PaymentRatioChart)
-  const showStats = !(showComparison && !basketLoading);
-  const statsContent = showStats ? (
+  // Stats always visible - show GVC values (comparison visible in chart)
+  const statsContent = (
     <ChartStatGrid columns={3}>
       <ChartStatCard
         label=">10% Floor"
@@ -229,7 +228,7 @@ export function CollectorsPremiumChart() {
         value={`${avg50.toFixed(0)}%`}
       />
     </ChartStatGrid>
-  ) : undefined;
+  );
 
   return (
     <StandardChartCard

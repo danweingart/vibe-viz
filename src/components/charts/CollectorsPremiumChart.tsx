@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { StandardChartCard } from "@/components/charts/StandardChartCard";
-import { ToggleButtonGroup } from "@/components/ui";
+import { ToggleButtonGroup, ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useBasketPriceHistory } from "@/hooks/useBasketPriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
@@ -52,14 +52,8 @@ function PremiumChartRow({
   return (
     <div className="flex items-center gap-2 h-full">
       {/* Y-axis label */}
-      <div className="w-16 shrink-0 text-right">
+      <div className="w-12 shrink-0 text-right">
         <p className="text-foreground-muted leading-none" style={{ fontSize: FONT_SIZE.xs }}>{label}</p>
-        <p className="text-xs font-bold leading-tight" style={{ color }}>
-          {avg.toFixed(0)}%
-          {showComparison && basketAvg !== undefined && (
-            <span className="text-foreground-muted font-normal" style={{ fontSize: FONT_SIZE.xs }}> vs {basketAvg.toFixed(0)}%</span>
-          )}
-        </p>
       </div>
 
       {/* Chart - fills remaining space */}
@@ -210,6 +204,41 @@ export function CollectorsPremiumChart() {
     />
   );
 
+  const statsContent = showComparison && !basketLoading ? (
+    <ChartStatGrid columns={3}>
+      <ChartStatCard
+        label=">10% Floor"
+        value={`${avg10.toFixed(0)}%`}
+        subValue={`${basketAvg10.toFixed(0)}%`}
+      />
+      <ChartStatCard
+        label=">25% Floor"
+        value={`${avg25.toFixed(0)}%`}
+        subValue={`${basketAvg25.toFixed(0)}%`}
+      />
+      <ChartStatCard
+        label=">50% Floor"
+        value={`${avg50.toFixed(0)}%`}
+        subValue={`${basketAvg50.toFixed(0)}%`}
+      />
+    </ChartStatGrid>
+  ) : (
+    <ChartStatGrid columns={3}>
+      <ChartStatCard
+        label=">10% Floor"
+        value={`${avg10.toFixed(0)}%`}
+      />
+      <ChartStatCard
+        label=">25% Floor"
+        value={`${avg25.toFixed(0)}%`}
+      />
+      <ChartStatCard
+        label=">50% Floor"
+        value={`${avg50.toFixed(0)}%`}
+      />
+    </ChartStatGrid>
+  );
+
   return (
     <StandardChartCard
       title="Collector's Premium"
@@ -221,6 +250,7 @@ export function CollectorsPremiumChart() {
       error={error}
       isEmpty={!data || data.length === 0}
       emptyMessage="No data available"
+      stats={statsContent}
     >
       {/* Full-height container using CSS Grid for equal row distribution */}
       <div className="h-full flex flex-col">

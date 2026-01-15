@@ -253,7 +253,7 @@ export async function exportNFTSaleToCanvas(nft: NFTHistory): Promise<void> {
 
   ctx.fillStyle = COLORS.foreground;
   ctx.font = `bold 32px ${brice}`;
-  ctx.fillText(formatEthPrice(nft.purchasePrice), INFO_CENTER_X, infoCenterY + 40);
+  fillTextWithSpacing(ctx, formatEthPrice(nft.purchasePrice), INFO_CENTER_X, infoCenterY + 40, 0.5);
 
   // Sale info
   ctx.fillStyle = COLORS.foregroundMuted;
@@ -262,12 +262,12 @@ export async function exportNFTSaleToCanvas(nft: NFTHistory): Promise<void> {
 
   ctx.fillStyle = COLORS.brand;
   ctx.font = `bold 48px ${brice}`;
-  ctx.fillText(formatEthPrice(nft.salePrice || 0), INFO_CENTER_X, infoCenterY + 145);
+  fillTextWithSpacing(ctx, formatEthPrice(nft.salePrice || 0), INFO_CENTER_X, infoCenterY + 145, 0.5);
 
   // Profit/Loss
   ctx.fillStyle = isProfit ? COLORS.success : COLORS.danger;
   ctx.font = `bold 40px ${brice}`;
-  ctx.fillText(formatProfitLoss(profit), INFO_CENTER_X, infoCenterY + 210);
+  fillTextWithSpacing(ctx, formatProfitLoss(profit), INFO_CENTER_X, infoCenterY + 210, 0.5);
 
   ctx.font = `bold 28px ${mundial}`;
   ctx.fillText(`(${formatPercent(profitPercent)})`, INFO_CENTER_X, infoCenterY + 250);

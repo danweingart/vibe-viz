@@ -288,20 +288,22 @@ export async function exportSalesListToCanvas(
     // Price (right aligned)
     const priceX = EXPORT_WIDTH - PADDING - 30;
 
-    // ETH price
+    // ETH price - with letter spacing for decimal clarity
     const priceColor = sale.paymentToken === "WETH" ? COLORS.weth : COLORS.foreground;
     ctx.fillStyle = priceColor;
     ctx.font = `bold 22px ${brice}`;
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
     const tokenSymbol = sale.paymentToken === "OTHER" ? sale.paymentSymbol : sale.paymentToken;
-    ctx.fillText(`${sale.priceEth.toFixed(2)} ${tokenSymbol}`, priceX, infoY - 15);
+    fillTextWithSpacing(ctx, `${sale.priceEth.toFixed(2)} ${tokenSymbol}`, priceX, infoY - 15, 0.3);
 
-    // USD price - with letter spacing for clarity (always shows 2 decimal places)
+    // USD price (no decimals for large amounts)
     ctx.fillStyle = COLORS.foregroundMuted;
     ctx.font = `400 16px ${mundial}`;
-    const usdText = `$${sale.priceUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    fillTextWithSpacing(ctx, usdText, priceX, infoY + 15, 0.3);
+    const usdText = sale.priceUsd >= 1000
+      ? `$${sale.priceUsd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+      : `$${sale.priceUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    ctx.fillText(usdText, priceX, infoY + 15);
   }
 
   // 4. Draw footer watermark

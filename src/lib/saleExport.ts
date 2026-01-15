@@ -111,9 +111,12 @@ function formatBuyerFallback(address: string): string {
 }
 
 /**
- * Format USD price with proper formatting - always shows 2 decimal places
+ * Format USD price with proper formatting (no decimals for large amounts)
  */
 function formatUsdPrice(usd: number): string {
+  if (usd >= 1000) {
+    return `$${usd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  }
   return `$${usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
@@ -256,15 +259,15 @@ export async function exportSaleToCanvas(sale: SaleRecord): Promise<void> {
   ctx.font = `400 20px ${mundial}`;
   ctx.fillText("SOLD FOR", INFO_CENTER_X, infoCenterY + 15);
 
-  // Price in ETH - 1 decimal place
+  // Price in ETH - 2 decimal places with letter spacing for clarity
   ctx.fillStyle = COLORS.brand;
   ctx.font = `bold 54px ${brice}`;
-  ctx.fillText(`${sale.priceEth.toFixed(1)} ETH`, INFO_CENTER_X, infoCenterY + 75);
+  fillTextWithSpacing(ctx, `${sale.priceEth.toFixed(2)} ETH`, INFO_CENTER_X, infoCenterY + 75, 0.5);
 
-  // Price in USD - with letter spacing for clarity
+  // Price in USD
   ctx.fillStyle = COLORS.foregroundMuted;
   ctx.font = `400 28px ${mundial}`;
-  fillTextWithSpacing(ctx, formatUsdPrice(sale.priceUsd), INFO_CENTER_X, infoCenterY + 120, 0.5);
+  ctx.fillText(formatUsdPrice(sale.priceUsd), INFO_CENTER_X, infoCenterY + 120);
 
   // Buyer info
   ctx.fillStyle = COLORS.foregroundMuted;

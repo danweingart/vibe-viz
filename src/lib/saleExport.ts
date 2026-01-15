@@ -111,12 +111,9 @@ function formatBuyerFallback(address: string): string {
 }
 
 /**
- * Format USD price with proper formatting
+ * Format USD price with proper formatting - always shows 2 decimal places
  */
 function formatUsdPrice(usd: number): string {
-  if (usd >= 1000) {
-    return `$${usd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
-  }
   return `$${usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 

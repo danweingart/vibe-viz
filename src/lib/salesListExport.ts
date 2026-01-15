@@ -297,12 +297,10 @@ export async function exportSalesListToCanvas(
     const tokenSymbol = sale.paymentToken === "OTHER" ? sale.paymentSymbol : sale.paymentToken;
     ctx.fillText(`${sale.priceEth.toFixed(2)} ${tokenSymbol}`, priceX, infoY - 15);
 
-    // USD price - with letter spacing for clarity
+    // USD price - with letter spacing for clarity (always shows 2 decimal places)
     ctx.fillStyle = COLORS.foregroundMuted;
     ctx.font = `400 16px ${mundial}`;
-    const usdText = sale.priceUsd >= 1000
-      ? `$${sale.priceUsd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
-      : `$${sale.priceUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const usdText = `$${sale.priceUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     fillTextWithSpacing(ctx, usdText, priceX, infoY + 15, 0.3);
   }
 
@@ -447,12 +445,10 @@ export async function shareSalesListToX(
     const tokenSymbol = sale.paymentToken === "OTHER" ? sale.paymentSymbol : sale.paymentToken;
     ctx.fillText(`${sale.priceEth.toFixed(2)} ${tokenSymbol}`, priceX, infoY - 15);
 
-    // USD price - with letter spacing for clarity
+    // USD price - with letter spacing for clarity (always shows 2 decimal places)
     ctx.fillStyle = COLORS.foregroundMuted;
     ctx.font = `400 16px ${mundial}`;
-    const usdText = sale.priceUsd >= 1000
-      ? `$${sale.priceUsd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
-      : `$${sale.priceUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const usdText = `$${sale.priceUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     fillTextWithSpacing(ctx, usdText, priceX, infoY + 15, 0.3);
   }
 

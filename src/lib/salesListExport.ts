@@ -118,6 +118,47 @@ function drawRoundedRect(
   ctx.roundRect(x, y, width, height, radius);
 }
 
+/**
+ * Draw text with custom letter spacing
+ * Canvas doesn't support letter-spacing CSS, so we draw character-by-character
+ */
+function fillTextWithSpacing(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  spacing: number
+): void {
+  const chars = text.split('');
+  let currentX = x;
+
+  // Calculate total width for proper alignment
+  const totalWidth = chars.reduce((sum, char, i) => {
+    const charWidth = ctx.measureText(char).width;
+    return sum + charWidth + (i < chars.length - 1 ? spacing : 0);
+  }, 0);
+
+  // Adjust start position based on text alignment
+  if (ctx.textAlign === 'center') {
+    currentX = x - totalWidth / 2;
+  } else if (ctx.textAlign === 'right') {
+    currentX = x - totalWidth;
+  }
+
+  // Save original textAlign and set to left for character drawing
+  const originalAlign = ctx.textAlign;
+  ctx.textAlign = 'left';
+
+  // Draw each character
+  for (let i = 0; i < chars.length; i++) {
+    ctx.fillText(chars[i], currentX, y);
+    currentX += ctx.measureText(chars[i]).width + spacing;
+  }
+
+  // Restore original textAlign
+  ctx.textAlign = originalAlign;
+}
+
 export type SalesListType = "recent" | "top";
 
 export interface SalesListExportConfig {
@@ -256,13 +297,13 @@ export async function exportSalesListToCanvas(
     const tokenSymbol = sale.paymentToken === "OTHER" ? sale.paymentSymbol : sale.paymentToken;
     ctx.fillText(`${sale.priceEth.toFixed(2)} ${tokenSymbol}`, priceX, infoY - 15);
 
-    // USD price
+    // USD price - with letter spacing for clarity
     ctx.fillStyle = COLORS.foregroundMuted;
     ctx.font = `400 16px ${mundial}`;
     const usdText = sale.priceUsd >= 1000
       ? `$${sale.priceUsd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
       : `$${sale.priceUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    ctx.fillText(usdText, priceX, infoY + 15);
+    fillTextWithSpacing(ctx, usdText, priceX, infoY + 15, 0.3);
   }
 
   // 4. Draw footer watermark
@@ -406,12 +447,13 @@ export async function shareSalesListToX(
     const tokenSymbol = sale.paymentToken === "OTHER" ? sale.paymentSymbol : sale.paymentToken;
     ctx.fillText(`${sale.priceEth.toFixed(2)} ${tokenSymbol}`, priceX, infoY - 15);
 
+    // USD price - with letter spacing for clarity
     ctx.fillStyle = COLORS.foregroundMuted;
     ctx.font = `400 16px ${mundial}`;
     const usdText = sale.priceUsd >= 1000
       ? `$${sale.priceUsd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
       : `$${sale.priceUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    ctx.fillText(usdText, priceX, infoY + 15);
+    fillTextWithSpacing(ctx, usdText, priceX, infoY + 15, 0.3);
   }
 
   ctx.fillStyle = COLORS.foregroundMuted;

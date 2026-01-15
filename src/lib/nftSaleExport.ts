@@ -1,6 +1,6 @@
 "use client";
 
-import type { SaleRecord } from "@/types/api";
+import type { NFTHistory } from "@/types/blockchain";
 
 // Canvas dimensions for X/Twitter optimal image (16:9)
 const EXPORT_WIDTH = 1200;
@@ -21,7 +21,8 @@ const COLORS = {
   brand: "#ffe048",
   foreground: "#fafafa",
   foregroundMuted: "#a1a1aa",
-  glow: "rgba(255, 224, 72, 0.15)",
+  success: "#22c55e",
+  danger: "#ef4444",
 } as const;
 
 /**
@@ -84,40 +85,29 @@ function tryLoadImage(url: string): Promise<HTMLImageElement | null> {
 }
 
 /**
- * Fetch OpenSea username for an address
+ * Format ETH price with proper formatting
  */
-async function fetchOpenSeaUsername(address: string): Promise<string | null> {
-  try {
-    const response = await fetch(`/api/opensea-user?address=${address}`);
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.username || null;
-  } catch {
-    return null;
+function formatEthPrice(eth: number): string {
+  if (eth >= 1) {
+    return `${eth.toFixed(2)} ETH`;
   }
+  return `${eth.toFixed(3)} ETH`;
 }
 
 /**
- * Format buyer for display - prefers OpenSea username
+ * Format profit/loss with sign
  */
-function formatBuyerFallback(address: string): string {
-  if (!address) return "Unknown";
-  // If it looks like an ENS name, return as-is
-  if (address.endsWith(".eth") || !address.startsWith("0x")) {
-    return address;
-  }
-  // Truncate wallet address
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+function formatProfitLoss(eth: number): string {
+  const sign = eth >= 0 ? "+" : "";
+  return `${sign}${eth.toFixed(3)} ETH`;
 }
 
 /**
- * Format USD price with proper formatting
+ * Format percentage with sign
  */
-function formatUsdPrice(usd: number): string {
-  if (usd >= 1000) {
-    return `$${usd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
-  }
-  return `$${usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function formatPercent(percent: number): string {
+  const sign = percent >= 0 ? "+" : "";
+  return `${sign}${percent.toFixed(1)}%`;
 }
 
 /**
@@ -160,17 +150,14 @@ function fillTextWithSpacing(
 }
 
 /**
- * Draw the sale graphic to canvas and trigger download
+ * Draw the NFT sale graphic to canvas and trigger download
  */
-export async function exportSaleToCanvas(sale: SaleRecord): Promise<void> {
-  // Fetch OpenSea username and load image in parallel
-  const [openSeaUsername, img] = await Promise.all([
-    fetchOpenSeaUsername(sale.buyer),
-    loadImage(sale.imageUrl),
+export async function exportNFTSaleToCanvas(nft: NFTHistory): Promise<void> {
+  // Load image and ensure fonts are ready
+  const [img] = await Promise.all([
+    nft.imageUrl ? loadImage(nft.imageUrl) : Promise.resolve(null),
     ensureFontsLoaded(),
   ]);
-
-  const buyerDisplay = openSeaUsername || formatBuyerFallback(sale.buyer);
 
   const canvas = document.createElement("canvas");
   canvas.width = EXPORT_WIDTH;
@@ -180,6 +167,11 @@ export async function exportSaleToCanvas(sale: SaleRecord): Promise<void> {
 
   const brice = getFontFamily("--font-brice", "system-ui, sans-serif");
   const mundial = getFontFamily("--font-mundial", "system-ui, sans-serif");
+
+  // Calculate profit/loss
+  const profit = (nft.salePrice || 0) - nft.purchasePrice;
+  const profitPercent = (profit / nft.purchasePrice) * 100;
+  const isProfit = profit >= 0;
 
   // 1. Draw background
   ctx.fillStyle = COLORS.background;
@@ -222,7 +214,7 @@ export async function exportSaleToCanvas(sale: SaleRecord): Promise<void> {
     ctx.font = `bold 64px ${brice}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(`#${sale.tokenId}`, IMAGE_X + IMAGE_SIZE / 2, IMAGE_Y + IMAGE_SIZE / 2);
+    ctx.fillText(`#${nft.tokenId}`, IMAGE_X + IMAGE_SIZE / 2, IMAGE_Y + IMAGE_SIZE / 2);
   }
 
   // 4. Draw info on the right side - vertically centered as a block
@@ -233,12 +225,12 @@ export async function exportSaleToCanvas(sale: SaleRecord): Promise<void> {
   ctx.font = `bold 36px ${brice}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("Citizen of Vibetown", INFO_CENTER_X, infoCenterY - 175);
+  ctx.fillText("Citizen of Vibetown", INFO_CENTER_X, infoCenterY - 200);
 
   // Token ID
   ctx.fillStyle = COLORS.foreground;
   ctx.font = `bold 72px ${brice}`;
-  ctx.fillText(`#${sale.tokenId}`, INFO_CENTER_X, infoCenterY - 100);
+  ctx.fillText(`#${nft.tokenId}`, INFO_CENTER_X, infoCenterY - 120);
 
   // Horizontal accent line
   const lineWidth = 220;
@@ -250,37 +242,49 @@ export async function exportSaleToCanvas(sale: SaleRecord): Promise<void> {
   ctx.strokeStyle = lineGradient;
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(INFO_CENTER_X - lineWidth/2, infoCenterY - 30);
-  ctx.lineTo(INFO_CENTER_X + lineWidth/2, infoCenterY - 30);
+  ctx.moveTo(INFO_CENTER_X - lineWidth/2, infoCenterY - 50);
+  ctx.lineTo(INFO_CENTER_X + lineWidth/2, infoCenterY - 50);
   ctx.stroke();
 
-  // "SOLD FOR" label
+  // Purchase info
   ctx.fillStyle = COLORS.foregroundMuted;
   ctx.font = `400 20px ${mundial}`;
-  ctx.fillText("SOLD FOR", INFO_CENTER_X, infoCenterY + 15);
+  ctx.fillText("PURCHASED FOR", INFO_CENTER_X, infoCenterY);
 
-  // Price in ETH - 1 decimal place
+  ctx.fillStyle = COLORS.foreground;
+  ctx.font = `bold 32px ${brice}`;
+  ctx.fillText(formatEthPrice(nft.purchasePrice), INFO_CENTER_X, infoCenterY + 40);
+
+  // Sale info
+  ctx.fillStyle = COLORS.foregroundMuted;
+  ctx.font = `400 20px ${mundial}`;
+  ctx.fillText("SOLD FOR", INFO_CENTER_X, infoCenterY + 90);
+
   ctx.fillStyle = COLORS.brand;
-  ctx.font = `bold 54px ${brice}`;
-  ctx.fillText(`${sale.priceEth.toFixed(1)} ETH`, INFO_CENTER_X, infoCenterY + 75);
+  ctx.font = `bold 48px ${brice}`;
+  ctx.fillText(formatEthPrice(nft.salePrice || 0), INFO_CENTER_X, infoCenterY + 145);
 
-  // Price in USD - with letter spacing for clarity
-  ctx.fillStyle = COLORS.foregroundMuted;
-  ctx.font = `400 28px ${mundial}`;
-  fillTextWithSpacing(ctx, formatUsdPrice(sale.priceUsd), INFO_CENTER_X, infoCenterY + 120, 0.5);
+  // Profit/Loss
+  ctx.fillStyle = isProfit ? COLORS.success : COLORS.danger;
+  ctx.font = `bold 40px ${brice}`;
+  ctx.fillText(formatProfitLoss(profit), INFO_CENTER_X, infoCenterY + 210);
 
-  // Buyer info
-  ctx.fillStyle = COLORS.foregroundMuted;
-  ctx.font = `400 24px ${mundial}`;
-  ctx.fillText(`Bought by ${buyerDisplay}`, INFO_CENTER_X, infoCenterY + 175);
+  ctx.font = `bold 28px ${mundial}`;
+  ctx.fillText(`(${formatPercent(profitPercent)})`, INFO_CENTER_X, infoCenterY + 250);
 
-  // 5. Trigger download
+  // 5. GVC Branding watermark at bottom
+  ctx.fillStyle = COLORS.brand;
+  ctx.font = `bold 24px ${brice}`;
+  ctx.textAlign = "right";
+  ctx.fillText("Good Vibes Club", EXPORT_WIDTH - PADDING, EXPORT_HEIGHT - PADDING);
+
+  // 6. Trigger download
   const timestamp = Date.now();
   canvas.toBlob((blob) => {
     if (!blob) return;
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.download = `gvc-sale-${sale.tokenId}-${timestamp}.png`;
+    link.download = `gvc-nft-sale-${nft.tokenId}-${timestamp}.png`;
     link.href = url;
     link.click();
     URL.revokeObjectURL(url);

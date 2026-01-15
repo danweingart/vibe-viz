@@ -46,10 +46,10 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
               Collection
             </NavLink>
             <a
-              href="https://www.nftstrategy.fun/strategies/0xd0cc2b0efb168bfe1f94a948d8df70fa10257196"
+              href="https://tw-wut.vercel.app/strategy/0xd0cC2b0eFb168bFe1f94a948D8df70FA10257196"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium transition-all duration-200 px-4 py-2 rounded-full text-background bg-brand shadow-sm shadow-brand/20 hover:shadow-brand/30"
+              className="text-sm font-medium transition-all duration-200 px-4 py-2 rounded-full text-foreground-muted hover:text-foreground hover:bg-border/50"
             >
               VIBESTR ↗
             </a>
@@ -114,11 +114,11 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
                 Collection
               </MobileNavLink>
               <a
-                href="https://www.nftstrategy.fun/strategies/0xd0cc2b0efb168bfe1f94a948d8df70fa10257196"
+                href="https://tw-wut.vercel.app/strategy/0xd0cC2b0eFb168bFe1f94a948D8df70FA10257196"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-3 text-base font-medium rounded-xl active:scale-[0.98] transition-all text-background bg-brand shadow-sm"
+                className="block px-4 py-3 text-base font-medium rounded-xl active:scale-[0.98] transition-all text-foreground-muted hover:text-foreground hover:bg-border/50"
               >
                 VIBESTR ↗
               </a>

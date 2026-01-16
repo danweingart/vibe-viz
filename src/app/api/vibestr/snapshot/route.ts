@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getVibestrData } from "@/lib/nftstrategy/client";
-import { saveSnapshot } from "@/lib/db/vibestr";
+import { saveSnapshot, initializeTables } from "@/lib/db/postgres-vibestr";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +12,9 @@ export const dynamic = "force-dynamic";
 export async function POST() {
   try {
     console.log("Capturing VIBESTR snapshot...");
+
+    // Ensure database tables exist
+    await initializeTables();
 
     // Fetch current data from NFT Strategy API
     const response = await getVibestrData();
@@ -47,7 +50,7 @@ export async function POST() {
  */
 export async function GET() {
   try {
-    const { checkSnapshotCoverage } = await import("@/lib/db/vibestr");
+    const { checkSnapshotCoverage } = await import("@/lib/db/postgres-vibestr");
 
     const [coverage7, coverage30, coverage90] = await Promise.all([
       checkSnapshotCoverage(7),

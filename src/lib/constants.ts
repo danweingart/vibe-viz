@@ -33,6 +33,21 @@ export const CACHE_TTL = {
 export const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const WETH_ADDRESS = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 
+// VIBESTR Token & Strategy
+export const VIBESTR_TOKEN_CONTRACT = "0xd0cc2b0efb168bfe1f94a948d8df70fa10257196";
+export const VIBESTR_STRATEGY_ID = "0xd0cc2b0efb168bfe1f94a948d8df70fa10257196";
+export const VIBESTR_TOTAL_SUPPLY = 1_000_000_000_000; // 1 trillion tokens
+
+// VIBESTR Cache TTLs (in seconds)
+export const VIBESTR_CACHE_TTL = {
+  STATS: 300, // 5 minutes - token stats
+  HOLDINGS: 3600, // 1 hour - NFT holdings
+  PRICE_HISTORY: 3600, // 1 hour - historical price data
+  VOLUME_HISTORY: 3600, // 1 hour - volume data
+  BURN_HISTORY: 3600, // 1 hour - burn records
+  CONTRACT_METRICS: 600, // 10 minutes - contract metrics
+} as const;
+
 // Chart colors
 export const CHART_COLORS = {
   primary: "#ffe048",

@@ -1,0 +1,43 @@
+{
+  "timestamp": 1768323400037,
+  "date": "2026-01-13",
+  "data": {
+    "id": "0xd0cc2b0efb168bfe1f94a948d8df70fa10257196",
+    "type": "ERC721",
+    "name": "VibeStrategy",
+    "nftContract": "0xb8ea78fcacef50d41375e44e6814ebba36bb33c4",
+    "tokenContract": "0xd0cc2b0efb168bfe1f94a948d8df70fa10257196",
+    "hookContract": "0xBD15e4D324F8D02479A5FF53b52eF4048a79e444",
+    "collectionImage": "https://i2c.seadn.io/ethereum/9256748b29fa412e9594ad001e673a26/a2b8fe4048f4e6ea170550ca27a2f7/8ba2b8fe4048f4e6ea170550ca27a2f7.jpeg",
+    "poolId": "0x56c8fc0c410ec0778484600246847e2e77c428f888a35a11351dc12bbff09c6d",
+    "icon": "https://i2c.seadn.io/ethereum/9256748b29fa412e9594ad001e673a26/a2b8fe4048f4e6ea170550ca27a2f7/8ba2b8fe4048f4e6ea170550ca27a2f7.jpeg",
+    "collectionName": "Good Vibes Club",
+    "collectionOsSlug": "good-vibes-club",
+    "ticker": "VIBESTR",
+    "priceChange": 31.068,
+    "chain": 1,
+    "poolData": {
+      "price_usd": 0.00865578837247402,
+      "price_change_24h": 31.068,
+      "volume_24h": 367762.403786053,
+      "liquidity_usd": 1583693.3285,
+      "market_cap_usd": 7423173.608365
+    },
+    "burnedAmount": "143912428378522081890928772",
+    "collectionSymbol": "",
+    "bagSize": null,
+    "metadata": null,
+    "holdingsCount": 571,
+    "currentFees": "11267885248418242",
+    "floor": {
+      "id": "0xd0cc2b0efb168bfe1f94a948d8df70fa10257196",
+      "strategyId": "0xd0cc2b0efb168bfe1f94a948d8df70fa10257196",
+      "tokenId": "6200",
+      "price": "835000000000000000",
+      "image": "https://i2c.seadn.io/ethereum/0xb8ea78fcacef50d41375e44e6814ebba36bb33c4/246202230d8f97f0c0b537956c9847/f1246202230d8f97f0c0b537956c9847.jpeg",
+      "name": "Citizen of Vibetown #6200",
+      "owner": "0xff1697cd18f03242ea521a80334a9060f0c25c7a"
+    },
+    "token": null
+  }
+}

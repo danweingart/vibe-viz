@@ -164,19 +164,12 @@ export function MarketDepthChart() {
               fill={CHART_COLORS.danger}
               radius={[4, 4, 4, 4]}
               label={(props: any) => {
-                const { x, y, width, value, payload } = props;
+                const { x, y, width, value } = props;
                 if (!value || value === 0) return null;
-
-                const bidsValue = payload?.bids || 0;
-                const asksValue = payload?.asks || 0;
-
-                // Only show red label if asks exist and there are no bids OR asks are dominant
-                // (bids Bar will handle the label when bids are dominant)
-                if (bidsValue > 0 && bidsValue >= asksValue) return null;
 
                 const centerX = x + width / 2;
                 const labelY = y - 8;
-                const formattedValue = asksValue.toFixed(0);
+                const formattedValue = value.toFixed(0);
                 const textWidth = formattedValue.length * 6.5;
                 const padding = 6;
                 const rectWidth = textWidth + padding * 2;
@@ -190,14 +183,14 @@ export function MarketDepthChart() {
                       width={rectWidth}
                       height={rectHeight}
                       fill="#050505"
-                      stroke={`${CHART_COLORS.danger}4D`}
+                      stroke="rgba(255, 255, 255, 0.3)"
                       strokeWidth="1"
                       rx="4"
                     />
                     <text
                       x={centerX}
                       y={labelY - 6}
-                      fill={CHART_COLORS.danger}
+                      fill="#ffffff"
                       fontSize="11"
                       fontFamily="Mundial, sans-serif"
                       fontWeight="600"
@@ -217,18 +210,12 @@ export function MarketDepthChart() {
               fill={CHART_COLORS.success}
               radius={[4, 4, 4, 4]}
               label={(props: any) => {
-                const { x, y, width, value, payload } = props;
+                const { x, y, width, value } = props;
                 if (!value || value === 0) return null;
-
-                const bidsValue = payload?.bids || 0;
-                const asksValue = payload?.asks || 0;
-
-                // Only show green label when bids are dominant or equal
-                if (asksValue > bidsValue) return null;
 
                 const centerX = x + width / 2;
                 const labelY = y - 8;
-                const formattedValue = bidsValue.toFixed(0);
+                const formattedValue = value.toFixed(0);
                 const textWidth = formattedValue.length * 6.5;
                 const padding = 6;
                 const rectWidth = textWidth + padding * 2;
@@ -242,14 +229,14 @@ export function MarketDepthChart() {
                       width={rectWidth}
                       height={rectHeight}
                       fill="#050505"
-                      stroke={`${CHART_COLORS.success}4D`}
+                      stroke="rgba(255, 255, 255, 0.3)"
                       strokeWidth="1"
                       rx="4"
                     />
                     <text
                       x={centerX}
                       y={labelY - 6}
-                      fill={CHART_COLORS.success}
+                      fill="#ffffff"
                       fontSize="11"
                       fontFamily="Mundial, sans-serif"
                       fontWeight="600"

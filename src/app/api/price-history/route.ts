@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     console.log(`Found ${salesTransfers.length} transfers (excluding mints/burns)`);
 
     // Enrich with OpenSea prices
-    const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd);
+    const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd, collectionSlug);
 
     // Transform to SaleRecord format
     const allSales = transformToSaleRecords(enriched);

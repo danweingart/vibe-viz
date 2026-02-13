@@ -35,11 +35,13 @@ interface EnrichedTransfer extends EtherscanTransfer {
  *
  * @param transfers - Raw transfers from Etherscan
  * @param ethPriceUsd - Current ETH/USD price for USD conversion
+ * @param collectionSlug - OpenSea collection slug for fetching events
  * @returns Transfers with price data attached
  */
 export async function enrichTransfersWithPrices(
   transfers: EtherscanTransfer[],
-  ethPriceUsd: number
+  ethPriceUsd: number,
+  collectionSlug?: string
 ): Promise<EnrichedTransfer[]> {
   const enriched: EnrichedTransfer[] = [];
   const txHashesToFetch: string[] = [];
@@ -89,7 +91,7 @@ export async function enrichTransfersWithPrices(
         before: maxTime,
         limit: 200, // Max per request
         next: nextCursor || undefined,
-      });
+      }, collectionSlug);
 
       if (openSeaResponse.asset_events && openSeaResponse.asset_events.length > 0) {
         allOpenSeaEvents.push(...openSeaResponse.asset_events);

@@ -125,30 +125,6 @@ export default function DashboardPage() {
               </div>
             </section>
           </ChartSettingsProvider>
-
-          {/* Info Section */}
-          <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <InfoCard
-              icon="📊"
-              title="Export Charts"
-              description="Download any chart as a high-resolution PNG for sharing on social media."
-            />
-            <InfoCard
-              icon="🔄"
-              title="Compare Markets"
-              description="Toggle 'Compare' to see GVC vs leading ETH collections like BAYC and Azuki."
-            />
-            <InfoCard
-              icon="📈"
-              title="Market Indicators"
-              description="RSI, momentum, and liquidity scores help identify market sentiment."
-            />
-            <InfoCard
-              icon="🐋"
-              title="Whale Tracking"
-              description="Monitor top buyers and sellers to understand who's driving the market."
-            />
-          </section>
         </div>
       </main>
 
@@ -163,31 +139,6 @@ function SectionHeader({ number, title }: { number: string; title: string }) {
       <span className="text-[11px] font-mono text-brand bg-brand/10 px-2 py-0.5 rounded-md border border-brand/20 uppercase tracking-wider">{number}</span>
       <h2 className="text-3xl font-brice text-gvc-text tracking-tight">{title}</h2>
       <div className="flex-1 h-px bg-gradient-to-r from-gvc-border via-gvc-border/50 to-transparent" />
-    </div>
-  );
-}
-
-function InfoCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="group relative rounded-2xl border border-gvc-border bg-gvc-card backdrop-blur-md p-5 hover:border-gvc-border-hover transition-all duration-300 overflow-hidden">
-      {/* Subtle hover glow */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-brand/5 via-transparent to-transparent pointer-events-none" />
-
-      <div className="relative">
-        <div className="flex items-center gap-2.5 mb-2.5">
-          <span className="text-lg grayscale group-hover:grayscale-0 transition-all duration-300 group-hover:scale-110">{icon}</span>
-          <h3 className="font-brice text-gvc-text text-sm tracking-tight">{title}</h3>
-        </div>
-        <p className="text-xs text-gvc-text-muted leading-relaxed">{description}</p>
-      </div>
     </div>
   );
 }

@@ -23,7 +23,7 @@ const HOLDER_BUCKETS = [
 ];
 
 export function HolderDistributionChart() {
-  const { data: stats } = useCollectionStats();
+  const { data: stats, isLoading, error } = useCollectionStats();
 
   const totalHolders = stats?.numOwners || 0;
 
@@ -56,7 +56,9 @@ export function HolderDistributionChart() {
       badge={<Badge variant="accent" size="xs">Estimated</Badge>}
       legend={legendItems}
       exportConfig={exportConfig}
-      isEmpty={totalHolders === 0}
+      isLoading={isLoading}
+      error={error}
+      isEmpty={!stats || totalHolders === 0}
       emptyMessage="No holder data available"
       stats={
         <ChartStatGrid columns={3}>

@@ -86,12 +86,13 @@ export function HoldingPeriodChart() {
 
   const bucketConfig = useMemo(() => getBucketsForRange(timeRange), [timeRange]);
 
-  const { chartData, avgHoldingDays, flipperRate, hodlerRate } = useMemo(() => {
+  const { chartData, avgHoldingDays, flipperRate, traderRate, hodlerRate } = useMemo(() => {
     if (!data || data.flips.length === 0) {
       return {
         chartData: [],
         avgHoldingDays: 0,
         flipperRate: 0,
+        traderRate: 0,
         hodlerRate: 0,
       };
     }
@@ -109,6 +110,9 @@ export function HoldingPeriodChart() {
     // Calculate rates using dynamic thresholds
     const quickFlips = data.flips.filter((f) => f.holdingDays < bucketConfig.flipperThreshold).length;
     const longHolds = data.flips.filter((f) => f.holdingDays >= bucketConfig.holderThreshold).length;
+    const flipRate = totalFlips > 0 ? (quickFlips / totalFlips) * 100 : 0;
+    const holdRate = totalFlips > 0 ? (longHolds / totalFlips) * 100 : 0;
+    const tradeRate = 100 - flipRate - holdRate;
 
     return {
       chartData: bucketCounts.map((b) => ({
@@ -116,8 +120,9 @@ export function HoldingPeriodChart() {
         percentage: totalFlips > 0 ? (b.count / totalFlips) * 100 : 0,
       })),
       avgHoldingDays: data.avgHoldingPeriod,
-      flipperRate: totalFlips > 0 ? (quickFlips / totalFlips) * 100 : 0,
-      hodlerRate: totalFlips > 0 ? (longHolds / totalFlips) * 100 : 0,
+      flipperRate: flipRate,
+      traderRate: tradeRate,
+      hodlerRate: holdRate,
     };
   }, [data, bucketConfig]);
 
@@ -146,18 +151,22 @@ export function HoldingPeriodChart() {
       isEmpty={!data || chartData.length === 0}
       emptyMessage="No holding period data available"
       stats={
-        <ChartStatGrid columns={3}>
-          <ChartStatCard
-            label="Avg Hold"
-            value={<span style={{ color: CHART_COLORS.info }}>{avgHoldingDays.toFixed(0)}d</span>}
-          />
+        <ChartStatGrid columns={4}>
           <ChartStatCard
             label="Flippers"
-            value={<span style={{ color: CHART_COLORS.accent }}>{flipperRate.toFixed(0)}%</span>}
+            value={<span style={{ color: CHART_COLORS.danger }}>{flipperRate.toFixed(0)}%</span>}
+          />
+          <ChartStatCard
+            label="Traders"
+            value={<span style={{ color: CHART_COLORS.primary }}>{traderRate.toFixed(0)}%</span>}
           />
           <ChartStatCard
             label="Holders"
             value={<span style={{ color: CHART_COLORS.success }}>{hodlerRate.toFixed(0)}%</span>}
+          />
+          <ChartStatCard
+            label="Avg Hold"
+            value={<span style={{ color: CHART_COLORS.info }}>{avgHoldingDays.toFixed(0)}d</span>}
           />
         </ChartStatGrid>
       }

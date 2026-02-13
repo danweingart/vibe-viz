@@ -231,24 +231,20 @@ export function CollectorsPremiumChart() {
       ]
     : undefined;
 
-  // Stats always visible - color coded to match chart lines, with comparison when active
-  const showBasketComparison = showComparison && !basketLoading;
+  // Stats always visible - color coded to match chart lines
   const statsContent = (
     <ChartStatGrid columns={3}>
       <ChartStatCard
         label=">10% Floor"
         value={<span style={{ color: CHART_COLORS.success }}>{avg10.toFixed(0)}%</span>}
-        subValue={showBasketComparison ? `${basketAvg10.toFixed(0)}%` : undefined}
       />
       <ChartStatCard
         label=">25% Floor"
         value={<span style={{ color: CHART_COLORS.primary }}>{avg25.toFixed(0)}%</span>}
-        subValue={showBasketComparison ? `${basketAvg25.toFixed(0)}%` : undefined}
       />
       <ChartStatCard
         label=">50% Floor"
         value={<span style={{ color: CHART_COLORS.accent }}>{avg50.toFixed(0)}%</span>}
-        subValue={showBasketComparison ? `${basketAvg50.toFixed(0)}%` : undefined}
       />
     </ChartStatGrid>
   );

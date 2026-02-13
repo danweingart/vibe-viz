@@ -18,6 +18,7 @@ import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport";
+import { CustomLabel } from "@/lib/chartHelpers";
 
 export function VolumeChart() {
   const { timeRange, currency } = useChartSettings();
@@ -124,7 +125,7 @@ export function VolumeChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value) => [
               currency === "eth" ? formatEth(Number(value), 2) : formatUsd(Number(value)),
               "Volume",
@@ -136,6 +137,17 @@ export function VolumeChart() {
               dataKey="displayVolume"
               fill={CHART_COLORS.primary}
               radius={[4, 4, 0, 0]}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={timeRange}
+                  color={CHART_COLORS.primary}
+                  formatter={(value: number) =>
+                    currency === "eth" ? `${value.toFixed(1)}Ξ` : `$${(value / 1000).toFixed(0)}k`
+                  }
+                />
+              )}
             />
           )}
         </BarChart>

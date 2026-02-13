@@ -19,6 +19,7 @@ import { formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport/index";
+import { CustomLabel } from "@/lib/chartHelpers";
 
 // Dynamic buckets based on time range
 function getBucketsForRange(timeRange: number) {
@@ -197,7 +198,24 @@ export function HoldingPeriodChart() {
               );
             }}
           />
-          <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+          <Bar
+            dataKey="count"
+            radius={[4, 4, 0, 0]}
+            label={(props: any) => {
+              const { index } = props;
+              // Match the color to the bar color (red for quick flips, yellow for medium, green for long holds)
+              const barColor = index < 2 ? CHART_COLORS.danger : index < 4 ? CHART_COLORS.primary : CHART_COLORS.success;
+              return (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={timeRange}
+                  color={barColor}
+                  formatter={(value: number) => value.toFixed(0)}
+                />
+              );
+            }}
+          >
             {chartData.map((entry, index) => {
               // Color gradient: red for quick flips, yellow for medium, green for long holds
               const color = index < 2

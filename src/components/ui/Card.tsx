@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  variant?: "default" | "glow";
+  variant?: "default" | "glow" | "v2";
 }
 
 export function Card({
@@ -14,10 +14,13 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-xl border border-border bg-background-secondary card-hover flex flex-col",
-        // Token-based padding: 8px mobile, 12px desktop
-        "p-[var(--card-padding-mobile)] sm:p-[var(--card-padding)]",
+        "rounded-2xl border card-hover flex flex-col",
+        // V2 styling with backdrop blur
+        "bg-gvc-card border-gvc-border backdrop-blur-md",
+        // Reduced padding
+        "p-4 md:p-5",
         variant === "glow" && "brand-glow",
+        variant === "v2" && "card-v2",
         className
       )}
       {...props}

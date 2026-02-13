@@ -19,6 +19,7 @@ import { formatDate, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport";
+import { CustomLabel } from "@/lib/chartHelpers";
 
 export function SalesVelocityChart() {
   const { timeRange } = useChartSettings();
@@ -125,7 +126,7 @@ export function SalesVelocityChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value, name) => [
               formatNumber(Number(value)),
               name === "salesCount" ? "Sales" : "7D Avg",
@@ -139,6 +140,15 @@ export function SalesVelocityChart() {
               fill={CHART_COLORS.primary}
               radius={[4, 4, 0, 0]}
               opacity={0.8}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={timeRange}
+                  color={CHART_COLORS.primary}
+                  formatter={(value: number) => value.toFixed(0)}
+                />
+              )}
             />
           )}
           {visibleSeries.ma7 && (

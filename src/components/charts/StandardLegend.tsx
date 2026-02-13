@@ -54,9 +54,9 @@ export function StandardLegend({
             <button
               key={item.key}
               onClick={() => onToggle?.(item.key)}
-              className={`flex items-center gap-1.5 ${sizes.button} rounded-full border border-border transition-all
-                ${isActive ? "bg-background-tertiary" : "opacity-50 text-foreground-muted"}
-                hover:bg-background-tertiary cursor-pointer
+              className={`flex items-center gap-1.5 ${sizes.button} rounded-full border border-gvc-border transition-all
+                ${isActive ? "bg-gvc-card text-gvc-text" : "opacity-50 text-gvc-text-muted"}
+                hover:bg-gvc-card hover:border-gvc-border-hover cursor-pointer
               `}
               type="button"
             >
@@ -80,8 +80,8 @@ export function StandardLegend({
         return (
           <div
             key={item.key}
-            className={`flex items-center gap-1.5 ${sizes.button} rounded-full border border-border
-              ${isActive ? "bg-background-tertiary" : "opacity-50 text-foreground-muted"}
+            className={`flex items-center gap-1.5 ${sizes.button} rounded-full border border-gvc-border
+              ${isActive ? "bg-gvc-card text-gvc-text" : "opacity-50 text-gvc-text-muted"}
             `}
           >
             <span

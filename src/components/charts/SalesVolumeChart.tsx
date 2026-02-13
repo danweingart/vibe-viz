@@ -19,6 +19,7 @@ import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber, formatEth, formatUsd } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 // Generate evenly spaced tick values for X-axis alignment across charts
 function getAlignedTicks(dates: string[], count: number): string[] {
@@ -189,7 +190,7 @@ export function SalesVolumeChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value, name) => {
               if (viewMode === "sales") {
                 return [formatNumber(Number(value)), name === "salesCount" ? "Sales" : "7D Avg"];
@@ -203,12 +204,44 @@ export function SalesVolumeChart() {
           />
           {viewMode === "sales" ? (
             <>
-              <Bar dataKey="salesCount" name="Daily Sales" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} opacity={0.8} />
+              <Bar
+                dataKey="salesCount"
+                name="Daily Sales"
+                fill={CHART_COLORS.primary}
+                radius={[4, 4, 0, 0]}
+                opacity={0.8}
+                label={(props: any) => (
+                  <CustomLabel
+                    {...props}
+                    dataLength={chartData.length}
+                    timeRange={timeRange}
+                    color={CHART_COLORS.primary}
+                    formatter={(value: number) => value.toFixed(0)}
+                  />
+                )}
+              />
               <Line type="monotone" dataKey="salesMa7" name="7D Average" stroke={CHART_COLORS.danger} strokeWidth={2} dot={false} />
             </>
           ) : (
             <>
-              <Bar dataKey="displayVolume" name="Volume" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} opacity={0.8} />
+              <Bar
+                dataKey="displayVolume"
+                name="Volume"
+                fill={CHART_COLORS.primary}
+                radius={[4, 4, 0, 0]}
+                opacity={0.8}
+                label={(props: any) => (
+                  <CustomLabel
+                    {...props}
+                    dataLength={chartData.length}
+                    timeRange={timeRange}
+                    color={CHART_COLORS.primary}
+                    formatter={(value: number) =>
+                      currency === "eth" ? `${value.toFixed(1)}Ξ` : `$${(value / 1000).toFixed(0)}k`
+                    }
+                  />
+                )}
+              />
               <Line type="monotone" dataKey="displayVolumeMa7" name="7D Average" stroke={CHART_COLORS.danger} strokeWidth={2} dot={false} />
             </>
           )}

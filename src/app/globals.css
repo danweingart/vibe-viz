@@ -71,6 +71,7 @@
 }
 
 @theme inline {
+  /* V1 Colors (existing) */
   --color-background: var(--background);
   --color-background-secondary: var(--background-secondary);
   --color-background-tertiary: var(--background-tertiary);
@@ -91,8 +92,24 @@
   --color-chart-success: var(--chart-success);
   --color-chart-danger: var(--chart-danger);
   --color-chart-info: var(--chart-info);
+
+  /* V2 GVC Colors (new semantic names) */
+  --color-gvc-bg: #050505;
+  --color-gvc-primary: #ffe048;
+  --color-gvc-card: rgba(18, 18, 18, 0.8);
+  --color-gvc-border: rgba(255, 224, 72, 0.15);
+  --color-gvc-border-hover: rgba(255, 224, 72, 0.3);
+  --color-gvc-text: #ffffff;
+  --color-gvc-text-muted: rgba(255, 255, 255, 0.6);
+  --color-gvc-green: #7cff65;
+  --color-gvc-red: #fb3845;
+
   --font-brice: var(--font-brice);
   --font-mundial: var(--font-mundial);
+
+  /* Background Images */
+  --background-image-grid-pattern: url('/grid.svg');
+  --background-image-noise: url('/noise.svg');
 }
 
 body {
@@ -151,17 +168,15 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 
 /* Animated glow pulse for highlighted cards */
 .brand-glow-pulse {
-  animation: glowPulse 4s ease-in-out infinite;
+  animation: glowPulse 1.5s ease-in-out infinite;
 }
 
 @keyframes glowPulse {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(255, 224, 72, 0.1), var(--shadow-sm);
-    border-color: rgba(255, 224, 72, 0.3);
+    opacity: 0.3;
   }
   50% {
-    box-shadow: 0 0 40px rgba(255, 224, 72, 0.2), var(--shadow-md);
-    border-color: rgba(255, 224, 72, 0.5);
+    opacity: 1;
   }
 }
 
@@ -180,6 +195,83 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 
 .card-hover:active {
   transform: scale(0.995) translateY(-1px);
+}
+
+/* V2 Card Styling - with backdrop blur and noise overlay */
+.card-v2 {
+  background: rgba(18, 18, 18, 0.8);
+  border: 1px solid rgba(255, 224, 72, 0.15);
+  border-radius: 1rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
+}
+
+.card-v2::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+.card-v2 > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Grid pattern background (fixed, full viewport) */
+.grid-pattern-bg {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 224, 72, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 224, 72, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* V2 Glowing text effect */
+.glowing-text {
+  text-shadow: 0 0 40px rgba(255, 224, 72, 0.4),
+               0 0 80px rgba(255, 224, 72, 0.2);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Floating particles animation */
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(20px);
+    opacity: 0;
+  }
+}
+
+.animate-float-up {
+  animation: floatUp 15s linear infinite;
+}
+
+/* Background image utilities */
+.bg-grid-pattern {
+  background-image: url('/grid.svg');
+}
+
+.bg-noise {
+  background-image: url('/noise.svg');
 }
 
 /* Navigation active underline */
@@ -231,11 +323,11 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 
 /* Loading skeleton with shimmer animation */
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
+  0%, 100% {
+    background-position: 0% 50%;
   }
-  100% {
-    background-position: 200% 0;
+  50% {
+    background-position: 100% 50%;
   }
 }
 
@@ -247,7 +339,7 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     var(--background-secondary) 75%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
 }
 
 /* Static skeleton for empty states (no animation) */

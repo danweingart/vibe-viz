@@ -18,6 +18,7 @@ import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport/index";
+import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 export function PriceVolatilityChart() {
   const { timeRange, currency } = useChartSettings();
@@ -171,7 +172,7 @@ export function PriceVolatilityChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             content={({ active, payload, label }) => {
               if (!active || !payload?.length || !label) return null;
               const d = payload[0]?.payload;
@@ -200,6 +201,22 @@ export function PriceVolatilityChart() {
               strokeWidth={1.5}
               fill="url(#volatilityGradient)"
               fillOpacity={1}
+              dot={(props: any) => {
+                const { index } = props;
+                if (!shouldShowLabel(index, chartData.length, timeRange)) return null;
+                return <circle {...props} r={3} fill={CHART_COLORS.success} strokeWidth={0} />;
+              }}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={timeRange}
+                  color={CHART_COLORS.success}
+                  formatter={(value: number) =>
+                    currency === "eth" ? `${value.toFixed(2)}Ξ` : `$${value.toFixed(0)}`
+                  }
+                />
+              )}
             />
           )}
           {visibleSeries.low && (
@@ -210,6 +227,22 @@ export function PriceVolatilityChart() {
               strokeWidth={1.5}
               fill="#0a0a0a"
               fillOpacity={1}
+              dot={(props: any) => {
+                const { index } = props;
+                if (!shouldShowLabel(index, chartData.length, timeRange)) return null;
+                return <circle {...props} r={3} fill={CHART_COLORS.danger} strokeWidth={0} />;
+              }}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={timeRange}
+                  color={CHART_COLORS.danger}
+                  formatter={(value: number) =>
+                    currency === "eth" ? `${value.toFixed(2)}Ξ` : `$${value.toFixed(0)}`
+                  }
+                />
+              )}
             />
           )}
         </AreaChart>

@@ -52,18 +52,11 @@ export function ChartLegend({
             disabled={!isInteractive}
             type="button"
             className={`
-              flex items-center border border-border rounded-full
+              flex items-center gap-2 px-3 py-1.5 rounded-lg border
               transition-all duration-150
-              ${isActive ? "bg-background-tertiary" : "opacity-50"}
-              ${isInteractive ? "hover:bg-background-tertiary cursor-pointer" : "cursor-default"}
+              ${isActive ? "border-gvc-border bg-gvc-card/50" : "border-gvc-border/30 bg-gvc-card/20 opacity-50"}
+              ${isInteractive ? "hover:border-gvc-border-hover cursor-pointer" : "cursor-default"}
             `}
-            style={{
-              paddingLeft: LEGEND.pill.paddingX,
-              paddingRight: LEGEND.pill.paddingX,
-              paddingTop: LEGEND.pill.paddingY,
-              paddingBottom: LEGEND.pill.paddingY,
-              gap: LEGEND.dot.marginRight,
-            }}
           >
             {/* Color indicator - dot, solid line, or dashed line */}
             {item.lineStyle === "dashed" ? (
@@ -85,31 +78,21 @@ export function ChartLegend({
                 }}
               />
             ) : (
-              <span
-                className="rounded-full flex-shrink-0"
-                style={{
-                  width: dotSize,
-                  height: dotSize,
-                  backgroundColor: item.color,
-                }}
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: item.color }}
               />
             )}
 
             {/* Label */}
-            <span
-              className="font-mundial text-foreground whitespace-nowrap"
-              style={{
-                fontSize: LEGEND.label.fontSize,
-                fontWeight: LEGEND.label.fontWeight,
-              }}
-            >
+            <span className="text-xs font-mundial text-gvc-text uppercase tracking-wider whitespace-nowrap">
               {item.label}
             </span>
 
             {/* Optional value */}
             {item.value && (
               <span
-                className="font-mundial text-foreground-muted whitespace-nowrap"
+                className="font-mundial text-gvc-text-muted whitespace-nowrap"
                 style={{
                   fontSize: LEGEND.value.fontSize,
                   fontWeight: LEGEND.value.fontWeight,

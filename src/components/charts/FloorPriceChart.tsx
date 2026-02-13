@@ -19,6 +19,7 @@ import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport";
+import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 export function FloorPriceChart() {
   const { timeRange, currency } = useChartSettings();
@@ -123,7 +124,7 @@ export function FloorPriceChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value) => [
               currency === "eth" ? formatEth(Number(value), 2) : formatUsd(Number(value)),
             ]}
@@ -137,7 +138,22 @@ export function FloorPriceChart() {
               name="Floor"
               stroke={CHART_COLORS.primary}
               strokeWidth={2}
-              dot={false}
+              dot={(props: any) => {
+                const { index } = props;
+                if (!shouldShowLabel(index, chartData.length, timeRange)) return null;
+                return <circle {...props} r={3} fill={CHART_COLORS.primary} strokeWidth={0} />;
+              }}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={timeRange}
+                  color={CHART_COLORS.primary}
+                  formatter={(value: number) =>
+                    currency === "eth" ? `${value.toFixed(2)}Ξ` : `$${value.toFixed(0)}`
+                  }
+                />
+              )}
             />
           )}
           {visibleSeries.ma7 && (

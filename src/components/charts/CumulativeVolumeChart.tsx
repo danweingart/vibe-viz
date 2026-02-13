@@ -18,6 +18,7 @@ import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 export function CumulativeVolumeChart() {
   const { timeRange, currency } = useChartSettings();
@@ -133,7 +134,7 @@ export function CumulativeVolumeChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             content={({ active, payload, label }) => {
               if (!active || !payload?.length || !label) return null;
               const d = payload[0]?.payload;
@@ -156,6 +157,22 @@ export function CumulativeVolumeChart() {
             stroke={CHART_COLORS.primary}
             strokeWidth={2}
             fill="url(#cumulativeGradient)"
+            dot={(props: any) => {
+              const { index } = props;
+              if (!shouldShowLabel(index, chartData.length, timeRange)) return null;
+              return <circle {...props} r={3} fill={CHART_COLORS.primary} strokeWidth={0} />;
+            }}
+            label={(props: any) => (
+              <CustomLabel
+                {...props}
+                dataLength={chartData.length}
+                timeRange={timeRange}
+                color={CHART_COLORS.primary}
+                formatter={(value: number) =>
+                  currency === "eth" ? `${(value / 1000).toFixed(0)}k` : `$${(value / 1000).toFixed(0)}k`
+                }
+              />
+            )}
           />
         </AreaChart>
       </ResponsiveContainer>

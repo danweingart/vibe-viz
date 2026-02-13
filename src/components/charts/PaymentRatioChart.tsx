@@ -19,6 +19,7 @@ import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { FONT_SIZE } from "@/lib/tokens";
+import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 // Calculate 7-day rolling average for an array of values
 function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] {
@@ -44,6 +45,7 @@ interface PaymentLineChartProps {
 }
 
 function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: PaymentLineChartProps) {
+  const timeRange = 30; // Default for this chart type
   return (
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between mb-1">
@@ -81,7 +83,7 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
             />
             <Tooltip
               contentStyle={getTooltipContentStyle()}
-              labelStyle={{ color: "#fafafa" }}
+              labelStyle={{ color: "#ffffff" }}
               formatter={(value, name) => {
                 const labelText = name === "ethPct" ? "ETH" : "WETH";
                 return [`${Number(value).toFixed(1)}%`, labelText];
@@ -93,16 +95,42 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
               dataKey="ethPct"
               stroke={CHART_COLORS.primary}
               strokeWidth={2}
-              dot={{ r: 3, fill: CHART_COLORS.primary, strokeWidth: 0 }}
+              dot={(props: any) => {
+                const { index } = props;
+                if (!shouldShowLabel(index, data.length, timeRange)) return null;
+                return <circle {...props} r={3} fill={CHART_COLORS.primary} strokeWidth={0} />;
+              }}
               activeDot={{ r: 5, fill: CHART_COLORS.primary, stroke: "#0a0a0a", strokeWidth: 2 }}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={data.length}
+                  timeRange={timeRange}
+                  color={CHART_COLORS.primary}
+                  formatter={(value: number) => `${value.toFixed(0)}%`}
+                />
+              )}
             />
             <Line
               type="monotone"
               dataKey="wethPct"
               stroke={CHART_COLORS.danger}
               strokeWidth={2}
-              dot={{ r: 3, fill: CHART_COLORS.danger, strokeWidth: 0 }}
+              dot={(props: any) => {
+                const { index } = props;
+                if (!shouldShowLabel(index, data.length, timeRange)) return null;
+                return <circle {...props} r={3} fill={CHART_COLORS.danger} strokeWidth={0} />;
+              }}
               activeDot={{ r: 5, fill: CHART_COLORS.danger, stroke: "#0a0a0a", strokeWidth: 2 }}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={data.length}
+                  timeRange={timeRange}
+                  color={CHART_COLORS.danger}
+                  formatter={(value: number) => `${value.toFixed(0)}%`}
+                />
+              )}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -270,7 +298,7 @@ export function PaymentRatioChart() {
         />
         <Tooltip
           contentStyle={getTooltipContentStyle()}
-          labelStyle={{ color: "#fafafa" }}
+          labelStyle={{ color: "#ffffff" }}
           formatter={(value, name) => {
             const labelText = name === "ethPct" ? "ETH" : "WETH";
             return [`${Number(value).toFixed(1)}%`, labelText];

@@ -94,41 +94,45 @@ interface StatCardProps {
 function StatCard({ label, value, subValue, change, highlight, animationDelay = 0 }: StatCardProps) {
   const delayClass = `animate-delay-${animationDelay}`;
   return (
-    <Card
-      className={`relative overflow-hidden animate-fade-in p-4 ${delayClass} ${
-        highlight ? "border-brand/40 brand-glow-pulse" : "hover:border-border-light"
-      }`}
-    >
-      {/* Background gradient for all cards */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+    <div className="relative">
+      {/* Noise texture overlay */}
+      <div className="absolute inset-0 bg-noise rounded-2xl opacity-100 pointer-events-none" />
 
-      {/* Extra glow for highlighted card */}
-      {highlight && (
-        <div className="absolute inset-0 bg-gradient-to-br from-brand/8 via-brand/3 to-transparent" />
-      )}
+      <div
+        className={`relative bg-gvc-card rounded-2xl p-4 md:p-5 backdrop-blur-sm border transition-all animate-fade-in ${delayClass} ${
+          highlight ? "border-gvc-primary/50" : "border-gvc-border"
+        }`}
+      >
+        {/* Label */}
+        <div className="mb-2">
+          <span className="text-gvc-text-muted font-mundial text-xs uppercase tracking-wider">
+            {label}
+          </span>
+        </div>
 
-      <div className="relative text-center">
-        <p className="text-[10px] sm:text-[11px] text-foreground-muted uppercase tracking-widest mb-2 font-medium">
-          {label}
-        </p>
-        <p className={`text-xl sm:text-2xl font-bold font-brice leading-none ${highlight ? "text-brand" : "text-foreground"}`}>
+        {/* Main value */}
+        <div className={`text-2xl md:text-3xl font-mundial font-bold tracking-wide ${highlight ? "text-gvc-primary" : "text-gvc-text"}`}>
           {value}
-        </p>
-        <div className="flex items-center justify-center gap-1.5 mt-1.5">
+        </div>
+
+        {/* Subtitle or change */}
+        <div className="flex items-center gap-2 mt-1">
           {subValue && (
-            <span className="text-[11px] text-foreground-subtle">{subValue}</span>
+            <span className="text-gvc-text-muted text-xs font-mundial">
+              {subValue}
+            </span>
           )}
           {change !== undefined && (
             <span
-              className={`text-[10px] font-semibold ${
-                change >= 0 ? "text-chart-success" : "text-chart-danger"
+              className={`text-xs font-mundial ${
+                change >= 0 ? "text-gvc-green" : "text-gvc-red"
               }`}
             >
-              {formatPercent(change)}
+              {change >= 0 && '+'}{formatPercent(change)}
             </span>
           )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

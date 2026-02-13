@@ -18,7 +18,7 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/70 backdrop-blur-xl backdrop-saturate-150">
+    <header className="sticky top-0 z-50 border-b border-gvc-border/50 bg-gvc-card/70 backdrop-blur-xl backdrop-saturate-150">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -33,10 +33,10 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
               />
             </div>
             <div>
-              <h1 className="font-brice text-lg text-foreground leading-none tracking-tight group-hover:text-brand transition-colors">
+              <h1 className="font-brice text-lg text-gvc-text leading-none tracking-tight group-hover:text-brand transition-colors">
                 Good Vibes Club
               </h1>
-              <p className="text-[11px] text-foreground-subtle uppercase tracking-wider">Analytics</p>
+              <p className="text-[11px] text-gvc-text-muted uppercase tracking-wider">Analytics</p>
             </div>
           </Link>
 
@@ -45,20 +45,15 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
             <NavLink href="/" active={pathname === "/"}>
               Collection
             </NavLink>
-            <a
-              href="https://tw-wut.vercel.app/strategy/0xd0cC2b0eFb168bFe1f94a948D8df70FA10257196"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-medium transition-all duration-200 px-4 py-2 rounded-full text-foreground-muted hover:text-foreground hover:bg-border/50"
-            >
-              VIBESTR ↗
-            </a>
+            <NavLink href="/vibestr" active={pathname === "/vibestr"}>
+              VIBESTR
+            </NavLink>
           </nav>
 
           {/* Actions */}
           <div className="flex items-center gap-4">
             {lastUpdated && (
-              <span className="hidden sm:block text-xs text-foreground-muted">
+              <span className="hidden sm:block text-xs text-gvc-text-muted">
                 Updated {formatTimeAgo(lastUpdated)}
               </span>
             )}
@@ -75,7 +70,7 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 text-foreground-muted hover:text-foreground active:scale-95"
+              className="md:hidden p-2 text-gvc-text-muted hover:text-gvc-text active:scale-95"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileMenuOpen}
@@ -108,20 +103,14 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <nav className="md:hidden py-4 border-t border-border">
+          <nav className="md:hidden py-4 border-t border-gvc-border">
             <div className="flex flex-col gap-2">
               <MobileNavLink href="/" onClick={() => setMobileMenuOpen(false)} active={pathname === "/"}>
                 Collection
               </MobileNavLink>
-              <a
-                href="https://tw-wut.vercel.app/strategy/0xd0cC2b0eFb168bFe1f94a948D8df70FA10257196"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-3 text-base font-medium rounded-xl active:scale-[0.98] transition-all text-foreground-muted hover:text-foreground hover:bg-border/50"
-              >
-                VIBESTR ↗
-              </a>
+              <MobileNavLink href="/vibestr" onClick={() => setMobileMenuOpen(false)} active={pathname === "/vibestr"}>
+                VIBESTR
+              </MobileNavLink>
             </div>
           </nav>
         )}
@@ -145,7 +134,7 @@ function NavLink({
       className={`text-sm font-medium transition-all duration-200 px-4 py-2 rounded-full ${
         active
           ? "text-background bg-brand shadow-sm shadow-brand/20"
-          : "text-foreground-muted hover:text-foreground hover:bg-border/50"
+          : "text-gvc-text-muted hover:text-gvc-text hover:bg-gvc-border-hover"
       }`}
     >
       {children}
@@ -171,7 +160,7 @@ function MobileNavLink({
       className={`block px-4 py-3 text-base font-medium rounded-xl active:scale-[0.98] transition-all ${
         active
           ? "text-background bg-brand shadow-sm"
-          : "text-foreground-muted hover:text-foreground hover:bg-border/50"
+          : "text-gvc-text-muted hover:text-gvc-text hover:bg-gvc-border-hover"
       }`}
     >
       {children}

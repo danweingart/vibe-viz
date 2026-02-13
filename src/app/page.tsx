@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Header, Footer } from "@/components/layout";
 import { StatsOverview, RecentSales, TopSales, ChartControls } from "@/components/dashboard";
+import { FloatingParticles } from "@/components/ui/FloatingParticles";
 import { ChartSettingsProvider } from "@/providers/ChartSettingsProvider";
 import {
   // Core price & volume charts
@@ -14,7 +15,6 @@ import {
   CollectorsPremiumChart,
   PaymentRatioChart,
   PriceDistributionChart,
-  MarketIndicatorsChart,
   // Trader insights charts
   UniqueTradersChart,
   WhaleActivityChart,
@@ -41,14 +41,14 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header
-        lastUpdated={stats?.lastUpdated}
-        onRefresh={handleRefresh}
-        isRefreshing={isRefreshing}
-      />
+    <div className="min-h-screen flex flex-col relative">
+      {/* Floating particles effect */}
+      <FloatingParticles count={40} />
 
-      <main className="flex-1">
+      {/* Grid pattern background */}
+      <div className="fixed inset-0 bg-grid-pattern opacity-100 pointer-events-none z-0" />
+
+      <main className="flex-1 relative z-10">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-8">
           {/* Hero Section */}
           <div className="mb-16 relative">
@@ -56,10 +56,11 @@ export default function DashboardPage() {
             <div className="absolute -top-8 -left-4 w-64 h-32 bg-brand/5 blur-3xl rounded-full pointer-events-none" />
 
             <div className="relative">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-brice text-foreground mb-3 hero-accent tracking-tight">
+              <h1 className="text-5xl font-brice text-brand mb-3 tracking-tight glowing-text relative inline-block">
                 Good Vibes Club
+                <div className="absolute inset-0 blur-[40px] bg-brand/20 animate-glow-pulse -z-10" />
               </h1>
-              <p className="text-foreground-muted text-base sm:text-lg max-w-xl">
+              <p className="text-gvc-text-muted text-base sm:text-lg max-w-xl">
                 Real-time analytics and market insights for the <span className="text-brand font-medium">Good Vibes Club</span> NFT collection on Ethereum
               </p>
             </div>
@@ -80,7 +81,7 @@ export default function DashboardPage() {
             {/* Price & Volume Section */}
             <section className="mb-8">
               <SectionHeader number="01" title="Price & Volume" />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-6">
                 <PriceHistoryChart />
                 <SalesVolumeChart />
                 <PriceVolatilityChart />
@@ -91,18 +92,17 @@ export default function DashboardPage() {
             {/* Market Analysis Section */}
             <section className="mb-8">
               <SectionHeader number="02" title="Market Analysis" />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-6">
                 <CollectorsPremiumChart />
                 <PaymentRatioChart />
                 <PriceDistributionChart />
-                <MarketIndicatorsChart />
               </div>
             </section>
 
             {/* Trader Insights Section */}
             <section className="mb-8">
               <SectionHeader number="03" title="Trader Insights" />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-6">
                 <UniqueTradersChart />
                 <WhaleActivityChart />
                 <FlipTrackerChart />
@@ -113,7 +113,7 @@ export default function DashboardPage() {
             {/* Collection Health Section */}
             <section className="mb-8">
               <SectionHeader number="04" title="Collection Health" />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-6">
                 <HolderDistributionChart />
                 <MarketDepthChart />
               </div>
@@ -121,7 +121,7 @@ export default function DashboardPage() {
 
             {/* Recent & Top Sales */}
             <section className="mb-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <RecentSales />
                 <TopSales />
               </div>
@@ -162,9 +162,9 @@ export default function DashboardPage() {
 function SectionHeader({ number, title }: { number: string; title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <span className="text-[11px] font-mono text-brand bg-brand/10 px-2 py-0.5 rounded-md border border-brand/20">{number}</span>
-      <h2 className="text-xl font-brice text-foreground tracking-tight">{title}</h2>
-      <div className="flex-1 h-px bg-gradient-to-r from-border via-border/50 to-transparent" />
+      <span className="text-[11px] font-mono text-brand bg-brand/10 px-2 py-0.5 rounded-md border border-brand/20 uppercase tracking-wider">{number}</span>
+      <h2 className="text-3xl font-brice text-gvc-text tracking-tight">{title}</h2>
+      <div className="flex-1 h-px bg-gradient-to-r from-gvc-border via-gvc-border/50 to-transparent" />
     </div>
   );
 }
@@ -179,16 +179,16 @@ function InfoCard({
   description: string;
 }) {
   return (
-    <div className="group relative rounded-xl border border-border bg-background-secondary p-5 hover:border-brand/30 hover:bg-background-tertiary transition-all duration-300 overflow-hidden">
+    <div className="group relative rounded-2xl border border-gvc-border bg-gvc-card backdrop-blur-md p-5 hover:border-gvc-border-hover transition-all duration-300 overflow-hidden">
       {/* Subtle hover glow */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-brand/5 via-transparent to-transparent pointer-events-none" />
 
       <div className="relative">
         <div className="flex items-center gap-2.5 mb-2.5">
           <span className="text-lg grayscale group-hover:grayscale-0 transition-all duration-300 group-hover:scale-110">{icon}</span>
-          <h3 className="font-brice text-foreground text-sm tracking-tight">{title}</h3>
+          <h3 className="font-brice text-gvc-text text-sm tracking-tight">{title}</h3>
         </div>
-        <p className="text-xs text-foreground-muted leading-relaxed">{description}</p>
+        <p className="text-xs text-gvc-text-muted leading-relaxed">{description}</p>
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 // Generate evenly spaced tick values for X-axis alignment across charts
 function getAlignedTicks(dates: string[], count: number): string[] {
@@ -135,7 +136,7 @@ export function PriceHistoryChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value) => [
               currency === "eth" ? formatEth(Number(value), 2) : formatUsd(Number(value)),
               "Avg Price",
@@ -149,8 +150,23 @@ export function PriceHistoryChart() {
               stroke={CHART_COLORS.primary}
               strokeWidth={2}
               fill="url(#priceGradient)"
-              dot={chartData.length > 30 ? false : { r: 3, fill: CHART_COLORS.primary, strokeWidth: 0 }}
+              dot={(props: any) => {
+                const { index } = props;
+                if (!shouldShowLabel(index, chartData.length, timeRange)) return null;
+                return <circle {...props} r={3} fill={CHART_COLORS.primary} strokeWidth={0} />;
+              }}
               activeDot={{ r: 5, fill: CHART_COLORS.primary, stroke: "#0a0a0a", strokeWidth: 2 }}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={timeRange}
+                  color={CHART_COLORS.primary}
+                  formatter={(value: number) =>
+                    currency === "eth" ? `${value.toFixed(2)}Ξ` : `$${value.toFixed(0)}`
+                  }
+                />
+              )}
             />
           )}
         </AreaChart>

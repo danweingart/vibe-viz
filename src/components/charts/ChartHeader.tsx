@@ -38,7 +38,7 @@ export function ChartHeader({
 }: ChartHeaderProps) {
   const titleContent = (
     <span
-      className="font-brice font-bold text-foreground"
+      className="font-brice font-bold text-gvc-text"
       style={{
         fontSize: CHART_HEADER.title.fontSize,
         lineHeight: CHART_HEADER.title.lineHeight,
@@ -71,7 +71,7 @@ export function ChartHeader({
 
         {description && (
           <p
-            className="font-mundial text-foreground-muted"
+            className="font-mundial text-gvc-text-muted"
             style={{
               fontSize: CHART_HEADER.description.fontSize,
               lineHeight: CHART_HEADER.description.lineHeight,

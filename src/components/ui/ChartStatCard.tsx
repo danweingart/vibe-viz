@@ -21,7 +21,7 @@ export function ChartStatCard({
   className = "",
 }: ChartStatCardProps) {
   const changeColor = change !== undefined
-    ? change >= 0 ? "text-chart-success" : "text-chart-danger"
+    ? change >= 0 ? "text-gvc-green" : "text-gvc-red"
     : "";
 
   const changeArrow = change !== undefined
@@ -30,11 +30,11 @@ export function ChartStatCard({
 
   return (
     <div
-      className={`rounded-xl border border-border bg-background-secondary text-center ${className}`}
+      className={`rounded-2xl border border-gvc-border bg-gvc-card backdrop-blur-md text-center ${className}`}
       style={{ padding: SPACING.statPadding }}
     >
       <div
-        className="flex items-center justify-center text-foreground-muted"
+        className="flex items-center justify-center text-gvc-text-muted"
         style={{
           gap: SPACING.statLabelGap,
           fontSize: TEXT_STYLES.statLabel.fontSize,
@@ -50,7 +50,7 @@ export function ChartStatCard({
         style={{ gap: SPACING.legendGap }}
       >
         <span
-          className="font-bold text-foreground"
+          className="font-bold text-gvc-text"
           style={{
             fontSize: TEXT_STYLES.statValue.fontSize,
             lineHeight: TEXT_STYLES.statValue.lineHeight,
@@ -60,7 +60,7 @@ export function ChartStatCard({
         </span>
         {subValue !== undefined && (
           <span
-            className="text-foreground-muted"
+            className="text-gvc-text-muted"
             style={{
               fontSize: TEXT_STYLES.statSubvalue.fontSize,
             }}

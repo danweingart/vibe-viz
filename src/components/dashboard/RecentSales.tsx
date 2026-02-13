@@ -40,7 +40,7 @@ export function RecentSales() {
         <CardHeader>
           <CardTitle>Recent Sales</CardTitle>
         </CardHeader>
-        <p className="text-foreground-muted text-center py-8">
+        <p className="text-gvc-text-muted text-center py-8">
           Failed to load recent sales
         </p>
       </Card>
@@ -55,7 +55,7 @@ export function RecentSales() {
       </CardHeader>
       <div className="space-y-3">
         {sales.map((sale) => (
-          <div key={sale.id} className="sale-item flex items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg">
+          <div key={`${sale.id}-${sale.tokenId}`} className="sale-item flex items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg">
             <a
               href={`https://opensea.io/assets/ethereum/0xb8ea78fcacef50d41375e44e6814ebba36bb33c4/${sale.tokenId}`}
               target="_blank"
@@ -63,7 +63,7 @@ export function RecentSales() {
               className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0"
             >
             {/* NFT Image */}
-            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-border overflow-hidden flex-shrink-0">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gvc-border overflow-hidden flex-shrink-0">
               {sale.imageUrl ? (
                 <img
                   src={sale.imageUrl}
@@ -71,7 +71,7 @@ export function RecentSales() {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="h-full w-full flex items-center justify-center text-foreground-muted">
+                <div className="h-full w-full flex items-center justify-center text-gvc-text-muted">
                   #{sale.tokenId}
                 </div>
               )}
@@ -79,23 +79,23 @@ export function RecentSales() {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-foreground truncate flex items-center gap-1.5">
+              <p className="font-medium text-gvc-text truncate flex items-center gap-1.5">
                 <span>{sale.tokenName}</span>
-                <span className="text-foreground-muted hover:text-[#2081e2] transition-colors">
+                <span className="text-gvc-text-muted hover:text-[#2081e2] transition-colors">
                   <OpenSeaIcon size={12} />
                 </span>
               </p>
-              <p className="text-xs text-foreground-muted">
+              <p className="text-xs text-gvc-text-muted">
                 {formatTimeAgo(sale.timestamp)}
               </p>
             </div>
 
             {/* Price */}
             <div className="text-right flex-shrink-0">
-              <p className={`font-bold ${sale.paymentToken === "WETH" ? "text-yellow-400" : "text-foreground"}`}>
+              <p className={`font-bold ${sale.paymentToken === "WETH" ? "text-yellow-400" : "text-gvc-text"}`}>
                 {sale.priceEth.toFixed(2)} {sale.paymentToken === "OTHER" ? sale.paymentSymbol : sale.paymentToken}
               </p>
-              <span className="text-xs text-foreground-muted">
+              <span className="text-xs text-gvc-text-muted">
                 {formatUsd(sale.priceUsd)}
               </span>
             </div>

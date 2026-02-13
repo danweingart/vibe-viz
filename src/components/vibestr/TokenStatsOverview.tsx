@@ -90,50 +90,49 @@ function StatCard({
   const delayClass = `animate-delay-${animationDelay}`;
 
   return (
-    <Card
-      className={`relative overflow-hidden animate-fade-in p-4 ${delayClass} ${
-        highlight ? "border-brand/40 brand-glow-pulse" : "hover:border-border-light"
-      }`}
-    >
-      <div className="space-y-2">
+    <div className="relative">
+      {/* Noise texture overlay */}
+      <div className="absolute inset-0 bg-noise rounded-2xl opacity-100 pointer-events-none" />
+
+      <div
+        className={`relative bg-gvc-card rounded-2xl p-4 md:p-5 backdrop-blur-sm border transition-all animate-fade-in ${delayClass} ${
+          highlight ? "border-gvc-primary/50" : "border-gvc-border"
+        }`}
+      >
         {/* Label */}
-        <div className="text-[10px] sm:text-xs text-foreground-muted font-medium uppercase tracking-wide">
-          {label}
+        <div className="mb-2">
+          <span className="text-gvc-text-muted font-mundial text-xs uppercase tracking-wider">
+            {label}
+          </span>
         </div>
 
-        {/* Value */}
-        <div
-          className={`text-lg sm:text-xl md:text-2xl font-mundial-bold ${
-            highlight ? "text-brand" : "text-foreground"
-          } tracking-tight`}
-        >
+        {/* Main value */}
+        <div className={`text-2xl md:text-3xl font-mundial font-bold tracking-wide ${highlight ? "text-gvc-primary" : "text-gvc-text"}`}>
           {value}
         </div>
 
-        {/* Sub Value or Change */}
-        {(subValue || change !== undefined) && (
-          <div className="flex items-center gap-2">
-            {change !== undefined ? (
-              <span
-                className={`text-xs font-medium ${
-                  change > 0
-                    ? "text-chart-success"
-                    : change < 0
-                      ? "text-chart-danger"
-                      : "text-foreground-muted"
-                }`}
-              >
-                {change > 0 ? "+" : ""}
-                {subValue}
-              </span>
-            ) : (
-              <span className="text-[10px] sm:text-xs text-foreground-muted/80">
-                {subValue}
-              </span>
-            )}
-          </div>
-        )}
+        {/* Subtitle or change */}
+        <div className="flex items-center gap-2 mt-1">
+          {change !== undefined ? (
+            <span
+              className={`text-xs font-mundial ${
+                change > 0
+                  ? "text-gvc-green"
+                  : change < 0
+                    ? "text-gvc-red"
+                    : "text-gvc-text-muted"
+              }`}
+            >
+              {change > 0 ? "+" : ""}
+              {subValue}
+            </span>
+          ) : subValue ? (
+            <span className="text-gvc-text-muted text-xs font-mundial">
+              {subValue}
+            </span>
+          ) : null}
+        </div>
       </div>
-    </Card>
+    </div>
   );
 }

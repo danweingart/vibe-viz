@@ -19,6 +19,7 @@ import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CustomLabel } from "@/lib/chartHelpers";
 
 export function UniqueTradersChart() {
   const { timeRange } = useChartSettings();
@@ -169,7 +170,7 @@ export function UniqueTradersChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value, name) => {
               const labels: Record<string, string> = {
                 uniqueBuyers: "Unique Buyers",
@@ -195,6 +196,15 @@ export function UniqueTradersChart() {
               fill={CHART_COLORS.success}
               radius={[4, 4, 0, 0]}
               opacity={0.8}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={timeRange}
+                  color={CHART_COLORS.success}
+                  formatter={(value: number) => value.toFixed(0)}
+                />
+              )}
             />
           )}
           {visibleSeries.sellers && (
@@ -204,6 +214,15 @@ export function UniqueTradersChart() {
               fill={CHART_COLORS.danger}
               radius={[4, 4, 0, 0]}
               opacity={0.8}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={timeRange}
+                  color={CHART_COLORS.danger}
+                  formatter={(value: number) => value.toFixed(0)}
+                />
+              )}
             />
           )}
           {visibleSeries.new && (

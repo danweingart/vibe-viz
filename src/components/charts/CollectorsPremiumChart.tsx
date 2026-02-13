@@ -20,6 +20,7 @@ import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { FONT_SIZE } from "@/lib/tokens";
+import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 // Calculate 7-day rolling average for an array of values
 function calculate7DayMA<T>(data: T[], getValue: (item: T) => number): number[] {
@@ -49,6 +50,7 @@ function PremiumChartRow({
   showXAxis = false,
   showComparison = false,
 }: PremiumChartRowProps) {
+  const timeRange = 30; // Default for this chart type
   return (
     <div className="flex items-center gap-2 h-full">
       {/* Y-axis label */}
@@ -84,7 +86,7 @@ function PremiumChartRow({
             />
             <Tooltip
               contentStyle={getTooltipContentStyle()}
-              labelStyle={{ color: "#fafafa" }}
+              labelStyle={{ color: "#ffffff" }}
               formatter={(value, name) => {
                 const labelText = name === "basketValue" ? "Leading ETH" : "GVC";
                 return [`${Number(value).toFixed(1)}%`, labelText];
@@ -107,8 +109,21 @@ function PremiumChartRow({
               dataKey="value"
               stroke={color}
               strokeWidth={2}
-              dot={{ r: 3, fill: color, strokeWidth: 0 }}
+              dot={(props: any) => {
+                const { index } = props;
+                if (!shouldShowLabel(index, data.length, timeRange)) return null;
+                return <circle {...props} r={3} fill={color} strokeWidth={0} />;
+              }}
               activeDot={{ r: 5, fill: color, stroke: "#0a0a0a", strokeWidth: 2 }}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={data.length}
+                  timeRange={timeRange}
+                  color={color}
+                  formatter={(value: number) => `${value.toFixed(0)}%`}
+                />
+              )}
             />
           </LineChart>
         </ResponsiveContainer>

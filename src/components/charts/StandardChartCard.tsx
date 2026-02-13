@@ -133,8 +133,8 @@ export function StandardChartCard({
     </span>
   );
 
-  // Base card styles for 1:1 aspect ratio
-  const cardClasses = `aspect-square flex flex-col overflow-hidden ${className || ""}`;
+  // Base card styles - no aspect ratio constraint for V2
+  const cardClasses = `flex flex-col overflow-hidden ${className || ""}`;
 
   // Loading state
   if (isLoading) {
@@ -146,7 +146,7 @@ export function StandardChartCard({
             {description && <CardDescription>{description}</CardDescription>}
           </div>
         </div>
-        <div className="flex-1 m-3 mt-0 rounded-lg chart-skeleton" />
+        <div className="h-[400px] m-3 mt-0 rounded-lg chart-skeleton" />
       </Card>
     );
   }
@@ -251,9 +251,9 @@ export function StandardChartCard({
         </div>
       )}
 
-      {/* Chart content - flex to fill available space */}
-      <div className="flex-1 min-h-0 px-3">
-        <div className="h-full bg-background-secondary rounded-lg overflow-hidden">
+      {/* Chart content - fixed height for V2 */}
+      <div className="px-3">
+        <div className="h-[400px] bg-background-secondary rounded-lg overflow-hidden">
           {children}
         </div>
       </div>

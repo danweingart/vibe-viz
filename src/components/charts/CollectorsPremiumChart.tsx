@@ -194,14 +194,14 @@ export function CollectorsPremiumChart() {
       basketValue: basketByDate.get(d.date)?.above50,
     }));
 
-    // Calculate overall averages from the 7-day MA data
-    const a10 = gvc10MA.length > 0 ? gvc10MA.reduce((sum, v) => sum + v, 0) / gvc10MA.length : 0;
-    const a25 = gvc25MA.length > 0 ? gvc25MA.reduce((sum, v) => sum + v, 0) / gvc25MA.length : 0;
-    const a50 = gvc50MA.length > 0 ? gvc50MA.reduce((sum, v) => sum + v, 0) / gvc50MA.length : 0;
+    // Use latest (most recent) values from the 7-day MA data
+    const a10 = gvc10MA.length > 0 ? gvc10MA[gvc10MA.length - 1] : 0;
+    const a25 = gvc25MA.length > 0 ? gvc25MA[gvc25MA.length - 1] : 0;
+    const a50 = gvc50MA.length > 0 ? gvc50MA[gvc50MA.length - 1] : 0;
 
-    const bAvg10 = basket10MA.length > 0 ? basket10MA.reduce((sum, v) => sum + v, 0) / basket10MA.length : 0;
-    const bAvg25 = basket25MA.length > 0 ? basket25MA.reduce((sum, v) => sum + v, 0) / basket25MA.length : 0;
-    const bAvg50 = basket50MA.length > 0 ? basket50MA.reduce((sum, v) => sum + v, 0) / basket50MA.length : 0;
+    const bAvg10 = basket10MA.length > 0 ? basket10MA[basket10MA.length - 1] : 0;
+    const bAvg25 = basket25MA.length > 0 ? basket25MA[basket25MA.length - 1] : 0;
+    const bAvg50 = basket50MA.length > 0 ? basket50MA[basket50MA.length - 1] : 0;
 
     return {
       data10: d10, data25: d25, data50: d50,

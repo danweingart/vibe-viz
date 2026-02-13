@@ -152,7 +152,8 @@ export async function getBestListing(
     const url = `${OPENSEA_API_BASE}/listings/collection/${collectionSlug}/best`;
     const response = await fetchWithRetry<{ listings: OpenSeaListing[] }>(url);
     return response.listings?.[0] || null;
-  } catch {
+  } catch (error) {
+    console.error(`getBestListing failed for ${collectionSlug}:`, error instanceof Error ? error.message : String(error));
     return null;
   }
 }

@@ -6,11 +6,15 @@ interface CacheEntry<T> {
 class CacheStore {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
 
-  async get<T>(key: string): Promise<T | null> {
+  async get<T>(key: string, forceReturn = false): Promise<T | null> {
     const entry = this.cache.get(key) as CacheEntry<T> | undefined;
     if (!entry) return null;
 
     if (Date.now() > entry.expires) {
+      if (forceReturn) {
+        // Return stale data if explicitly requested
+        return entry.data;
+      }
       this.cache.delete(key);
       return null;
     }

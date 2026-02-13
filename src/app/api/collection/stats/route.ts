@@ -41,7 +41,14 @@ export async function GET() {
     ]);
 
     // Get floor price from OpenSea listing
-    const floorPrice = bestListing ? parseListingPrice(bestListing) : 0;
+    let floorPrice = bestListing ? parseListingPrice(bestListing) : 0;
+    let usingFallbackFloor = false;
+
+    if (!bestListing) {
+      console.error("WARNING: Failed to fetch floor price from OpenSea - getBestListing returned null");
+    } else {
+      console.log(`Floor price from OpenSea: ${floorPrice} ETH`);
+    }
 
     // Filter to sales only (exclude mints and burns)
     const salesTransfers = filterToSalesOnly(allTransfers);
@@ -59,10 +66,23 @@ export async function GET() {
 
     console.log(`Enriched ${allSales.length}/${salesTransfers.length} sales with prices`);
 
+    if (allSales.length === 0 && salesTransfers.length > 0) {
+      console.error("WARNING: Failed to enrich any sales with OpenSea prices - this will result in 0 total volume");
+      console.error("This suggests OpenSea API is unavailable or rate limiting is in effect");
+    }
+
     // Calculate total volume and sales (365 days)
     const totalVolume = allSales.reduce((sum, s) => sum + s.priceEth, 0);
     const totalSales = allSales.length;
     const avgPrice = totalSales > 0 ? totalVolume / totalSales : 0;
+
+    // Fallback: If OpenSea floor failed but we have sales data, use calculated floor
+    if (floorPrice === 0 && allSales.length > 0) {
+      const { calculateFloorPrice } = await import("@/lib/etherscan/transformer");
+      floorPrice = calculateFloorPrice(allSales);
+      usingFallbackFloor = true;
+      console.log(`Using calculated floor price from recent sales: ${floorPrice} ETH (fallback)`);
+    }
 
     // Calculate market cap = floor × total supply
     const marketCap = floorPrice * totalSupply;
@@ -84,7 +104,7 @@ export async function GET() {
       : 0;
 
     const result: CollectionStats = {
-      floorPrice, // From OpenSea
+      floorPrice, // From OpenSea or calculated fallback
       floorPriceUsd: floorPrice * ethPriceData.usd,
       totalVolume, // From Etherscan (365 days)
       totalVolumeUsd: totalVolume * ethPriceData.usd,
@@ -101,10 +121,32 @@ export async function GET() {
       lastUpdated: new Date().toISOString(),
     };
 
-    // Cache the result
+    // Data quality check: Don't cache/return broken data
+    if (floorPrice === 0 && totalVolume === 0 && totalSales === 0) {
+      console.error("CRITICAL: All key metrics are zero - OpenSea API appears to be completely unavailable");
+      console.error("Check OPENSEA_API_KEY environment variable and OpenSea API status");
+
+      // Try to return cached data instead of broken data
+      const staleCache = await cache.get<CollectionStats>("collection-stats", true); // Force return even if expired
+      if (staleCache) {
+        console.log("Returning stale cached data instead of zeros");
+        return NextResponse.json({
+          ...staleCache,
+          lastUpdated: new Date().toISOString(),
+          _stale: true,
+        });
+      }
+
+      throw new Error("OpenSea API unavailable and no cached data available");
+    }
+
+    // Cache the result (only if data looks valid)
     await cache.set("collection-stats", result, CACHE_TTL.COLLECTION_STATS);
 
     console.log("Collection stats ready:", result);
+    if (usingFallbackFloor) {
+      console.log("NOTE: Floor price is using fallback calculation (OpenSea listing unavailable)");
+    }
 
     return NextResponse.json(result);
   } catch (error) {

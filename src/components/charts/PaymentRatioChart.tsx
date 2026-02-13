@@ -50,7 +50,7 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth, time
   const count = timeRange === 7 ? data.length : 6;
   const tickDates = getAlignedTicks(data.map(d => d.date), count);
   return (
-    <div className="flex-1 min-w-0">
+    <div className="flex-1 min-w-0 flex flex-col">
       <div className="flex items-center justify-between mb-1">
         <p className="text-xs text-foreground-muted font-medium">{label}</p>
         <div className="flex gap-3" style={{ fontSize: FONT_SIZE.xs }}>
@@ -58,7 +58,7 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth, time
           <span style={{ color: CHART_COLORS.danger }}>WETH: {avgWeth.toFixed(0)}%</span>
         </div>
       </div>
-      <div className="flex-1 min-h-[320px] sm:min-h-[500px]">
+      <div className="flex-1 min-h-[320px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ ...CHART_MARGINS.default, bottom: showXAxis ? 20 : 5 }}>
             <CartesianGrid strokeDasharray={GRID_STYLE.strokeDasharray} stroke={GRID_STYLE.stroke} vertical={GRID_STYLE.vertical} />

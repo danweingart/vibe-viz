@@ -177,7 +177,7 @@ export function CumulativeVolumeChart() {
                 tickDates={tickDates}
                 color={CHART_COLORS.primary}
                 formatter={(value: number) =>
-                  currency === "eth" ? `${(value / 1000).toFixed(0)}k` : `$${(value / 1000).toFixed(0)}k`
+                  currency === "eth" ? `${value.toFixed(1)}Ξ` : `$${(value / 1000).toFixed(0)}k`
                 }
               />
             )}

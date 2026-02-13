@@ -96,15 +96,46 @@ export function HolderDistributionChart() {
           <Bar
             dataKey="count"
             radius={[0, 4, 4, 0]}
-            label={(props: any) => (
-              <CustomLabel
-                {...props}
-                dataLength={chartData.length}
-                timeRange={30}
-                color={chartData[props.index]?.color || CHART_COLORS.primary}
-                formatter={(value: number) => value.toFixed(0)}
-              />
-            )}
+            label={(props: any) => {
+              const { x, y, width, height, value, index } = props;
+              if (!value || value === 0) return null;
+
+              // For horizontal bars, position label at the end of the bar
+              const labelX = x + width + 10;
+              const labelY = y + height / 2;
+              const color = chartData[index]?.color || CHART_COLORS.primary;
+              const formattedValue = value.toFixed(0);
+              const textWidth = formattedValue.length * 6.5;
+              const padding = 6;
+              const rectWidth = textWidth + padding * 2;
+              const rectHeight = 20;
+
+              return (
+                <g>
+                  <rect
+                    x={labelX - rectWidth / 2}
+                    y={labelY - rectHeight / 2}
+                    width={rectWidth}
+                    height={rectHeight}
+                    fill="#050505"
+                    stroke={`${color}4D`}
+                    strokeWidth="1"
+                    rx="4"
+                  />
+                  <text
+                    x={labelX}
+                    y={labelY + 4}
+                    fill={color}
+                    fontSize="11"
+                    fontFamily="Mundial, sans-serif"
+                    fontWeight="600"
+                    textAnchor="middle"
+                  >
+                    {formattedValue}
+                  </text>
+                </g>
+              );
+            }}
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />

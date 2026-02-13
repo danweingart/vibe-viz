@@ -39,6 +39,7 @@ interface PremiumChartRowProps {
   basketAvg?: number;
   showXAxis?: boolean;
   showComparison?: boolean;
+  timeRange: number;
 }
 
 function PremiumChartRow({
@@ -49,9 +50,11 @@ function PremiumChartRow({
   basketAvg,
   showXAxis = false,
   showComparison = false,
+  timeRange,
 }: PremiumChartRowProps) {
-  const timeRange = 30; // Default for this chart type
-  const tickDates = getAlignedTicks(data.map(d => d.date), 6);
+  // For 7D view, show all days. For longer periods, show 6 evenly spaced ticks
+  const count = timeRange === 7 ? data.length : 6;
+  const tickDates = getAlignedTicks(data.map(d => d.date), count);
   return (
     <div className="flex items-center gap-2 h-full">
       {/* Y-axis label */}
@@ -273,6 +276,7 @@ export function CollectorsPremiumChart() {
             avg={avg10}
             basketAvg={basketAvg10}
             showComparison={showComparison && !basketLoading}
+            timeRange={timeRange}
           />
           <PremiumChartRow
             data={data25}
@@ -281,6 +285,7 @@ export function CollectorsPremiumChart() {
             avg={avg25}
             basketAvg={basketAvg25}
             showComparison={showComparison && !basketLoading}
+            timeRange={timeRange}
           />
           <PremiumChartRow
             data={data50}
@@ -290,6 +295,7 @@ export function CollectorsPremiumChart() {
             basketAvg={basketAvg50}
             showComparison={showComparison && !basketLoading}
             showXAxis={true}
+            timeRange={timeRange}
           />
       </div>
     </StandardChartCard>

@@ -54,8 +54,10 @@ export function FloorPriceChart() {
   // Calculate tick dates for label alignment
   const tickDates = useMemo(() => {
     if (!chartData || chartData.length === 0) return [];
-    return getAlignedTicks(chartData.map(d => d.date), 6);
-  }, [chartData]);
+    // For 7D view, show all days. For longer periods, show 6 evenly spaced ticks
+    const count = timeRange === 7 ? chartData.length : 6;
+    return getAlignedTicks(chartData.map(d => d.date), count);
+  }, [chartData, timeRange]);
 
   // Calculate stats
   const currentFloor = chartData[chartData.length - 1]?.displayFloor || 0;

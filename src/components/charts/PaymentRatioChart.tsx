@@ -42,11 +42,13 @@ interface PaymentLineChartProps {
   showXAxis?: boolean;
   avgEth: number;
   avgWeth: number;
+  timeRange: number;
 }
 
-function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: PaymentLineChartProps) {
-  const timeRange = 30; // Default for this chart type
-  const tickDates = getAlignedTicks(data.map(d => d.date), 6);
+function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth, timeRange }: PaymentLineChartProps) {
+  // For 7D view, show all days. For longer periods, show 6 evenly spaced ticks
+  const count = timeRange === 7 ? data.length : 6;
+  const tickDates = getAlignedTicks(data.map(d => d.date), count);
   return (
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between mb-1">
@@ -264,12 +266,14 @@ export function PaymentRatioChart() {
         label="Good Vibes Club"
         avgEth={gvcAvgEth}
         avgWeth={gvcAvgWeth}
+        timeRange={timeRange}
       />
       <PaymentLineChart
         data={basketDailyData}
         label="Leading ETH Collections"
         avgEth={basketAvgEth}
         avgWeth={basketAvgWeth}
+        timeRange={timeRange}
       />
     </div>
   ) : (

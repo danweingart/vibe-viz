@@ -33,8 +33,10 @@ export function PriceVolatilityChart() {
   // Calculate tick dates once for label alignment
   const tickDates = useMemo(() => {
     if (!data || data.length === 0) return [];
-    return getAlignedTicks(data.map(d => d.date), 6);
-  }, [data]);
+    // For 7D view, show all days. For longer periods, show 6 evenly spaced ticks
+    const count = timeRange === 7 ? data.length : 6;
+    return getAlignedTicks(data.map(d => d.date), count);
+  }, [data, timeRange]);
 
   const handleLegendToggle = (key: string) => {
     setVisibleSeries((prev) => ({

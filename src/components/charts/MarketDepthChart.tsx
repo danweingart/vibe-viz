@@ -163,15 +163,44 @@ export function MarketDepthChart() {
               stackId="depth"
               fill={CHART_COLORS.success}
               radius={[4, 4, 4, 4]}
-              label={(props: any) => (
-                <CustomLabel
-                  {...props}
-                  dataLength={chartData.length}
-                  timeRange={30}
-                  color={CHART_COLORS.success}
-                  formatter={(value: number) => value.toFixed(0)}
-                />
-              )}
+              label={(props: any) => {
+                const { x, y, width, value } = props;
+                if (!value || value === 0) return null;
+
+                const centerX = x + width / 2;
+                const labelY = y - 8;
+                const formattedValue = value.toFixed(0);
+                const textWidth = formattedValue.length * 6.5;
+                const padding = 6;
+                const rectWidth = textWidth + padding * 2;
+                const rectHeight = 20;
+
+                return (
+                  <g>
+                    <rect
+                      x={centerX - rectWidth / 2}
+                      y={labelY - rectHeight}
+                      width={rectWidth}
+                      height={rectHeight}
+                      fill="#050505"
+                      stroke={`${CHART_COLORS.success}4D`}
+                      strokeWidth="1"
+                      rx="4"
+                    />
+                    <text
+                      x={centerX}
+                      y={labelY - 6}
+                      fill={CHART_COLORS.success}
+                      fontSize="11"
+                      fontFamily="Mundial, sans-serif"
+                      fontWeight="600"
+                      textAnchor="middle"
+                    >
+                      {formattedValue}
+                    </text>
+                  </g>
+                );
+              }}
             />
           )}
           {visibleSeries.has("asks") && (
@@ -180,15 +209,44 @@ export function MarketDepthChart() {
               stackId="depth"
               fill={CHART_COLORS.danger}
               radius={[4, 4, 4, 4]}
-              label={(props: any) => (
-                <CustomLabel
-                  {...props}
-                  dataLength={chartData.length}
-                  timeRange={30}
-                  color={CHART_COLORS.danger}
-                  formatter={(value: number) => value.toFixed(0)}
-                />
-              )}
+              label={(props: any) => {
+                const { x, y, width, value } = props;
+                if (!value || value === 0) return null;
+
+                const centerX = x + width / 2;
+                const labelY = y - 8;
+                const formattedValue = value.toFixed(0);
+                const textWidth = formattedValue.length * 6.5;
+                const padding = 6;
+                const rectWidth = textWidth + padding * 2;
+                const rectHeight = 20;
+
+                return (
+                  <g>
+                    <rect
+                      x={centerX - rectWidth / 2}
+                      y={labelY - rectHeight}
+                      width={rectWidth}
+                      height={rectHeight}
+                      fill="#050505"
+                      stroke={`${CHART_COLORS.danger}4D`}
+                      strokeWidth="1"
+                      rx="4"
+                    />
+                    <text
+                      x={centerX}
+                      y={labelY - 6}
+                      fill={CHART_COLORS.danger}
+                      fontSize="11"
+                      fontFamily="Mundial, sans-serif"
+                      fontWeight="600"
+                      textAnchor="middle"
+                    >
+                      {formattedValue}
+                    </text>
+                  </g>
+                );
+              }}
             />
           )}
         </BarChart>

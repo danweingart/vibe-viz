@@ -241,7 +241,10 @@ export async function getAllTransfers(
  * @param days - Number of days to look back from now
  * @returns Array of all transfer records in the time period
  */
-export async function getTransfersInDateRange(days: number): Promise<EtherscanTransfer[]> {
+export async function getTransfersInDateRange(
+  days: number,
+  contractAddress: string = CONTRACT_ADDRESS
+): Promise<EtherscanTransfer[]> {
   const blocksPerDay = 6500; // ~13 second block time
   const currentBlock = await getCurrentBlockNumber();
   const startBlock = Math.max(0, currentBlock - (days * blocksPerDay));
@@ -259,7 +262,7 @@ export async function getTransfersInDateRange(days: number): Promise<EtherscanTr
     let hasMore = true;
 
     while (hasMore) {
-      const transfers = await getTokenTransfers(CONTRACT_ADDRESS, start, end, page, 10000);
+      const transfers = await getTokenTransfers(contractAddress, start, end, page, 10000);
 
       if (transfers.length === 0) {
         hasMore = false;

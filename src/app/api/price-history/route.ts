@@ -10,7 +10,7 @@ import {
   calculateFloorPrice,
 } from "@/lib/etherscan/transformer";
 import { cache } from "@/lib/cache/memory";
-import { CACHE_TTL } from "@/lib/constants";
+import { CACHE_TTL, COLLECTION_SLUG, CONTRACT_ADDRESS, COMPARISON_COLLECTIONS } from "@/lib/constants";
 import type { DailyStats, SaleRecord } from "@/types/api";
 
 export const dynamic = "force-dynamic";
@@ -19,19 +19,33 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const days = Math.min(parseInt(searchParams.get("days") || "7"), 365);
+    const collectionSlug = searchParams.get("collection") || COLLECTION_SLUG;
 
-    const cacheKey = `price-history-${days}`;
+    // Map collection slug to contract address
+    let contractAddress = CONTRACT_ADDRESS;
+    if (collectionSlug !== COLLECTION_SLUG) {
+      const comparison = COMPARISON_COLLECTIONS.find(c => c.slug === collectionSlug);
+      if (!comparison) {
+        return NextResponse.json(
+          { error: `Unknown collection: ${collectionSlug}` },
+          { status: 400 }
+        );
+      }
+      contractAddress = comparison.address;
+    }
+
+    const cacheKey = `price-history-${days}-${collectionSlug}`;
     const cached = await cache.get<DailyStats[]>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
     }
 
-    console.log(`Fetching price history for ${days} days...`);
+    console.log(`Fetching price history for ${collectionSlug} (${days} days)...`);
 
     // Fetch current ETH price and all transfers in parallel
     const [ethPriceData, allTransfers] = await Promise.all([
       getEthPrice(),
-      getTransfersInDateRange(days),
+      getTransfersInDateRange(days, contractAddress),
     ]);
 
     // Filter to sales only (exclude mints and burns)

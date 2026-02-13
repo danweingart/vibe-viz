@@ -111,8 +111,8 @@ function PremiumChartRow({
               stroke={color}
               strokeWidth={2}
               dot={(props: any) => {
-                const { index } = props;
-                if (!shouldShowLabel(index, data.length, timeRange)) return null;
+                const { payload } = props;
+                if (!payload?.date || !tickDates.includes(payload.date)) return null;
                 return <circle {...props} r={3} fill={color} strokeWidth={0} />;
               }}
               activeDot={{ r: 5, fill: color, stroke: "#0a0a0a", strokeWidth: 2 }}

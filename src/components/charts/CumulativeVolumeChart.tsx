@@ -164,8 +164,8 @@ export function CumulativeVolumeChart() {
             strokeWidth={2}
             fill="url(#cumulativeGradient)"
             dot={(props: any) => {
-              const { index } = props;
-              if (!shouldShowLabel(index, chartData.length, timeRange)) return null;
+              const { payload } = props;
+              if (!payload?.date || !tickDates.includes(payload.date)) return null;
               return <circle {...props} r={3} fill={CHART_COLORS.primary} strokeWidth={0} />;
             }}
             label={(props: any) => (

@@ -150,8 +150,8 @@ export function PriceHistoryChart() {
               strokeWidth={2}
               fill="url(#priceGradient)"
               dot={(props: any) => {
-                const { index } = props;
-                if (!shouldShowLabel(index, chartData.length, timeRange)) return null;
+                const { payload } = props;
+                if (!payload?.date || !tickDates.includes(payload.date)) return null;
                 return <circle {...props} r={3} fill={CHART_COLORS.primary} strokeWidth={0} />;
               }}
               activeDot={{ r: 5, fill: CHART_COLORS.primary, stroke: "#0a0a0a", strokeWidth: 2 }}

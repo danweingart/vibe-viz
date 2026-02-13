@@ -116,7 +116,7 @@ export function FloorPriceChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
-            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
+            ticks={tickDates}
             tickFormatter={(v) =>
               new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })
             }

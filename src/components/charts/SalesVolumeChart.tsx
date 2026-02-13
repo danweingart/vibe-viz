@@ -173,7 +173,7 @@ export function SalesVolumeChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             tickLine={AXIS_STYLE.tickLine}
             axisLine={AXIS_STYLE.axisLine}
-            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
+            ticks={tickDates}
             tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           />
           <YAxis

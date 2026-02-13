@@ -67,7 +67,7 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth, time
               stroke={AXIS_STYLE.stroke}
               fontSize={AXIS_STYLE.fontSize}
               fontFamily={AXIS_STYLE.fontFamily}
-              ticks={getAlignedTicks(data.map(d => d.date), 6)}
+              ticks={tickDates}
               tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               hide={!showXAxis}
               axisLine={AXIS_STYLE.axisLine}
@@ -221,6 +221,14 @@ export function PaymentRatioChart() {
     };
   }, [priceHistory, basketData]);
 
+  // Calculate tick dates for label alignment
+  const tickDates = useMemo(() => {
+    if (!gvcDailyData || gvcDailyData.length === 0) return [];
+    // For 7D view, show all days. For longer periods, show 6 evenly spaced ticks
+    const count = timeRange === 7 ? gvcDailyData.length : 6;
+    return getAlignedTicks(gvcDailyData.map(d => d.date), count);
+  }, [gvcDailyData, timeRange]);
+
   const legendItems: LegendItem[] = [
     { key: "eth", label: "ETH", color: CHART_COLORS.primary },
     { key: "weth", label: "WETH", color: CHART_COLORS.danger },
@@ -285,7 +293,7 @@ export function PaymentRatioChart() {
           stroke={AXIS_STYLE.stroke}
           fontSize={AXIS_STYLE.fontSize}
           fontFamily={AXIS_STYLE.fontFamily}
-          ticks={getAlignedTicks(gvcDailyData.map(d => d.date), 6)}
+          ticks={tickDates}
           tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           axisLine={AXIS_STYLE.axisLine}
           tickLine={AXIS_STYLE.tickLine}

@@ -126,7 +126,7 @@ export function CumulativeVolumeChart() {
             stroke={AXIS_STYLE.stroke}
             fontSize={AXIS_STYLE.fontSize}
             fontFamily={AXIS_STYLE.fontFamily}
-            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
+            ticks={tickDates}
             tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}

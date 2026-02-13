@@ -119,7 +119,7 @@ export function PriceHistoryChart() {
             tickLine={AXIS_STYLE.tickLine}
             axisLine={AXIS_STYLE.axisLine}
             fontFamily={AXIS_STYLE.fontFamily}
-            ticks={getAlignedTicks(chartData.map((d) => d.date), 6)}
+            ticks={tickDates}
             tickFormatter={(value) =>
               new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" })
             }

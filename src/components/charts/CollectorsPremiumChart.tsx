@@ -72,7 +72,7 @@ function PremiumChartRow({
               stroke={AXIS_STYLE.stroke}
               fontSize={AXIS_STYLE.fontSize}
               fontFamily={AXIS_STYLE.fontFamily}
-              ticks={getAlignedTicks(data.map(d => d.date), 6)}
+              ticks={tickDates}
               tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               hide={!showXAxis}
               axisLine={AXIS_STYLE.axisLine}

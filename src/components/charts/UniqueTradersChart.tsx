@@ -155,7 +155,7 @@ export function UniqueTradersChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
-            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
+            ticks={tickDates}
             tickFormatter={(v) => {
               const date = new Date(v);
               if (isWeekly) {

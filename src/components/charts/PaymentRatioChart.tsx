@@ -323,16 +323,42 @@ export function PaymentRatioChart() {
           dataKey="ethPct"
           stroke={CHART_COLORS.primary}
           strokeWidth={2}
-          dot={{ r: 3, fill: CHART_COLORS.primary, strokeWidth: 0 }}
+          dot={(props: any) => {
+            const { payload } = props;
+            if (!payload?.date || !tickDates.includes(payload.date)) return null;
+            return <circle {...props} r={3} fill={CHART_COLORS.primary} strokeWidth={0} />;
+          }}
           activeDot={{ r: 5, fill: CHART_COLORS.primary, stroke: "#0a0a0a", strokeWidth: 2 }}
+          label={(props: any) => (
+            <CustomLabel
+              {...props}
+              date={gvcDailyData[props.index]?.date}
+              tickDates={tickDates}
+              color={CHART_COLORS.primary}
+              formatter={(value: number) => `${value.toFixed(0)}%`}
+            />
+          )}
         />
         <Line
           type="monotone"
           dataKey="wethPct"
           stroke={CHART_COLORS.danger}
           strokeWidth={2}
-          dot={{ r: 3, fill: CHART_COLORS.danger, strokeWidth: 0 }}
+          dot={(props: any) => {
+            const { payload } = props;
+            if (!payload?.date || !tickDates.includes(payload.date)) return null;
+            return <circle {...props} r={3} fill={CHART_COLORS.danger} strokeWidth={0} />;
+          }}
           activeDot={{ r: 5, fill: CHART_COLORS.danger, stroke: "#0a0a0a", strokeWidth: 2 }}
+          label={(props: any) => (
+            <CustomLabel
+              {...props}
+              date={gvcDailyData[props.index]?.date}
+              tickDates={tickDates}
+              color={CHART_COLORS.danger}
+              formatter={(value: number) => `${value.toFixed(0)}%`}
+            />
+          )}
         />
       </LineChart>
     </ResponsiveContainer>

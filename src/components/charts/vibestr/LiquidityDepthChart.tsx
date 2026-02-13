@@ -140,7 +140,7 @@ export function LiquidityDepthChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value) => [formatUsd(Number(value), 0), "Liquidity"]}
           />
           {visibleSeries.liquidity && (

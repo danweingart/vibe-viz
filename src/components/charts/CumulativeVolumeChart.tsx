@@ -17,7 +17,7 @@ import { usePriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getAlignedTicks } from "@/lib/chartConfig";
 import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 export function CumulativeVolumeChart() {
@@ -71,6 +71,12 @@ export function CumulativeVolumeChart() {
     };
   }, [data, currency]);
 
+  // Calculate tick dates for label alignment
+  const tickDates = useMemo(() => {
+    if (!chartData || chartData.length === 0) return [];
+    return getAlignedTicks(chartData.map(d => d.date), 6);
+  }, [chartData]);
+
   const exportConfig = useMemo(() => ({
     title: "Cumulative Volume",
     filename: getChartFilename("cumulative-volume", timeRange),
@@ -118,7 +124,7 @@ export function CumulativeVolumeChart() {
             stroke={AXIS_STYLE.stroke}
             fontSize={AXIS_STYLE.fontSize}
             fontFamily={AXIS_STYLE.fontFamily}
-            interval={Math.max(0, Math.floor(chartData.length / 6) - 1) || 0}
+            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
             tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
@@ -165,8 +171,8 @@ export function CumulativeVolumeChart() {
             label={(props: any) => (
               <CustomLabel
                 {...props}
-                dataLength={chartData.length}
-                timeRange={timeRange}
+                date={chartData[props.index]?.date}
+                tickDates={tickDates}
                 color={CHART_COLORS.primary}
                 formatter={(value: number) =>
                   currency === "eth" ? `${(value / 1000).toFixed(0)}k` : `$${(value / 1000).toFixed(0)}k`

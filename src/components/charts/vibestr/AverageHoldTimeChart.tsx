@@ -172,7 +172,7 @@ export function AverageHoldTimeChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value) => [formatNumber(Number(value)), "Holders"]}
           />
           {visibleSeries.holdTime && (

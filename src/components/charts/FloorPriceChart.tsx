@@ -17,7 +17,7 @@ import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getAlignedTicks } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport";
 import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
@@ -50,6 +50,12 @@ export function FloorPriceChart() {
       return { ...d, ma7: displayMa7, displayFloor };
     });
   }, [data, currency]);
+
+  // Calculate tick dates for label alignment
+  const tickDates = useMemo(() => {
+    if (!chartData || chartData.length === 0) return [];
+    return getAlignedTicks(chartData.map(d => d.date), 6);
+  }, [chartData]);
 
   // Calculate stats
   const currentFloor = chartData[chartData.length - 1]?.displayFloor || 0;
@@ -108,7 +114,7 @@ export function FloorPriceChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
-            interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
+            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
             tickFormatter={(v) =>
               new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })
             }
@@ -146,8 +152,8 @@ export function FloorPriceChart() {
               label={(props: any) => (
                 <CustomLabel
                   {...props}
-                  dataLength={chartData.length}
-                  timeRange={timeRange}
+                  date={chartData[props.index]?.date}
+                  tickDates={tickDates}
                   color={CHART_COLORS.primary}
                   formatter={(value: number) =>
                     currency === "eth" ? `${value.toFixed(2)}Ξ` : `$${value.toFixed(0)}`

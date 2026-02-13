@@ -44,27 +44,52 @@ export function shouldShowLabel(index: number, dataLength: number, timeRange: nu
 interface CustomLabelProps {
   x?: number;
   y?: number;
+  width?: number;
+  height?: number;
   value?: number;
   index?: number;
   dataLength?: number;
   timeRange?: number;
   formatter?: (value: number) => string;
   color?: string;
+  payload?: any; // The data point object (only available for Bar charts)
+  tickDates?: string[]; // Array of tick dates to show labels on
+  date?: string; // Explicit date for Area/Line charts
 }
 
 export function CustomLabel({
   x = 0,
   y = 0,
+  width,
+  height,
   value = 0,
   index = 0,
   dataLength = 0,
   timeRange = 30,
   formatter = (v) => v.toFixed(2),
-  color = "#ffe048"
+  color = "#ffe048",
+  payload,
+  tickDates,
+  date,
 }: CustomLabelProps) {
-  // Only show if shouldShowLabel returns true
-  if (!shouldShowLabel(index, dataLength, timeRange)) {
+  // Never show labels for zero, null, or undefined values
+  if (value === null || value === undefined || value === 0) {
     return null;
+  }
+
+  // If tickDates is provided, only show labels on tick dates
+  if (tickDates) {
+    // Get the date from either explicit prop or payload
+    const pointDate = date || payload?.date;
+
+    if (!pointDate || !tickDates.includes(pointDate)) {
+      return null;
+    }
+  } else {
+    // Fallback to old logic if tickDates not provided
+    if (!shouldShowLabel(index, dataLength, timeRange)) {
+      return null;
+    }
   }
 
   const formattedValue = formatter(value);
@@ -74,11 +99,15 @@ export function CustomLabel({
   const rectWidth = textWidth + padding * 2;
   const rectHeight = 20;
 
+  // For bar charts, center the label over the bar
+  // Recharts provides width for bar charts, so we offset by half the bar width
+  const centerX = width !== undefined ? x + width / 2 : x;
+
   return (
     <g>
       {/* Background rectangle - fully opaque */}
       <rect
-        x={x - rectWidth / 2}
+        x={centerX - rectWidth / 2}
         y={y - 26}
         width={rectWidth}
         height={rectHeight}
@@ -89,7 +118,7 @@ export function CustomLabel({
       />
       {/* Label text - matches the series color */}
       <text
-        x={x}
+        x={centerX}
         y={y - 12}
         fill={color}
         fontSize="11"

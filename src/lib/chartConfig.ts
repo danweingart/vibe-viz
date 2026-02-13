@@ -188,3 +188,22 @@ export const getTooltipContentStyle = () => ({
 /** Get standardized YAxis width for display */
 export const getYAxisWidth = (layout: 'default' | 'horizontal' = 'default') =>
   CHART_CONTAINER.yAxisWidth.display[layout];
+
+/**
+ * Get consistent X-axis tick count for time-series charts
+ * This ensures all charts show the same date labels regardless of data length
+ */
+export const getXAxisTickCount = () => 7;
+
+/**
+ * Generate evenly spaced tick values for X-axis alignment across charts
+ * This ensures consistent date labels by explicitly selecting which dates to show
+ * @param dates - Array of date strings from chart data
+ * @param count - Number of ticks to show (default: 6)
+ * @returns Array of evenly spaced date strings to use as ticks
+ */
+export function getAlignedTicks(dates: string[], count: number = 6): string[] {
+  if (dates.length <= count) return dates;
+  const step = (dates.length - 1) / (count - 1);
+  return Array.from({ length: count }, (_, i) => dates[Math.round(i * step)]);
+}

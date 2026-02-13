@@ -164,7 +164,7 @@ export function TokenHolderDistributionChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value) => [formatNumber(Number(value)), "Holders"]}
           />
           {visibleSeries.distribution && (

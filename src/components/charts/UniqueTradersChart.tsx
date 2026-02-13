@@ -18,7 +18,7 @@ import { useTraderAnalysis } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getAlignedTicks } from "@/lib/chartConfig";
 import { CustomLabel } from "@/lib/chartHelpers";
 
 export function UniqueTradersChart() {
@@ -97,6 +97,12 @@ export function UniqueTradersChart() {
     { key: "new", label: "New", color: CHART_COLORS.info, active: visibleSeries.new },
   ];
 
+  // Calculate tick dates for label alignment
+  const tickDates = useMemo(() => {
+    if (!chartData || chartData.length === 0) return [];
+    return getAlignedTicks(chartData.map(d => d.date), 6);
+  }, [chartData]);
+
   const exportConfig = useMemo(() => ({
     title: "Unique Traders",
     filename: getChartFilename("unique-traders", timeRange),
@@ -147,7 +153,7 @@ export function UniqueTradersChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
-            interval={isWeekly ? 0 : Math.max(0, Math.floor(chartData.length / 6) - 1)}
+            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
             tickFormatter={(v) => {
               const date = new Date(v);
               if (isWeekly) {
@@ -199,9 +205,7 @@ export function UniqueTradersChart() {
               label={(props: any) => (
                 <CustomLabel
                   {...props}
-                  dataLength={chartData.length}
-                  timeRange={timeRange}
-                  color={CHART_COLORS.success}
+                  tickDates={tickDates} color={CHART_COLORS.success}
                   formatter={(value: number) => value.toFixed(0)}
                 />
               )}
@@ -217,9 +221,7 @@ export function UniqueTradersChart() {
               label={(props: any) => (
                 <CustomLabel
                   {...props}
-                  dataLength={chartData.length}
-                  timeRange={timeRange}
-                  color={CHART_COLORS.danger}
+                  tickDates={tickDates} color={CHART_COLORS.danger}
                   formatter={(value: number) => value.toFixed(0)}
                 />
               )}

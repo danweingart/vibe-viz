@@ -159,7 +159,7 @@ export function PriceRangeDistributionChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value) => [`${value} days`, "Frequency"]}
           />
           {visibleSeries.frequency && (

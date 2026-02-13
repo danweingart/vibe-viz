@@ -19,14 +19,18 @@ import { formatEth, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport/index";
+import { CustomLabel } from "@/lib/chartHelpers";
 
 export function PriceDistributionChart() {
   const { timeRange } = useChartSettings();
   const { data: priceHistory, isLoading, error } = usePriceHistory(timeRange);
 
-  // Track which series are visible
+  // Track which price categories are visible
   const [visibleSeries, setVisibleSeries] = useState({
-    sales: true,
+    floor: true,
+    midRare: true,
+    grails: true,
+    ultraGrails: true,
   });
 
   const handleLegendToggle = (key: string) => {
@@ -34,6 +38,19 @@ export function PriceDistributionChart() {
       ...prev,
       [key]: !prev[key as keyof typeof prev],
     }));
+  };
+
+  // Helper to get category info for a bucket index
+  const getCategoryInfo = (index: number) => {
+    if (index === 0) {
+      return { category: "floor", label: "Floor", color: CHART_COLORS.primary };
+    } else if (index === 1) {
+      return { category: "midRare", label: "Mid-Rare", color: CHART_COLORS.success };
+    } else if (index >= 2 && index < 5) {
+      return { category: "grails", label: "Grails", color: CHART_COLORS.info };
+    } else {
+      return { category: "ultraGrails", label: "Ultra Grails", color: CHART_COLORS.accent };
+    }
   };
 
   const { chartData, avgPrice, medianPrice } = useMemo(() => {
@@ -88,9 +105,12 @@ export function PriceDistributionChart() {
     return { chartData: buckets, avgPrice: avg, medianPrice: median };
   }, [priceHistory]);
 
-  // Legend items with active state
+  // Legend items with active state - show all 4 price categories
   const legendItems: LegendItem[] = [
-    { key: "sales", label: "Sales by Price", color: CHART_COLORS.primary, active: visibleSeries.sales },
+    { key: "floor", label: "Floor (0-1Ξ)", color: CHART_COLORS.primary, active: visibleSeries.floor },
+    { key: "midRare", label: "Mid-Rare (1-2Ξ)", color: CHART_COLORS.success, active: visibleSeries.midRare },
+    { key: "grails", label: "Grails (2-5Ξ)", color: CHART_COLORS.info, active: visibleSeries.grails },
+    { key: "ultraGrails", label: "Ultra Grails (5Ξ+)", color: CHART_COLORS.accent, active: visibleSeries.ultraGrails },
   ];
 
   // Export configuration
@@ -155,7 +175,7 @@ export function PriceDistributionChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value) => [formatNumber(Number(value)), "Sales"]}
             labelFormatter={(label, payload) => {
               if (payload && payload[0]) {
@@ -164,21 +184,38 @@ export function PriceDistributionChart() {
               return label;
             }}
           />
-          {visibleSeries.sales && (
-            <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-              {chartData.map((entry, index) => {
-                // Yellow -> Blue -> Orange gradient (matching Holder Distribution)
-                const color = index < 2
-                  ? CHART_COLORS.primary
-                  : index < 5
-                    ? CHART_COLORS.info
-                    : CHART_COLORS.accent;
-                return (
-                  <Cell key={`cell-${index}`} fill={color} />
-                );
-              })}
-            </Bar>
-          )}
+          <Bar
+            dataKey="count"
+            radius={[4, 4, 0, 0]}
+            label={(props: any) => {
+              const { index } = props;
+              const categoryInfo = getCategoryInfo(index);
+              // Only show label if this category is visible
+              if (!visibleSeries[categoryInfo.category as keyof typeof visibleSeries]) {
+                return null;
+              }
+              return (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={7}
+                  color={categoryInfo.color}
+                  formatter={(value: number) => value.toFixed(0)}
+                />
+              );
+            }}
+          >
+            {chartData.map((entry, index) => {
+              const categoryInfo = getCategoryInfo(index);
+              // Only render bar if this category is visible
+              if (!visibleSeries[categoryInfo.category as keyof typeof visibleSeries]) {
+                return <Cell key={`cell-${index}`} fill="transparent" />;
+              }
+              return (
+                <Cell key={`cell-${index}`} fill={categoryInfo.color} />
+              );
+            })}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </StandardChartCard>

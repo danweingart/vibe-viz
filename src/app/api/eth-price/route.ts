@@ -14,7 +14,7 @@ export async function GET() {
       return NextResponse.json(cached);
     }
 
-    // Fetch fresh data
+    // Fetch fresh data from CoinGecko (Etherscan V1 API is deprecated)
     const price = await getEthPrice();
 
     const result: EthPrice = {

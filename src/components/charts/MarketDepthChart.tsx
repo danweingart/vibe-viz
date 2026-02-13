@@ -14,7 +14,8 @@ import { ChartStatCard, ChartStatGrid } from "@/components/ui";
 import { StandardChartCard, LegendItem } from "@/components/charts/StandardChartCard";
 import { useMarketDepth } from "@/hooks/useMarketDepth";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, getTooltipContentStyle, getYAxisWidth } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, getTooltipContentStyle, getYAxisWidth, getAlignedTicks } from "@/lib/chartConfig";
+import { CustomLabel } from "@/lib/chartHelpers";
 
 export function MarketDepthChart() {
   const { data, isLoading, error } = useMarketDepth();
@@ -97,6 +98,7 @@ export function MarketDepthChart() {
       .sort((a, b) => a.price - b.price);
   }, [data]);
 
+
   const totalBids = chartData.reduce((sum, d) => sum + (d.bids || 0), 0);
   const totalAsks = chartData.reduce((sum, d) => sum + (d.asks || 0), 0);
 
@@ -156,10 +158,38 @@ export function MarketDepthChart() {
             }}
           />
           {visibleSeries.has("bids") && (
-            <Bar dataKey="bids" stackId="depth" fill={CHART_COLORS.success} radius={[4, 4, 4, 4]} />
+            <Bar
+              dataKey="bids"
+              stackId="depth"
+              fill={CHART_COLORS.success}
+              radius={[4, 4, 4, 4]}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={30}
+                  color={CHART_COLORS.success}
+                  formatter={(value: number) => value.toFixed(0)}
+                />
+              )}
+            />
           )}
           {visibleSeries.has("asks") && (
-            <Bar dataKey="asks" stackId="depth" fill={CHART_COLORS.danger} radius={[4, 4, 4, 4]} />
+            <Bar
+              dataKey="asks"
+              stackId="depth"
+              fill={CHART_COLORS.danger}
+              radius={[4, 4, 4, 4]}
+              label={(props: any) => (
+                <CustomLabel
+                  {...props}
+                  dataLength={chartData.length}
+                  timeRange={30}
+                  color={CHART_COLORS.danger}
+                  formatter={(value: number) => value.toFixed(0)}
+                />
+              )}
+            />
           )}
         </BarChart>
       </ResponsiveContainer>

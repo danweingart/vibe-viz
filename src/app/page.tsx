@@ -18,7 +18,6 @@ import {
   // Trader insights charts
   UniqueTradersChart,
   WhaleActivityChart,
-  FlipTrackerChart,
   HoldingPeriodChart,
   // Collection health charts
   HolderDistributionChart,
@@ -105,7 +104,6 @@ export default function DashboardPage() {
               <div className="space-y-6">
                 <UniqueTradersChart />
                 <WhaleActivityChart />
-                <FlipTrackerChart />
                 <HoldingPeriodChart />
               </div>
             </section>

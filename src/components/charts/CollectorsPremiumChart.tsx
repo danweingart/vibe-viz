@@ -18,7 +18,7 @@ import { useBasketPriceHistory } from "@/hooks/useBasketPriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getAlignedTicks } from "@/lib/chartConfig";
 import { FONT_SIZE } from "@/lib/tokens";
 import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
@@ -51,6 +51,7 @@ function PremiumChartRow({
   showComparison = false,
 }: PremiumChartRowProps) {
   const timeRange = 30; // Default for this chart type
+  const tickDates = getAlignedTicks(data.map(d => d.date), 6);
   return (
     <div className="flex items-center gap-2 h-full">
       {/* Y-axis label */}
@@ -68,7 +69,7 @@ function PremiumChartRow({
               stroke={AXIS_STYLE.stroke}
               fontSize={AXIS_STYLE.fontSize}
               fontFamily={AXIS_STYLE.fontFamily}
-              interval={Math.max(0, Math.floor(data.length / 8) - 1)}
+              ticks={getAlignedTicks(data.map(d => d.date), 6)}
               tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               hide={!showXAxis}
               axisLine={AXIS_STYLE.axisLine}
@@ -118,8 +119,8 @@ function PremiumChartRow({
               label={(props: any) => (
                 <CustomLabel
                   {...props}
-                  dataLength={data.length}
-                  timeRange={timeRange}
+                  date={data[props.index]?.date}
+                  tickDates={tickDates}
                   color={color}
                   formatter={(value: number) => `${value.toFixed(0)}%`}
                 />

@@ -1,41 +1,19 @@
 import { NextResponse } from "next/server";
-import { getEvents, getListings, parseEventPrice, parseListingPrice } from "@/lib/opensea/client";
+import { getListings, parseListingPrice } from "@/lib/opensea/client";
+import {
+  getTransfersInDateRange,
+  filterToSalesOnly,
+} from "@/lib/etherscan/client";
+import { getEthPrice } from "@/lib/coingecko/client";
+import {
+  enrichTransfersWithPrices,
+  transformToSaleRecords,
+} from "@/lib/etherscan/transformer";
 import { cache } from "@/lib/cache/memory";
 import { COLLECTION_SLUG } from "@/lib/constants";
-import type { MarketIndicators, OpenSeaEvent } from "@/types/api";
+import type { MarketIndicators, SaleRecord } from "@/types/api";
 
 export const dynamic = "force-dynamic";
-
-async function fetchRecentSales(days: number): Promise<OpenSeaEvent[]> {
-  const allEvents: OpenSeaEvent[] = [];
-  const endTimestamp = Math.floor(Date.now() / 1000);
-  const startTimestamp = endTimestamp - days * 24 * 60 * 60;
-  let next: string | null = null;
-  let pages = 0;
-
-  do {
-    const response = await getEvents(
-      {
-        eventType: "sale",
-        limit: 50,
-        after: startTimestamp,
-        before: endTimestamp,
-        next: next || undefined,
-      },
-      COLLECTION_SLUG
-    );
-
-    allEvents.push(...response.asset_events);
-    next = response.next;
-    pages++;
-
-    if (next && pages < 10) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-  } while (next && pages < 10);
-
-  return allEvents;
-}
 
 // Calculate RSI (Relative Strength Index) based on daily price changes
 function calculateRSI(prices: number[], period: number = 14): number {
@@ -93,11 +71,25 @@ export async function GET() {
       return NextResponse.json(cached);
     }
 
-    // Fetch 30 days of sales and current listings
-    const [sales, listings] = await Promise.all([
-      fetchRecentSales(30),
+    console.log("Calculating market indicators (hybrid Etherscan + OpenSea)...");
+
+    // Fetch 30 days of sales from Etherscan and current listings from OpenSea
+    const [ethPriceData, allTransfers, listings] = await Promise.all([
+      getEthPrice(),
+      getTransfersInDateRange(30),
       getListings(COLLECTION_SLUG, 50),
     ]);
+
+    // Filter to sales only
+    const salesTransfers = filterToSalesOnly(allTransfers);
+
+    // Enrich with prices
+    const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd);
+
+    // Transform to SaleRecord format
+    const sales = transformToSaleRecords(enriched);
+
+    console.log(`Analyzing ${sales.length} sales for market indicators...`);
 
     if (sales.length === 0) {
       return NextResponse.json({
@@ -113,8 +105,8 @@ export async function GET() {
     // Group sales by date and calculate daily average prices
     const salesByDate = new Map<string, number[]>();
     for (const sale of sales) {
-      const date = new Date(sale.event_timestamp * 1000).toISOString().split("T")[0];
-      const price = parseEventPrice(sale);
+      const date = sale.timestamp.toISOString().split("T")[0];
+      const price = sale.priceEth;
       if (price > 0) {
         if (!salesByDate.has(date)) {
           salesByDate.set(date, []);
@@ -143,7 +135,7 @@ export async function GET() {
     const momentum = calculateMomentum(dailyAvgPrices);
 
     // Calculate liquidity score (0-100)
-    // Based on: listings count, sales velocity, bid-ask activity
+    // Based on: listings count (OpenSea), sales velocity (Etherscan), price spread (OpenSea)
     const listingCount = listings.length;
     const avgDailySales = sales.length / 30;
     const listingPrices = listings.map(parseListingPrice).filter((p) => p > 0);
@@ -183,6 +175,8 @@ export async function GET() {
 
     // Cache for 5 minutes
     await cache.set(cacheKey, indicators, 300);
+
+    console.log("Market indicators calculated:", indicators);
 
     return NextResponse.json(indicators);
   } catch (error) {

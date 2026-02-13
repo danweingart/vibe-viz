@@ -17,7 +17,7 @@ import { usePriceHistory, useBasketPriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getAlignedTicks } from "@/lib/chartConfig";
 import { FONT_SIZE } from "@/lib/tokens";
 import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
@@ -46,6 +46,7 @@ interface PaymentLineChartProps {
 
 function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: PaymentLineChartProps) {
   const timeRange = 30; // Default for this chart type
+  const tickDates = getAlignedTicks(data.map(d => d.date), 6);
   return (
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between mb-1">
@@ -64,7 +65,7 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
               stroke={AXIS_STYLE.stroke}
               fontSize={AXIS_STYLE.fontSize}
               fontFamily={AXIS_STYLE.fontFamily}
-              interval={Math.max(0, Math.floor(data.length / 5) - 1)}
+              ticks={getAlignedTicks(data.map(d => d.date), 6)}
               tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               hide={!showXAxis}
               axisLine={AXIS_STYLE.axisLine}
@@ -104,8 +105,8 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
               label={(props: any) => (
                 <CustomLabel
                   {...props}
-                  dataLength={data.length}
-                  timeRange={timeRange}
+                  date={data[props.index]?.date}
+                  tickDates={tickDates}
                   color={CHART_COLORS.primary}
                   formatter={(value: number) => `${value.toFixed(0)}%`}
                 />
@@ -125,8 +126,8 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth }: Pa
               label={(props: any) => (
                 <CustomLabel
                   {...props}
-                  dataLength={data.length}
-                  timeRange={timeRange}
+                  date={data[props.index]?.date}
+                  tickDates={tickDates}
                   color={CHART_COLORS.danger}
                   formatter={(value: number) => `${value.toFixed(0)}%`}
                 />
@@ -280,7 +281,7 @@ export function PaymentRatioChart() {
           stroke={AXIS_STYLE.stroke}
           fontSize={AXIS_STYLE.fontSize}
           fontFamily={AXIS_STYLE.fontFamily}
-          interval={Math.max(0, Math.floor(gvcDailyData.length / 6) - 1)}
+          ticks={getAlignedTicks(gvcDailyData.map(d => d.date), 6)}
           tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           axisLine={AXIS_STYLE.axisLine}
           tickLine={AXIS_STYLE.tickLine}

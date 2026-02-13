@@ -17,7 +17,7 @@ import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getAlignedTicks } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport";
 import { CustomLabel } from "@/lib/chartHelpers";
 
@@ -48,6 +48,12 @@ export function SalesVelocityChart() {
       return { ...d, ma7: Math.round(ma7 * 10) / 10 };
     });
   }, [data]);
+
+  // Calculate tick dates for label alignment
+  const tickDates = useMemo(() => {
+    if (!chartData || chartData.length === 0) return [];
+    return getAlignedTicks(chartData.map(d => d.date), 6);
+  }, [chartData]);
 
   // Calculate stats
   const totalSales = data?.reduce((sum, d) => sum + d.salesCount, 0) || 0;
@@ -112,7 +118,7 @@ export function SalesVelocityChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
-            interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
+            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
             tickFormatter={(v) =>
               new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })
             }
@@ -143,9 +149,7 @@ export function SalesVelocityChart() {
               label={(props: any) => (
                 <CustomLabel
                   {...props}
-                  dataLength={chartData.length}
-                  timeRange={timeRange}
-                  color={CHART_COLORS.primary}
+                  tickDates={tickDates} color={CHART_COLORS.primary}
                   formatter={(value: number) => value.toFixed(0)}
                 />
               )}

@@ -17,7 +17,6 @@ export { HolderDistributionChart } from "./HolderDistributionChart";
 // Advanced analytics charts
 export { MarketDepthChart } from "./MarketDepthChart";
 export { UniqueTradersChart } from "./UniqueTradersChart";
-export { FlipTrackerChart } from "./FlipTrackerChart";
 export { MarketIndicatorsChart } from "./MarketIndicatorsChart";
 export { WhaleActivityChart } from "./WhaleActivityChart";
 export { HoldingPeriodChart } from "./HoldingPeriodChart";

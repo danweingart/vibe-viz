@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getEvents, getPaymentToken, parseEventPrice } from "@/lib/opensea/client";
+import {
+  getTransfersInDateRange,
+  filterToSalesOnly,
+} from "@/lib/etherscan/client";
 import { getEthPrice } from "@/lib/coingecko/client";
+import {
+  enrichTransfersWithPrices,
+  transformToSaleRecords
+} from "@/lib/etherscan/transformer";
+import {
+  validatePriceCoverage,
+  logValidationMetrics
+} from "@/lib/etherscan/validator";
 import type { SaleRecord } from "@/types/api";
 
 export const dynamic = "force-dynamic";
@@ -8,49 +19,47 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const eventType = (searchParams.get("type") as "sale" | "transfer" | "listing") || "sale";
     const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
-    const cursor = searchParams.get("cursor") || undefined;
-    const days = searchParams.get("days") ? parseInt(searchParams.get("days")!) : undefined;
+    const offset = parseInt(searchParams.get("offset") || "0");
+    const days = parseInt(searchParams.get("days") || "30");
 
-    // Calculate timestamp for time range filter
-    const after = days
-      ? Math.floor((Date.now() - days * 24 * 60 * 60 * 1000) / 1000)
-      : undefined;
-
-    const [events, ethPrice] = await Promise.all([
-      getEvents({
-        eventType,
-        limit,
-        next: cursor,
-        after,
-      }),
+    // Fetch ETH price and transfers in parallel
+    const [ethPriceData, allTransfers] = await Promise.all([
       getEthPrice(),
+      getTransfersInDateRange(days),
     ]);
 
-    const sales: SaleRecord[] = events.asset_events.map((event) => {
-      const priceEth = parseEventPrice(event);
+    // Filter to sales only (exclude mints and burns)
+    const salesTransfers = filterToSalesOnly(allTransfers);
 
-      return {
-        id: event.order_hash || `${event.transaction}-${event.nft.identifier}`,
-        tokenId: event.nft.identifier,
-        tokenName: event.nft.name || `Good Vibes Club #${event.nft.identifier}`,
-        imageUrl: event.nft.image_url,
-        priceEth,
-        priceUsd: priceEth * ethPrice.usd,
-        paymentToken: getPaymentToken(event.payment?.symbol),
-        paymentSymbol: event.payment?.symbol || "ETH",
-        seller: event.seller,
-        buyer: event.buyer,
-        timestamp: new Date(event.event_timestamp * 1000),
-        txHash: event.transaction,
-      };
-    });
+    console.log(`Found ${salesTransfers.length} sales in last ${days} days`);
+
+    // Enrich with OpenSea prices
+    const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd);
+
+    // Transform to SaleRecord format
+    const allSales = transformToSaleRecords(enriched);
+
+    // Validate price coverage
+    const enrichedCount = enriched.filter(t => t.priceEth !== undefined).length;
+    const validation = validatePriceCoverage(enrichedCount, salesTransfers.length);
+
+    logValidationMetrics("Events API", [
+      { label: "Price Coverage", result: validation },
+    ]);
+
+    // Sort by timestamp (most recent first)
+    allSales.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+    // Apply pagination
+    const paginatedSales = allSales.slice(offset, offset + limit);
+    const hasMore = offset + limit < allSales.length;
 
     return NextResponse.json({
-      events: sales,
-      nextCursor: events.next,
-      hasMore: !!events.next,
+      events: paginatedSales,
+      nextCursor: hasMore ? String(offset + limit) : null,
+      hasMore,
+      total: allSales.length,
     });
   } catch (error) {
     console.error("Error fetching events:", error);

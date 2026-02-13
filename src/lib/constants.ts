@@ -16,12 +16,17 @@ export const COMPARISON_COLLECTIONS = [
 // OpenSea API
 export const OPENSEA_API_BASE = "https://api.opensea.io/api/v2";
 
-// CoinGecko API
+// Etherscan API V2
+export const ETHERSCAN_API_BASE = "https://api.etherscan.io/v2/api";
+export const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "CMMJMWDWPJYRDDM4UEPFE525HQZAMVK23H";
+export const ETHERSCAN_CHAIN_ID = 1; // Ethereum mainnet
+
+// CoinGecko API (deprecated - migrating to Etherscan)
 export const COINGECKO_API_BASE = "https://api.coingecko.com/api/v3";
 
 // Cache TTLs (in seconds) - Balanced for multi-collection support
 export const CACHE_TTL = {
-  COLLECTION_STATS: 3600, // 1 hour (GVC only)
+  COLLECTION_STATS: 14400, // 4 hours (expensive - fetches all historical data)
   RECENT_EVENTS: 300, // 5 min (GVC only - keeps feed fresh)
   HISTORICAL_EVENTS: 3600, // 1 hour (GVC only)
   ETH_PRICE: 300, // 5 min (global)

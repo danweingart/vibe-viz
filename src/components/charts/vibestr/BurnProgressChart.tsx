@@ -25,6 +25,7 @@ import {
   AXIS_STYLE,
   GRID_STYLE,
   getTooltipContentStyle,
+  getAlignedTicks,
 } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport";
 
@@ -132,7 +133,7 @@ export function BurnProgressChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
-            interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
+            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
             tickFormatter={(v) =>
               new Date(v).toLocaleDateString("en-US", {
                 month: "short",
@@ -163,7 +164,7 @@ export function BurnProgressChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value, name) => {
               if (name === "Cumulative") return [`${Number(value).toFixed(1)}B`];
               if (name === "Rate") return [`${Number(value).toFixed(2)}B/day`];

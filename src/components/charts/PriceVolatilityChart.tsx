@@ -16,7 +16,7 @@ import { usePriceHistory } from "@/hooks";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getAlignedTicks } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport/index";
 import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
@@ -29,6 +29,12 @@ export function PriceVolatilityChart() {
     high: true,
     low: true,
   });
+
+  // Calculate tick dates once for label alignment
+  const tickDates = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    return getAlignedTicks(data.map(d => d.date), 6);
+  }, [data]);
 
   const handleLegendToggle = (key: string) => {
     setVisibleSeries((prev) => ({
@@ -157,7 +163,7 @@ export function PriceVolatilityChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
-            interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
+            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
             tickFormatter={(v) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           />
           <YAxis
@@ -202,15 +208,15 @@ export function PriceVolatilityChart() {
               fill="url(#volatilityGradient)"
               fillOpacity={1}
               dot={(props: any) => {
-                const { index } = props;
-                if (!shouldShowLabel(index, chartData.length, timeRange)) return null;
+                const { payload } = props;
+                if (!tickDates.includes(payload.date)) return null;
                 return <circle {...props} r={3} fill={CHART_COLORS.success} strokeWidth={0} />;
               }}
               label={(props: any) => (
                 <CustomLabel
                   {...props}
-                  dataLength={chartData.length}
-                  timeRange={timeRange}
+                  date={chartData[props.index]?.date}
+                  tickDates={tickDates}
                   color={CHART_COLORS.success}
                   formatter={(value: number) =>
                     currency === "eth" ? `${value.toFixed(2)}Ξ` : `$${value.toFixed(0)}`
@@ -228,15 +234,15 @@ export function PriceVolatilityChart() {
               fill="#0a0a0a"
               fillOpacity={1}
               dot={(props: any) => {
-                const { index } = props;
-                if (!shouldShowLabel(index, chartData.length, timeRange)) return null;
+                const { payload } = props;
+                if (!tickDates.includes(payload.date)) return null;
                 return <circle {...props} r={3} fill={CHART_COLORS.danger} strokeWidth={0} />;
               }}
               label={(props: any) => (
                 <CustomLabel
                   {...props}
-                  dataLength={chartData.length}
-                  timeRange={timeRange}
+                  date={chartData[props.index]?.date}
+                  tickDates={tickDates}
                   color={CHART_COLORS.danger}
                   formatter={(value: number) =>
                     currency === "eth" ? `${value.toFixed(2)}Ξ` : `$${value.toFixed(0)}`

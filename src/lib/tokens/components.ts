@@ -40,12 +40,12 @@ export const CHART_CONTAINER = {
   // Recharts margins
   margins: {
     display: {
-      default: { top: 8, right: 8, left: 0, bottom: 0 },
-      horizontal: { top: 8, right: 8, left: 70, bottom: 8 },
+      default: { top: 30, right: 30, left: 0, bottom: 0 },
+      horizontal: { top: 30, right: 30, left: 70, bottom: 30 },
     },
     export: {
-      default: { top: 20, right: 30, left: 10, bottom: 20 },
-      horizontal: { top: 20, right: 30, left: 80, bottom: 20 },
+      default: { top: 40, right: 50, left: 10, bottom: 20 },
+      horizontal: { top: 40, right: 50, left: 80, bottom: 40 },
     },
   },
 

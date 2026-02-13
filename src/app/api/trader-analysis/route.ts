@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getEvents, parseEventPrice } from "@/lib/opensea/client";
+import {
+  getTransfersInDateRange,
+  filterToSalesOnly,
+} from "@/lib/etherscan/client";
+import { getEthPrice } from "@/lib/coingecko/client";
+import {
+  enrichTransfersWithPrices,
+  transformToSaleRecords,
+} from "@/lib/etherscan/transformer";
 import { cache } from "@/lib/cache/memory";
-import { COLLECTION_SLUG } from "@/lib/constants";
-import type { OpenSeaEvent, DailyTraderStats, FlipRecord } from "@/types/api";
+import type { SaleRecord, DailyTraderStats, FlipRecord } from "@/types/api";
 
 export const dynamic = "force-dynamic";
 
@@ -13,39 +20,6 @@ interface TraderAnalysis {
   topSellers: { address: string; count: number; volume: number }[];
   repeatBuyerRate: number;
   avgHoldingPeriod: number;
-}
-
-async function fetchAllSales(
-  startTimestamp: number,
-  endTimestamp: number,
-  maxPages: number = 20
-): Promise<OpenSeaEvent[]> {
-  const allEvents: OpenSeaEvent[] = [];
-  let next: string | null = null;
-  let pages = 0;
-
-  do {
-    const response = await getEvents(
-      {
-        eventType: "sale",
-        limit: 50,
-        after: startTimestamp,
-        before: endTimestamp,
-        next: next || undefined,
-      },
-      COLLECTION_SLUG
-    );
-
-    allEvents.push(...response.asset_events);
-    next = response.next;
-    pages++;
-
-    if (next && pages < maxPages) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-  } while (next && pages < maxPages);
-
-  return allEvents;
 }
 
 export async function GET(request: NextRequest) {
@@ -59,10 +33,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    const endTimestamp = Math.floor(Date.now() / 1000);
-    const startTimestamp = endTimestamp - days * 24 * 60 * 60;
+    console.log(`Fetching trader analysis for ${days} days...`);
 
-    const sales = await fetchAllSales(startTimestamp, endTimestamp);
+    // Fetch transfers from Etherscan
+    const [ethPriceData, allTransfers] = await Promise.all([
+      getEthPrice(),
+      getTransfersInDateRange(days),
+    ]);
+
+    // Filter to sales only
+    const salesTransfers = filterToSalesOnly(allTransfers);
+
+    // Enrich with prices
+    const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd);
+
+    // Transform to SaleRecord format
+    const sales = transformToSaleRecords(enriched);
+
+    console.log(`Analyzing ${sales.length} sales...`);
 
     if (sales.length === 0) {
       return NextResponse.json({
@@ -84,14 +72,14 @@ export async function GET(request: NextRequest) {
     const tokenHistory = new Map<string, { buyer: string; price: number; timestamp: number }[]>();
 
     // Group by date for daily stats
-    const salesByDate = new Map<string, OpenSeaEvent[]>();
+    const salesByDate = new Map<string, SaleRecord[]>();
 
     for (const sale of sales) {
-      const date = new Date(sale.event_timestamp * 1000).toISOString().split("T")[0];
-      const price = parseEventPrice(sale);
-      const buyer = sale.buyer?.toLowerCase() || "";
-      const seller = sale.seller?.toLowerCase() || "";
-      const tokenId = sale.nft?.identifier || "";
+      const date = sale.timestamp.toISOString().split("T")[0];
+      const price = sale.priceEth;
+      const buyer = sale.buyer.toLowerCase();
+      const seller = sale.seller.toLowerCase();
+      const tokenId = sale.tokenId;
 
       // Track by date
       if (!salesByDate.has(date)) {
@@ -100,29 +88,23 @@ export async function GET(request: NextRequest) {
       salesByDate.get(date)!.push(sale);
 
       // Track buyers
-      if (buyer) {
-        allBuyers.add(buyer);
-        const existing = buyerCounts.get(buyer) || { count: 0, volume: 0 };
-        buyerCounts.set(buyer, { count: existing.count + 1, volume: existing.volume + price });
-      }
+      allBuyers.add(buyer);
+      const existingBuyer = buyerCounts.get(buyer) || { count: 0, volume: 0 };
+      buyerCounts.set(buyer, { count: existingBuyer.count + 1, volume: existingBuyer.volume + price });
 
       // Track sellers
-      if (seller) {
-        const existing = sellerCounts.get(seller) || { count: 0, volume: 0 };
-        sellerCounts.set(seller, { count: existing.count + 1, volume: existing.volume + price });
-      }
+      const existingSeller = sellerCounts.get(seller) || { count: 0, volume: 0 };
+      sellerCounts.set(seller, { count: existingSeller.count + 1, volume: existingSeller.volume + price });
 
       // Track token history for flip detection
-      if (tokenId) {
-        if (!tokenHistory.has(tokenId)) {
-          tokenHistory.set(tokenId, []);
-        }
-        tokenHistory.get(tokenId)!.push({
-          buyer,
-          price,
-          timestamp: sale.event_timestamp,
-        });
+      if (!tokenHistory.has(tokenId)) {
+        tokenHistory.set(tokenId, []);
       }
+      tokenHistory.get(tokenId)!.push({
+        buyer,
+        price,
+        timestamp: Math.floor(sale.timestamp.getTime() / 1000), // Convert to seconds
+      });
     }
 
     // Calculate daily stats
@@ -137,19 +119,16 @@ export async function GET(request: NextRequest) {
       let newBuyers = 0;
 
       for (const sale of daySales) {
-        const buyer = sale.buyer?.toLowerCase() || "";
-        const seller = sale.seller?.toLowerCase() || "";
+        const buyer = sale.buyer.toLowerCase();
+        const seller = sale.seller.toLowerCase();
 
-        if (buyer) {
-          dayBuyers.add(buyer);
-          if (!seenBuyers.has(buyer)) {
-            newBuyers++;
-            seenBuyers.add(buyer);
-          }
+        dayBuyers.add(buyer);
+        if (!seenBuyers.has(buyer)) {
+          newBuyers++;
+          seenBuyers.add(buyer);
         }
-        if (seller) {
-          daySellers.add(seller);
-        }
+
+        daySellers.add(seller);
       }
 
       dailyStats.push({
@@ -176,8 +155,6 @@ export async function GET(request: NextRequest) {
           const buy = history[i - 1];
           const sell = history[i];
 
-          // Check if seller was previous buyer (actual flip)
-          // Note: In this data, we're tracking all resales for the token
           const holdingDays = Math.round((sell.timestamp - buy.timestamp) / 86400);
           const profit = sell.price - buy.price;
           const profitPercent = buy.price > 0 ? (profit / buy.price) * 100 : 0;
@@ -227,6 +204,8 @@ export async function GET(request: NextRequest) {
 
     // Cache for 10 minutes
     await cache.set(cacheKey, result, 600);
+
+    console.log("Trader analysis complete");
 
     return NextResponse.json(result);
   } catch (error) {

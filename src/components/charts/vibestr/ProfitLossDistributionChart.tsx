@@ -167,7 +167,7 @@ export function ProfitLossDistributionChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value) => [formatNumber(Number(value)), "Price Points"]}
           />
           {visibleSeries.distribution && (

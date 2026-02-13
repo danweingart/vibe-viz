@@ -16,7 +16,7 @@ import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatEth, formatUsd, formatDate } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getAlignedTicks } from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport";
 import { CustomLabel } from "@/lib/chartHelpers";
 
@@ -45,6 +45,12 @@ export function VolumeChart() {
       displayVolume: currency === "eth" ? d.volume : d.volumeUsd,
     }));
   }, [data, currency]);
+
+  // Calculate tick dates for label alignment
+  const tickDates = useMemo(() => {
+    if (!chartData || chartData.length === 0) return [];
+    return getAlignedTicks(chartData.map(d => d.date), 6);
+  }, [chartData]);
 
   // Calculate stats
   const totalVolume = chartData.reduce((sum, d) => sum + d.displayVolume, 0);
@@ -108,7 +114,7 @@ export function VolumeChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
-            interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
+            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
             tickFormatter={(v) =>
               new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })
             }
@@ -138,11 +144,7 @@ export function VolumeChart() {
               fill={CHART_COLORS.primary}
               radius={[4, 4, 0, 0]}
               label={(props: any) => (
-                <CustomLabel
-                  {...props}
-                  dataLength={chartData.length}
-                  timeRange={timeRange}
-                  color={CHART_COLORS.primary}
+                <CustomLabel {...props} tickDates={tickDates} color={CHART_COLORS.primary}
                   formatter={(value: number) =>
                     currency === "eth" ? `${value.toFixed(1)}Ξ` : `$${(value / 1000).toFixed(0)}k`
                   }

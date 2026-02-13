@@ -41,7 +41,10 @@ export function WhaleActivityChart() {
     // Create a map of cross-activity for quick lookup
     const crossMap = new Map(crossData.map((w) => [w.address, w.count]));
 
-    const top5 = activeData.slice(0, 5);
+    // Sort by total volume (descending) and take top 5
+    const top5 = [...activeData]
+      .sort((a, b) => b.volume - a.volume)
+      .slice(0, 5);
     const totalVol = activeData.reduce((sum, w) => sum + w.volume, 0);
     const top5Total = top5.reduce((sum, w) => sum + w.count, 0);
 
@@ -148,7 +151,7 @@ export function WhaleActivityChart() {
               />
               <Tooltip
                 contentStyle={getTooltipContentStyle()}
-                labelStyle={{ color: "#fafafa" }}
+                labelStyle={{ color: "#ffffff" }}
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
                   const d = payload[0]?.payload;

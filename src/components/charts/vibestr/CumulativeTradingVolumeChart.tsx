@@ -24,7 +24,7 @@ import {
   AXIS_STYLE,
   GRID_STYLE,
   getTooltipContentStyle,
-} from "@/lib/chartConfig";
+  getAlignedTicks,} from "@/lib/chartConfig";
 import { getChartFilename } from "@/lib/chartExport";
 
 export function CumulativeTradingVolumeChart() {
@@ -137,7 +137,7 @@ export function CumulativeTradingVolumeChart() {
             fontFamily={AXIS_STYLE.fontFamily}
             axisLine={AXIS_STYLE.axisLine}
             tickLine={AXIS_STYLE.tickLine}
-            interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
+            ticks={getAlignedTicks(chartData.map(d => d.date), 6)}
             tickFormatter={(v) =>
               new Date(v).toLocaleDateString("en-US", {
                 month: "short",
@@ -156,7 +156,7 @@ export function CumulativeTradingVolumeChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#fafafa" }}
+            labelStyle={{ color: "#ffffff" }}
             formatter={(value) => [formatUsd(Number(value), 0), "Total Volume"]}
             labelFormatter={(label) => formatDate(label)}
           />

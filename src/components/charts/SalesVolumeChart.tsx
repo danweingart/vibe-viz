@@ -18,15 +18,8 @@ import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useChartSettings } from "@/providers/ChartSettingsProvider";
 import { formatDate, formatNumber, formatEth, formatUsd } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
-import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle } from "@/lib/chartConfig";
+import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getAlignedTicks } from "@/lib/chartConfig";
 import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
-
-// Generate evenly spaced tick values for X-axis alignment across charts
-function getAlignedTicks(dates: string[], count: number): string[] {
-  if (dates.length <= count) return dates;
-  const step = (dates.length - 1) / (count - 1);
-  return Array.from({ length: count }, (_, i) => dates[Math.round(i * step)]);
-}
 
 type ViewMode = "sales" | "volume";
 
@@ -54,6 +47,12 @@ export function SalesVolumeChart() {
       };
     });
   }, [data, currency]);
+
+  // Calculate tick dates for label alignment
+  const tickDates = useMemo(() => {
+    if (!chartData || chartData.length === 0) return [];
+    return getAlignedTicks(chartData.map(d => d.date), 6);
+  }, [chartData]);
 
   // Calculate stats values for export
   const exportStats = useMemo(() => {
@@ -213,8 +212,7 @@ export function SalesVolumeChart() {
                 label={(props: any) => (
                   <CustomLabel
                     {...props}
-                    dataLength={chartData.length}
-                    timeRange={timeRange}
+                    tickDates={tickDates}
                     color={CHART_COLORS.primary}
                     formatter={(value: number) => value.toFixed(0)}
                   />
@@ -233,8 +231,7 @@ export function SalesVolumeChart() {
                 label={(props: any) => (
                   <CustomLabel
                     {...props}
-                    dataLength={chartData.length}
-                    timeRange={timeRange}
+                    tickDates={tickDates}
                     color={CHART_COLORS.primary}
                     formatter={(value: number) =>
                       currency === "eth" ? `${value.toFixed(1)}Ξ` : `$${(value / 1000).toFixed(0)}k`

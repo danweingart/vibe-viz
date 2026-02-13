@@ -9,6 +9,7 @@ import { useCollectionStats } from "@/hooks";
 import { formatNumber } from "@/lib/utils";
 import { CHART_COLORS } from "@/lib/constants";
 import { CHART_MARGINS, AXIS_STYLE, GRID_STYLE, getTooltipContentStyle, getYAxisWidth } from "@/lib/chartConfig";
+import { CustomLabel } from "@/lib/chartHelpers";
 
 // Simulated holder distribution based on common NFT patterns
 // In production, this would come from on-chain data or an indexer
@@ -92,7 +93,19 @@ export function HolderDistributionChart() {
               );
             }}
           />
-          <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+          <Bar
+            dataKey="count"
+            radius={[0, 4, 4, 0]}
+            label={(props: any) => (
+              <CustomLabel
+                {...props}
+                dataLength={chartData.length}
+                timeRange={30}
+                color={chartData[props.index]?.color || CHART_COLORS.primary}
+                formatter={(value: number) => value.toFixed(0)}
+              />
+            )}
+          >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}

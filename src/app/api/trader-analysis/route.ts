@@ -210,6 +210,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching trader analysis:", error);
+
+    // Try to return stale cache on error
+    const searchParams = request.nextUrl.searchParams;
+    const days = Math.min(parseInt(searchParams.get("days") || "30"), 90);
+    const cacheKey = `trader-analysis-${days}`;
+
+    const staleCache = await cache.get<TraderAnalysis>(cacheKey, true);
+    if (staleCache) {
+      console.log("Returning stale cached trader analysis");
+      return NextResponse.json(staleCache);
+    }
+
     return NextResponse.json(
       { error: "Failed to fetch trader analysis" },
       { status: 500 }

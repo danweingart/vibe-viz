@@ -157,6 +157,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(dailyStats);
   } catch (error) {
     console.error("Error fetching price history:", error);
+
+    // Try to return stale cache on error
+    const searchParams = request.nextUrl.searchParams;
+    const days = Math.min(parseInt(searchParams.get("days") || "7"), 365);
+    const collectionSlug = searchParams.get("collection") || COLLECTION_SLUG;
+    const cacheKey = `price-history-${days}-${collectionSlug}`;
+
+    const staleCache = await cache.get<DailyStats[]>(cacheKey, true);
+    if (staleCache) {
+      console.log("Returning stale cached price history");
+      return NextResponse.json(staleCache);
+    }
+
     return NextResponse.json(
       { error: "Failed to fetch price history" },
       { status: 500 }

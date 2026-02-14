@@ -181,6 +181,19 @@ export async function GET() {
     return NextResponse.json(indicators);
   } catch (error) {
     console.error("Error calculating market indicators:", error);
+
+    // Try to return stale cache on error
+    const cacheKey = `market-indicators-${COLLECTION_SLUG}`;
+    const staleCache = await cache.get<MarketIndicators>(cacheKey, true);
+    if (staleCache) {
+      console.log("Returning stale cached market indicators");
+      return NextResponse.json({
+        ...staleCache,
+        lastUpdated: new Date().toISOString(),
+        _stale: true,
+      });
+    }
+
     return NextResponse.json(
       { error: "Failed to calculate market indicators" },
       { status: 500 }

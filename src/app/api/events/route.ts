@@ -12,6 +12,7 @@ import {
   validatePriceCoverage,
   logValidationMetrics
 } from "@/lib/etherscan/validator";
+import { cache } from "@/lib/cache/memory";
 import type { SaleRecord } from "@/types/api";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,12 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
     const offset = parseInt(searchParams.get("offset") || "0");
     const days = parseInt(searchParams.get("days") || "30");
+
+    const cacheKey = `events-${days}-${limit}-${offset}`;
+    const cached = await cache.get<{ events: SaleRecord[]; nextCursor: string | null; hasMore: boolean; total: number }>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
 
     // Fetch ETH price and transfers in parallel
     const [ethPriceData, allTransfers] = await Promise.all([
@@ -55,14 +62,36 @@ export async function GET(request: NextRequest) {
     const paginatedSales = allSales.slice(offset, offset + limit);
     const hasMore = offset + limit < allSales.length;
 
-    return NextResponse.json({
+    const result = {
       events: paginatedSales,
       nextCursor: hasMore ? String(offset + limit) : null,
       hasMore,
       total: allSales.length,
-    });
+    };
+
+    // Cache for 2 minutes
+    await cache.set(cacheKey, result, 120);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching events:", error);
+
+    // Try to return stale cache on error
+    const searchParams = request.nextUrl.searchParams;
+    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
+    const offset = parseInt(searchParams.get("offset") || "0");
+    const days = parseInt(searchParams.get("days") || "30");
+    const cacheKey = `events-${days}-${limit}-${offset}`;
+
+    const staleCache = await cache.get<{ events: SaleRecord[]; nextCursor: string | null; hasMore: boolean; total: number }>(cacheKey, true);
+    if (staleCache) {
+      console.log("Returning stale cached events");
+      return NextResponse.json({
+        ...staleCache,
+        _stale: true,
+      });
+    }
+
     return NextResponse.json(
       { error: "Failed to fetch events" },
       { status: 500 }

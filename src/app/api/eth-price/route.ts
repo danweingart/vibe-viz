@@ -29,6 +29,18 @@ export async function GET() {
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching ETH price:", error);
+
+    // Try to return stale cache on error
+    const staleCache = await cache.get<EthPrice>("eth-price", true);
+    if (staleCache) {
+      console.log("Returning stale cached ETH price");
+      return NextResponse.json({
+        ...staleCache,
+        lastUpdated: new Date().toISOString(),
+        _stale: true,
+      });
+    }
+
     return NextResponse.json(
       { error: "Failed to fetch ETH price" },
       { status: 500 }

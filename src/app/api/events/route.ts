@@ -12,7 +12,7 @@ import {
   validatePriceCoverage,
   logValidationMetrics
 } from "@/lib/etherscan/validator";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import type { SaleRecord } from "@/types/api";
 
 export const dynamic = "force-dynamic";

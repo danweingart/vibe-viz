@@ -9,7 +9,7 @@ import {
   transformToSaleRecords,
   calculateFloorPrice,
 } from "@/lib/etherscan/transformer";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import { CACHE_TTL, COLLECTION_SLUG, CONTRACT_ADDRESS, COMPARISON_COLLECTIONS } from "@/lib/constants";
 import type { DailyStats, SaleRecord } from "@/types/api";
 

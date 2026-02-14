@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 
 export const dynamic = "force-dynamic";
 
@@ -23,10 +23,19 @@ export async function POST() {
 }
 
 export async function GET() {
-  // Return cache stats
-  const stats = cache.getStats();
-  return NextResponse.json({
-    cacheSize: stats.size,
-    cachedKeys: stats.keys,
-  });
+  try {
+    // Return cache stats
+    const stats = await cache.getStats();
+    return NextResponse.json({
+      totalEntries: stats.totalEntries,
+      expiredEntries: stats.expiredEntries,
+      totalSize: stats.totalSize,
+    });
+  } catch (error) {
+    console.error("Error getting cache stats:", error);
+    return NextResponse.json(
+      { error: "Failed to get cache stats" },
+      { status: 500 }
+    );
+  }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getEthPrice } from "@/lib/coingecko/client";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import { CACHE_TTL } from "@/lib/constants";
 import type { EthPrice } from "@/types/api";
 

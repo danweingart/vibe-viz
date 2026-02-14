@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getVibestrData } from "@/lib/nftstrategy/client";
 import { getEthPrice } from "@/lib/coingecko/client";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import { VIBESTR_CACHE_TTL } from "@/lib/constants";
 import { normalizeStrategyData } from "@/lib/vibestr/transform";
 import type { TokenStats } from "@/types/vibestr";

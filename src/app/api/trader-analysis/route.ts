@@ -8,7 +8,7 @@ import {
   enrichTransfersWithPrices,
   transformToSaleRecords,
 } from "@/lib/etherscan/transformer";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import type { SaleRecord, DailyTraderStats, FlipRecord } from "@/types/api";
 
 export const dynamic = "force-dynamic";

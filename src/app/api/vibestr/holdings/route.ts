@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import { VIBESTR_CACHE_TTL, VIBESTR_STRATEGY_ID } from "@/lib/constants";
 
 const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY || "";

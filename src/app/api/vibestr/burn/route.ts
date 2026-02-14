@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPublicClient } from "@/lib/blockchain/client";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import { VIBESTR_TOKEN_CONTRACT } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";

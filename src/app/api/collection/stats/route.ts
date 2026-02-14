@@ -10,7 +10,7 @@ import {
   enrichTransfersWithPrices,
   transformToSaleRecords,
 } from "@/lib/etherscan/transformer";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import { CACHE_TTL, CONTRACT_ADDRESS } from "@/lib/constants";
 import type { CollectionStats } from "@/types/api";
 

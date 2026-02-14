@@ -10,6 +10,10 @@
     {
       "path": "/api/vibestr/snapshot",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/admin/cleanup-cache",
+      "schedule": "0 */6 * * *"
     }
   ]
 }

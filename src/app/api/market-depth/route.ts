@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getListings, getCollectionOffers, parseListingPrice } from "@/lib/opensea/client";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import { COLLECTION_SLUG } from "@/lib/constants";
 import type { MarketDepth, OpenSeaOffer } from "@/types/api";
 

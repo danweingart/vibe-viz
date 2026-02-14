@@ -9,7 +9,7 @@ import {
   enrichTransfersWithPrices,
   transformToSaleRecords,
 } from "@/lib/etherscan/transformer";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import { COLLECTION_SLUG } from "@/lib/constants";
 import type { MarketIndicators, SaleRecord } from "@/types/api";
 

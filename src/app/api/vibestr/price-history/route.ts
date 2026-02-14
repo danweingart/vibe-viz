@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSnapshots } from "@/lib/db/postgres-vibestr";
-import { cache } from "@/lib/cache/memory";
+import { cache } from "@/lib/cache/postgres";
 import { VIBESTR_CACHE_TTL } from "@/lib/constants";
 import {
   snapshotsToDailyStats,

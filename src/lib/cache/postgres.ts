@@ -3,17 +3,53 @@
  *
  * Unlike in-memory cache, this survives serverless cold starts.
  * Cache entries persist across function invocations.
+ *
+ * Auto-migrates on first use. Falls back gracefully if Postgres unavailable.
  */
 
 import { sql } from '@vercel/postgres';
 
 export class PostgresCache {
+  private migrationAttempted = false;
+  private isAvailable = true;
+
+  /**
+   * Auto-migrate: Create table if it doesn't exist
+   */
+  private async ensureTable(): Promise<void> {
+    if (this.migrationAttempted) return;
+    this.migrationAttempted = true;
+
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS cache_entries (
+          key TEXT PRIMARY KEY,
+          value JSONB NOT NULL,
+          expires_at TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS idx_cache_expires ON cache_entries(expires_at)
+      `;
+
+      console.log('✓ Postgres cache table ready');
+    } catch (error) {
+      console.error('PostgresCache: Auto-migration failed, cache disabled:', error);
+      this.isAvailable = false;
+    }
+  }
   /**
    * Get cached data by key
    * @param key - Cache key
    * @param forceReturn - If true, return even if expired (for stale-while-revalidate)
    */
   async get<T>(key: string, forceReturn = false): Promise<T | null> {
+    await this.ensureTable();
+    if (!this.isAvailable) return null;
+
     try {
       const result = await sql`
         SELECT value, expires_at
@@ -49,6 +85,9 @@ export class PostgresCache {
    * @param ttlSeconds - Time to live in seconds
    */
   async set<T>(key: string, data: T, ttlSeconds: number): Promise<void> {
+    await this.ensureTable();
+    if (!this.isAvailable) return;
+
     try {
       const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
 

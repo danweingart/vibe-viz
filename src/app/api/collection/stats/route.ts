@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCollectionStats as getOpenSeaStats, getBestListing, parseListingPrice } from "@/lib/opensea/client";
 import {
-  getAllTransfers,
+  getTransfersInDateRange,
   filterToSalesOnly,
   getTotalSupply,
 } from "@/lib/etherscan/client";
@@ -24,38 +24,38 @@ export async function GET() {
       return NextResponse.json(cached);
     }
 
-    console.log("Fetching collection stats (OpenSea for owners, Etherscan for complete volume history)...");
+    console.log("Fetching collection stats (using OpenSea totals + last 30d from Etherscan)...");
 
     // Fetch data in parallel:
-    // - OpenSea stats for current owners
-    // - ALL transfers from Etherscan for accurate all-time volume
+    // - OpenSea stats (has total volume, owners, floor price)
+    // - Last 30 days from Etherscan (for recent activity metrics)
     // - ETH price
-    const [openSeaStats, allTransfers, totalSupply, ethPriceData] = await Promise.all([
+    const [openSeaStats, recentTransfers, totalSupply, ethPriceData] = await Promise.all([
       getOpenSeaStats(),
-      getAllTransfers(CONTRACT_ADDRESS, 22021222), // Contract deployment block
+      getTransfersInDateRange(30, CONTRACT_ADDRESS), // Only last 30 days
       getTotalSupply(CONTRACT_ADDRESS),
       getEthPrice(),
     ]);
 
-    // Get current owners from OpenSea (source of truth)
+    // Get metrics from OpenSea (source of truth for totals)
     const numOwners = openSeaStats.total.num_owners || 0;
     const floorPrice = openSeaStats.total.floor_price || 0;
+    const totalVolume = openSeaStats.total.volume || 0; // OpenSea has all-time volume
+    const totalSales = openSeaStats.total.sales || 0; // OpenSea has all-time sales count
 
-    console.log(`OpenSea - Owners: ${numOwners}, Floor: ${floorPrice} ETH`);
+    console.log(`OpenSea - Owners: ${numOwners}, Floor: ${floorPrice} ETH, Total Volume: ${totalVolume} ETH`);
 
-    // Calculate all-time volume from Etherscan (complete historical data)
-    const salesTransfers = filterToSalesOnly(allTransfers);
-    console.log(`Etherscan - Found ${allTransfers.length} total transfers, ${salesTransfers.length} sales`);
+    // Calculate 30D metrics from recent Etherscan data
+    const salesTransfers = filterToSalesOnly(recentTransfers);
+    console.log(`Etherscan - Found ${salesTransfers.length} sales in last 30 days`);
 
     // Enrich with OpenSea prices
     const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd);
-    const allSales = transformToSaleRecords(enriched);
+    const recentSales = transformToSaleRecords(enriched);
 
-    console.log(`Enriched ${allSales.length}/${salesTransfers.length} sales with prices`);
+    console.log(`Enriched ${recentSales.length}/${salesTransfers.length} recent sales with prices`);
 
-    // Calculate all-time totals from enriched Etherscan data
-    const totalVolume = allSales.reduce((sum, s) => sum + s.priceEth, 0);
-    const totalSales = allSales.length;
+    // Calculate average price from all-time totals
     const avgPrice = totalSales > 0 ? totalVolume / totalSales : 0;
 
     console.log(`Calculated - Total Volume: ${totalVolume.toFixed(2)} ETH, Total Sales: ${totalSales}, Avg: ${avgPrice.toFixed(4)} ETH`);
@@ -63,12 +63,12 @@ export async function GET() {
     // Calculate market cap = floor × total supply
     const marketCap = floorPrice * totalSupply;
 
-    // Calculate 24h stats from enriched data
+    // Calculate 24h stats from recent sales data
     const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
     const twoDaysAgo = Date.now() - 48 * 60 * 60 * 1000;
 
-    const sales24h = allSales.filter(s => s.timestamp.getTime() >= oneDayAgo);
-    const salesPrev24h = allSales.filter(s =>
+    const sales24h = recentSales.filter(s => s.timestamp.getTime() >= oneDayAgo);
+    const salesPrev24h = recentSales.filter(s =>
       s.timestamp.getTime() >= twoDaysAgo && s.timestamp.getTime() < oneDayAgo
     );
 
@@ -82,18 +82,18 @@ export async function GET() {
     const result: CollectionStats = {
       floorPrice, // From OpenSea
       floorPriceUsd: floorPrice * ethPriceData.usd,
-      totalVolume, // From Etherscan (all-time, enriched with OpenSea prices)
+      totalVolume, // From OpenSea (all-time totals)
       totalVolumeUsd: totalVolume * ethPriceData.usd,
-      totalSales, // From Etherscan (all-time)
-      numOwners, // From OpenSea (source of truth)
+      totalSales, // From OpenSea (all-time totals)
+      numOwners, // From OpenSea
       marketCap, // Calculated: floor × supply
       marketCapUsd: marketCap * ethPriceData.usd,
-      avgPrice, // Calculated from Etherscan data
+      avgPrice, // Calculated from totals
       avgPriceUsd: avgPrice * ethPriceData.usd,
-      volume24h, // Calculated from Etherscan data
+      volume24h, // From recent Etherscan data
       volume24hUsd: volume24h * ethPriceData.usd,
-      volume24hChange, // Calculated from Etherscan data
-      sales24h: sales24h.length, // Calculated from Etherscan data
+      volume24hChange, // From recent Etherscan data
+      sales24h: sales24h.length, // From recent Etherscan data
       lastUpdated: new Date().toISOString(),
     };
 

@@ -10,6 +10,7 @@
  */
 
 import { sql } from "@vercel/postgres";
+import { withRetry, trackDatabaseOperation } from "@/lib/db/connection";
 
 interface PriceCache {
   txHash: string;
@@ -80,12 +81,14 @@ export async function getPriceCache(txHash: string): Promise<Omit<PriceCache, "t
 
   // L2 Cache check (Postgres, slower but persistent)
   try {
-    const result = await sql`
-      SELECT price_eth, price_usd, payment_token, payment_symbol, protocol, image_url
-      FROM price_cache
-      WHERE tx_hash = ${key}
-      LIMIT 1
-    `;
+    const result = await withRetry(async () => {
+      return await sql`
+        SELECT price_eth, price_usd, payment_token, payment_symbol, protocol, image_url
+        FROM price_cache
+        WHERE tx_hash = ${key}
+        LIMIT 1
+      `;
+    });
 
     if (result.rows && result.rows.length > 0) {
       const row = result.rows[0];
@@ -106,9 +109,13 @@ export async function getPriceCache(txHash: string): Promise<Omit<PriceCache, "t
       });
       touchLRU(key);
 
+      trackDatabaseOperation(true);
       return data;
     }
+
+    trackDatabaseOperation(true);
   } catch (error) {
+    trackDatabaseOperation(false);
     console.error(`Failed to fetch price from L2 cache for ${key}:`, error);
     // Fall through to return null
   }
@@ -150,25 +157,29 @@ export async function setPriceCache(
 
   // L2 Cache (Postgres) - write asynchronously, don't block on failure
   try {
-    await sql`
-      INSERT INTO price_cache (tx_hash, price_eth, payment_token, payment_symbol, protocol, image_url)
-      VALUES (
-        ${key},
-        ${data.priceEth},
-        ${data.paymentToken},
-        ${data.paymentSymbol},
-        ${data.protocol},
-        ${data.imageUrl || ""}
-      )
-      ON CONFLICT (tx_hash) DO UPDATE SET
-        price_eth = ${data.priceEth},
-        payment_token = ${data.paymentToken},
-        payment_symbol = ${data.paymentSymbol},
-        protocol = ${data.protocol},
-        image_url = ${data.imageUrl || ""},
-        updated_at = NOW()
-    `;
+    await withRetry(async () => {
+      return await sql`
+        INSERT INTO price_cache (tx_hash, price_eth, payment_token, payment_symbol, protocol, image_url)
+        VALUES (
+          ${key},
+          ${data.priceEth},
+          ${data.paymentToken},
+          ${data.paymentSymbol},
+          ${data.protocol},
+          ${data.imageUrl || ""}
+        )
+        ON CONFLICT (tx_hash) DO UPDATE SET
+          price_eth = ${data.priceEth},
+          payment_token = ${data.paymentToken},
+          payment_symbol = ${data.paymentSymbol},
+          protocol = ${data.protocol},
+          image_url = ${data.imageUrl || ""},
+          updated_at = NOW()
+      `;
+    });
+    trackDatabaseOperation(true);
   } catch (error) {
+    trackDatabaseOperation(false);
     console.error(`Failed to write price to L2 cache for ${key}:`, error);
     // Don't throw - cache failures shouldn't break the app
   }

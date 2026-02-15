@@ -8,6 +8,7 @@
  */
 
 import { sql } from '@vercel/postgres';
+import { withRetry, trackDatabaseOperation } from '@/lib/db/connection';
 
 export class PostgresCache {
   private migrationAttempted = false;
@@ -51,11 +52,15 @@ export class PostgresCache {
     if (!this.isAvailable) return null;
 
     try {
-      const result = await sql`
-        SELECT value, expires_at
-        FROM cache_entries
-        WHERE key = ${key}
-      `;
+      const result = await withRetry(async () => {
+        return await sql`
+          SELECT value, expires_at
+          FROM cache_entries
+          WHERE key = ${key}
+        `;
+      });
+
+      trackDatabaseOperation(true);
 
       if (!result.rows || result.rows.length === 0) {
         return null;
@@ -73,6 +78,7 @@ export class PostgresCache {
       // Parse JSONB value
       return value as T;
     } catch (error) {
+      trackDatabaseOperation(false);
       console.error(`PostgresCache.get error for key "${key}":`, error);
       return null;
     }
@@ -91,16 +97,21 @@ export class PostgresCache {
     try {
       const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
 
-      await sql`
-        INSERT INTO cache_entries (key, value, expires_at)
-        VALUES (${key}, ${JSON.stringify(data)}::jsonb, ${expiresAt.toISOString()})
-        ON CONFLICT (key)
-        DO UPDATE SET
-          value = ${JSON.stringify(data)}::jsonb,
-          expires_at = ${expiresAt.toISOString()},
-          updated_at = NOW()
-      `;
+      await withRetry(async () => {
+        return await sql`
+          INSERT INTO cache_entries (key, value, expires_at)
+          VALUES (${key}, ${JSON.stringify(data)}::jsonb, ${expiresAt.toISOString()})
+          ON CONFLICT (key)
+          DO UPDATE SET
+            value = ${JSON.stringify(data)}::jsonb,
+            expires_at = ${expiresAt.toISOString()},
+            updated_at = NOW()
+        `;
+      });
+
+      trackDatabaseOperation(true);
     } catch (error) {
+      trackDatabaseOperation(false);
       console.error(`PostgresCache.set error for key "${key}":`, error);
       // Don't throw - cache failures shouldn't break the app
     }

@@ -46,9 +46,9 @@ export async function enrichTransfersWithPrices(
   const enriched: EnrichedTransfer[] = [];
   const txHashesToFetch: string[] = [];
 
-  // Check cache first
+  // Check cache first (L1 + L2)
   for (const transfer of transfers) {
-    const cached = getPriceCache(transfer.hash);
+    const cached = await getPriceCache(transfer.hash);
     if (cached) {
       enriched.push({
         ...transfer,
@@ -149,8 +149,8 @@ export async function enrichTransfersWithPrices(
               imageUrl,
             };
 
-            // Cache for future lookups
-            setPriceCache(transfer.hash, {
+            // Cache for future lookups (both L1 and L2)
+            await setPriceCache(transfer.hash, {
               priceEth,
               paymentToken,
               paymentSymbol,

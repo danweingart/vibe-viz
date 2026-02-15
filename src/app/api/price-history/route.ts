@@ -11,11 +11,13 @@ import {
 } from "@/lib/etherscan/transformer";
 import { cache } from "@/lib/cache/postgres";
 import { CACHE_TTL, COLLECTION_SLUG, CONTRACT_ADDRESS, COMPARISON_COLLECTIONS } from "@/lib/constants";
+import { withTimeout, timeoutWithCache } from "@/lib/middleware/timeout";
 import type { DailyStats, SaleRecord } from "@/types/api";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  return withTimeout(async () => {
   try {
     const searchParams = request.nextUrl.searchParams;
     const days = Math.min(parseInt(searchParams.get("days") || "7"), 365);
@@ -175,4 +177,12 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+  }, timeoutWithCache(async () => {
+    // Fallback to stale cache on timeout
+    const searchParams = request.nextUrl.searchParams;
+    const days = Math.min(parseInt(searchParams.get("days") || "7"), 365);
+    const collectionSlug = searchParams.get("collection") || COLLECTION_SLUG;
+    const cacheKey = `price-history-${days}-${collectionSlug}`;
+    return await cache.get<DailyStats[]>(cacheKey, true);
+  }));
 }

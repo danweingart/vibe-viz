@@ -12,11 +12,13 @@ import {
 } from "@/lib/etherscan/transformer";
 import { cache } from "@/lib/cache/postgres";
 import { CACHE_TTL, CONTRACT_ADDRESS } from "@/lib/constants";
+import { withTimeout, timeoutWithCache } from "@/lib/middleware/timeout";
 import type { CollectionStats } from "@/types/api";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  return withTimeout(async () => {
   try {
     // Check cache first
     const cached = await cache.get<CollectionStats>("collection-stats");
@@ -138,4 +140,8 @@ export async function GET() {
       { status: 500 }
     );
   }
+  }, timeoutWithCache(async () => {
+    // Fallback to stale cache on timeout
+    return await cache.get<CollectionStats>("collection-stats", true);
+  }));
 }

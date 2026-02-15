@@ -24,14 +24,14 @@ export const ETHERSCAN_CHAIN_ID = 1; // Ethereum mainnet
 // CoinGecko API (deprecated - migrating to Etherscan)
 export const COINGECKO_API_BASE = "https://api.coingecko.com/api/v3";
 
-// Cache TTLs (in seconds) - Optimized to reduce expensive API calls
+// Cache TTLs (in seconds) - Balanced for performance + data freshness
 export const CACHE_TTL = {
-  COLLECTION_STATS: 86400, // 24 hours (very expensive - fetches all historical data, metrics stable daily)
-  RECENT_EVENTS: 900, // 15 min (was 5min - sales don't need real-time updates)
+  COLLECTION_STATS: 7200, // 2 hours (balance: floor price freshness vs API cost)
+  RECENT_EVENTS: 900, // 15 min (sales feed doesn't need real-time)
   HISTORICAL_EVENTS: 3600, // 1 hour (GVC only)
-  ETH_PRICE: 600, // 10 min (was 5min - price changes don't need instant updates)
+  ETH_PRICE: 600, // 10 min (price changes don't need instant updates)
   HOLDER_DISTRIBUTION: 3600, // 1 hour (GVC only)
-  PRICE_HISTORY: 21600, // 6 hours (6x multiplier for comparison)
+  PRICE_HISTORY: 21600, // 6 hours (historical data is stable)
 } as const;
 
 // ETH token addresses

@@ -1,18 +1,30 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cache } from "@/lib/cache/postgres";
 
 export const dynamic = "force-dynamic";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    // Invalidate all cached data
-    await cache.clear();
+    const searchParams = request.nextUrl.searchParams;
+    const key = searchParams.get("key");
 
-    return NextResponse.json({
-      success: true,
-      message: "Cache cleared successfully",
-      timestamp: new Date().toISOString(),
-    });
+    if (key) {
+      // Invalidate specific cache key
+      await cache.delete(key);
+      return NextResponse.json({
+        success: true,
+        message: `Cache key "${key}" cleared successfully`,
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      // Invalidate all cached data
+      await cache.clear();
+      return NextResponse.json({
+        success: true,
+        message: "All cache cleared successfully",
+        timestamp: new Date().toISOString(),
+      });
+    }
   } catch (error) {
     console.error("Error refreshing cache:", error);
     return NextResponse.json(

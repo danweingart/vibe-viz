@@ -61,9 +61,7 @@ async function fetchWithRetry(
         continue;
       }
 
-      // Add small delay after successful requests to further reduce rate limit pressure
-      await new Promise(resolve => setTimeout(resolve, 100));
-
+      // Return immediately - global rate limiter already handles pacing
       return response;
     } catch (error) {
       lastError = error as Error;

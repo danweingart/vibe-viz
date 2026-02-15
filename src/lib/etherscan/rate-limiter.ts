@@ -65,7 +65,7 @@ class GlobalRateLimiter {
 }
 
 // Singleton instance for global coordination
-// Etherscan free tier: 5 calls/sec, we use 3.0 (60% of limit) for safety with better performance
+// Etherscan free tier: 5 calls/sec, we use 4.5 (90% of limit) for optimal throughput
 // This allows multiple routes to run concurrently without hitting the limit
-// Conservative 40% buffer from rate limits while providing 3x speedup over 1.0 calls/sec
-export const globalRateLimiter = new GlobalRateLimiter(3.0);
+// 10% buffer provides safety margin while maximizing performance (50% faster than 3.0)
+export const globalRateLimiter = new GlobalRateLimiter(4.5);

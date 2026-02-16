@@ -16,8 +16,8 @@
 
 import { NextResponse } from "next/server";
 
-export const REQUEST_TIMEOUT = 25000; // 25 seconds
-export const TIMEOUT_WARNING = 20000; // 20 seconds (warn 5s before timeout)
+export const REQUEST_TIMEOUT = 60000; // 60 seconds (increased for initial cache population)
+export const TIMEOUT_WARNING = 45000; // 45 seconds (warn 15s before timeout)
 
 interface TimeoutConfig {
   timeout?: number;

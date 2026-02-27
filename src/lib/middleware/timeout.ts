@@ -74,7 +74,7 @@ export async function withTimeout(
     // Race between handler and timeout
     const result = await Promise.race([
       handler(),
-      new Promise<Response>(async (_, reject) => {
+      new Promise<Response>((resolve, reject) => {
         setTimeout(async () => {
           // Timeout occurred - try fallback first
           if (onTimeout) {
@@ -82,7 +82,8 @@ export async function withTimeout(
               const fallbackResponse = await onTimeout();
               if (fallbackResponse) {
                 console.warn(`Request timed out after ${timeout}ms, returning fallback`);
-                return fallbackResponse;
+                resolve(fallbackResponse);
+                return;
               }
             } catch (error) {
               console.error("Timeout fallback failed:", error);

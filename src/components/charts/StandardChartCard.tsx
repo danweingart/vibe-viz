@@ -1,10 +1,9 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardDescription } from "@/components/ui";
 import { ShareButton } from "@/components/charts/ShareButton";
-import { ExportBrandingBar } from "@/components/charts/ExportBrandingBar";
 import { ChartLegend } from "@/components/charts/ChartLegend";
 import { SPACING, TEXT_STYLES } from "@/lib/tokens";
 
@@ -78,34 +77,15 @@ export function StandardChartCard({
   className,
 }: StandardChartCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [showBranding, setShowBranding] = useState(false);
-  const resolveRef = useRef<((el: HTMLDivElement | null) => void) | null>(null);
 
-  // Trigger export and return the card element
+  // Return the card element for export — no DOM changes needed.
+  // Branding is composited onto the image via Canvas in generatePngDataUrl.
   const getExportElement = useCallback((): Promise<HTMLDivElement | null> => {
-    if (!cardRef.current || !exportConfig) {
-      return Promise.resolve(null);
-    }
-
-    return new Promise((resolve) => {
-      resolveRef.current = resolve;
-      setShowBranding(true);
-      // Wait for branding bar to render
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          if (resolveRef.current) {
-            resolveRef.current(cardRef.current);
-            resolveRef.current = null;
-          }
-        }, 100);
-      });
-    });
-  }, [exportConfig]);
-
-  // Clean up after export
-  const finishExport = useCallback(() => {
-    setShowBranding(false);
+    return Promise.resolve(cardRef.current ?? null);
   }, []);
+
+  // No-op cleanup (no DOM changes to revert)
+  const finishExport = useCallback(() => {}, []);
 
   // Title element (shared across states)
   const titleElement = href ? (
@@ -133,8 +113,8 @@ export function StandardChartCard({
     </span>
   );
 
-  // Base card styles - no aspect ratio constraint for V2
-  const cardClasses = `flex flex-col overflow-hidden ${className || ""}`;
+  // Base card styles — fixed height for consistent dashboard sizing
+  const cardClasses = `flex flex-col overflow-hidden h-[480px] !p-0 ${className || ""}`;
 
   // Loading state
   if (isLoading) {
@@ -146,7 +126,7 @@ export function StandardChartCard({
             {description && <CardDescription>{description}</CardDescription>}
           </div>
         </div>
-        <div className="h-[400px] m-3 mt-0 rounded-lg chart-skeleton" />
+        <div className="flex-1 min-h-0 m-3 mt-0 rounded-lg chart-skeleton" />
       </Card>
     );
   }
@@ -188,14 +168,11 @@ export function StandardChartCard({
     );
   }
 
-  // Main render - 1:1 aspect ratio card
+  // Main render
   return (
     <div ref={cardRef}>
     <Card className={cardClasses}>
-      {/* Export branding bar - only visible during export, at top */}
-      <ExportBrandingBar visible={showBranding} />
-
-      {/* Header - compact */}
+      {/* Header */}
       <div className="flex flex-row items-start justify-between p-3 pb-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -205,14 +182,13 @@ export function StandardChartCard({
           {description && <CardDescription>{description}</CardDescription>}
         </div>
         <div className="flex items-center gap-2">
-          {/* Hide toggle controls during export */}
           {headerControls && (
-            <div className={showBranding ? "hidden" : ""}>
+            <div data-export-exclude="true">
               {headerControls}
             </div>
           )}
           {exportConfig && (
-            <div className={showBranding ? "invisible" : ""}>
+            <div data-export-exclude="true">
               <ShareButton
                 getExportElement={getExportElement}
                 finishExport={finishExport}
@@ -223,7 +199,7 @@ export function StandardChartCard({
         </div>
       </div>
 
-      {/* Legend row - compact */}
+      {/* Legend row */}
       {legend && (
         <div
           className={`flex items-center px-3 pb-2 ${controls ? "justify-between" : "justify-center"}`}
@@ -242,23 +218,23 @@ export function StandardChartCard({
         </div>
       )}
 
-      {/* Info panel - compact */}
+      {/* Info panel (hidden from export) */}
       {infoContent && (
-        <div className="px-3 pb-2">
+        <div className="px-3 pb-2" data-export-exclude="true">
           <div className="p-2 rounded-lg bg-background-tertiary border border-border text-xs text-foreground-muted">
             {infoContent}
           </div>
         </div>
       )}
 
-      {/* Chart content - fixed height for V2 */}
-      <div className="px-3">
-        <div className="h-[400px] bg-background-secondary rounded-lg overflow-hidden">
+      {/* Chart content — fills remaining space in the 1:1 card */}
+      <div className="flex-1 min-h-0 px-3 flex flex-col">
+        <div className="flex-1 min-h-0 bg-background-secondary rounded-lg overflow-hidden">
           {children}
         </div>
       </div>
 
-      {/* Stats grid - compact, inside the 1:1 tile */}
+      {/* Stats grid */}
       {stats && (
         <div className="p-3 pt-2">
           {stats}

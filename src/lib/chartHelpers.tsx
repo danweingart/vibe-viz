@@ -105,7 +105,6 @@ export function CustomLabel({
 
   return (
     <g>
-      {/* Background rectangle - fully opaque */}
       <rect
         x={centerX - rectWidth / 2}
         y={y - 26}
@@ -116,15 +115,20 @@ export function CustomLabel({
         strokeWidth="1"
         rx="4"
       />
-      {/* Label text - matches the series color */}
       <text
         x={centerX}
         y={y - 12}
         fill={color}
         fontSize="11"
-        fontFamily="Mundial, sans-serif"
+        fontFamily="Mundial, system-ui, sans-serif"
         fontWeight="600"
         textAnchor="middle"
+        dominantBaseline="central"
+        style={{
+          fontSize: 11,
+          fontFamily: "Mundial, system-ui, sans-serif",
+          fontWeight: 600,
+        }}
       >
         {formattedValue}
       </text>

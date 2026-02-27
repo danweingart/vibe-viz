@@ -152,12 +152,9 @@ export function timeoutWithCache<T>(
       try {
         const cached = await getCached();
         if (cached) {
-          return NextResponse.json({
-            ...cached,
-            _timeout: true,
-            _stale: true,
-            message: "Request timed out, returning cached data",
-          });
+          console.warn("Request timed out, returning cached data");
+          // Return cached data as-is to preserve its type (array or object)
+          return NextResponse.json(cached);
         }
       } catch (error) {
         console.error("Failed to retrieve cached data on timeout:", error);

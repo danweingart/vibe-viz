@@ -111,13 +111,13 @@ export function WhaleActivityChart() {
     >
       <div className="flex flex-col h-full">
         {/* Top 3 wallets - above chart */}
-        <div className="grid grid-cols-3 gap-1 sm:gap-2 mb-2 sm:text-xs text-center" style={{ fontSize: FONT_SIZE.xs }}>
+        <div className="grid grid-cols-3 gap-1 mb-1.5 sm:text-xs text-center" style={{ fontSize: FONT_SIZE.xs }}>
           {chartData.slice(0, 3).map((whale, i) => {
             const crossColor = viewMode === "buyers" ? CHART_COLORS.danger : CHART_COLORS.success;
             const crossLabel = viewMode === "buyers" ? "sells" : "buys";
             const medals = ["🥇", "🥈", "🥉"];
             return (
-              <div key={i} className="bg-background-tertiary rounded p-2">
+              <div key={i} className="bg-background-tertiary rounded p-1.5">
                 <p className="font-mono text-foreground-muted flex items-center justify-center gap-1" style={{ fontSize: FONT_SIZE.xs }}>
                   {viewMode === "buyers" ? <span>{medals[i]}</span> : <span>💩</span>}
                   <span className="truncate">{whale.shortAddress}</span>
@@ -130,7 +130,7 @@ export function WhaleActivityChart() {
           })}
         </div>
 
-        <div className="flex-1 min-h-[280px] sm:min-h-[400px]">
+        <div className="flex-1 min-h-0">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}

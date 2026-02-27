@@ -56,9 +56,9 @@ function PremiumChartRow({
   const count = timeRange === 7 ? data.length : 6;
   const tickDates = getAlignedTicks(data.map(d => d.date), count);
   return (
-    <div className="flex items-center gap-2 h-full">
+    <div className="flex items-center gap-1.5 h-full">
       {/* Y-axis label */}
-      <div className="w-12 shrink-0 text-right">
+      <div className="w-10 shrink-0 text-right">
         <p className="text-foreground-muted leading-none" style={{ fontSize: FONT_SIZE.xs }}>{label}</p>
       </div>
 
@@ -264,7 +264,7 @@ export function CollectorsPremiumChart() {
       stats={statsContent}
     >
       {/* Three stacked charts using grid with equal rows */}
-      <div className="h-full grid grid-rows-3 gap-2">
+      <div className="h-full grid grid-rows-3 gap-1">
           <PremiumChartRow
             data={data10}
             label=">10%"

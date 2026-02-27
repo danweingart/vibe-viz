@@ -1,12 +1,19 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 /**
  * Floating particles effect - firefly-like dots rising up the screen
  */
 export function FloatingParticles({ count = 30 }: { count?: number }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const particles = useMemo(() => {
+    if (!mounted) return [];
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
@@ -15,7 +22,7 @@ export function FloatingParticles({ count = 30 }: { count?: number }) {
       delay: Math.random() * 10,
       opacity: Math.random() * 0.6 + 0.2,
     }));
-  }, [count]);
+  }, [count, mounted]);
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">

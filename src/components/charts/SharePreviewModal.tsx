@@ -110,7 +110,7 @@ export function SharePreviewModal({
         </h2>
 
         {/* Image preview */}
-        <div className="aspect-square bg-background rounded-xl overflow-hidden mb-5 border border-border/50">
+        <div className="bg-background rounded-xl overflow-hidden mb-5 border border-border/50 max-h-[460px] flex items-center justify-center">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-full gap-3">
               <LoadingSpinner className="w-8 h-8 text-brand" />

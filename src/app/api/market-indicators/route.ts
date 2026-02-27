@@ -11,7 +11,8 @@ import {
 } from "@/lib/etherscan/transformer";
 import { cache } from "@/lib/cache/postgres";
 import { COLLECTION_SLUG } from "@/lib/constants";
-import type { MarketIndicators, SaleRecord } from "@/types/api";
+import { withTimeout, timeoutWithCache } from "@/lib/middleware/timeout";
+import type { MarketIndicators } from "@/types/api";
 
 export const dynamic = "force-dynamic";
 
@@ -63,10 +64,12 @@ function calculateMomentum(prices: number[]): number {
   return Math.round(Math.max(-100, Math.min(100, momentum)) * 10) / 10;
 }
 
+const CACHE_KEY = `market-indicators-${COLLECTION_SLUG}`;
+
 export async function GET() {
+  return withTimeout(async () => {
   try {
-    const cacheKey = `market-indicators-${COLLECTION_SLUG}`;
-    const cached = await cache.get<MarketIndicators>(cacheKey);
+    const cached = await cache.get<MarketIndicators>(CACHE_KEY);
     if (cached) {
       return NextResponse.json(cached);
     }
@@ -135,7 +138,6 @@ export async function GET() {
     const momentum = calculateMomentum(dailyAvgPrices);
 
     // Calculate liquidity score (0-100)
-    // Based on: listings count (OpenSea), sales velocity (Etherscan), price spread (OpenSea)
     const listingCount = listings.length;
     const avgDailySales = sales.length / 30;
     const listingPrices = listings.map(parseListingPrice).filter((p) => p > 0);
@@ -146,7 +148,7 @@ export async function GET() {
     // Score components (each 0-33.3)
     const listingScore = Math.min(33.3, (listingCount / 50) * 33.3);
     const velocityScore = Math.min(33.3, (avgDailySales / 10) * 33.3);
-    const spreadScore = Math.max(0, 33.3 - priceSpread * 10); // Lower spread = higher score
+    const spreadScore = Math.max(0, 33.3 - priceSpread * 10);
 
     const liquidityScore = Math.round(listingScore + velocityScore + spreadScore);
 
@@ -173,8 +175,8 @@ export async function GET() {
       lastUpdated: new Date().toISOString(),
     };
 
-    // Cache for 5 minutes
-    await cache.set(cacheKey, indicators, 300);
+    // Cache for 30 minutes
+    await cache.set(CACHE_KEY, indicators, 1800);
 
     console.log("Market indicators calculated:", indicators);
 
@@ -182,9 +184,7 @@ export async function GET() {
   } catch (error) {
     console.error("Error calculating market indicators:", error);
 
-    // Try to return stale cache on error
-    const cacheKey = `market-indicators-${COLLECTION_SLUG}`;
-    const staleCache = await cache.get<MarketIndicators>(cacheKey, true);
+    const staleCache = await cache.get<MarketIndicators>(CACHE_KEY, true);
     if (staleCache) {
       console.log("Returning stale cached market indicators");
       return NextResponse.json({
@@ -199,4 +199,7 @@ export async function GET() {
       { status: 500 }
     );
   }
+  }, timeoutWithCache(async () => {
+    return await cache.get<MarketIndicators>(CACHE_KEY, true);
+  }));
 }

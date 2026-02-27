@@ -80,7 +80,7 @@ export default function DashboardPage() {
             {/* Price & Volume Section */}
             <section className="mb-8">
               <SectionHeader number="01" title="Price & Volume" />
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <PriceHistoryChart />
                 <SalesVolumeChart />
                 <PriceVolatilityChart />
@@ -91,7 +91,7 @@ export default function DashboardPage() {
             {/* Market Analysis Section */}
             <section className="mb-8">
               <SectionHeader number="02" title="Market Analysis" />
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <CollectorsPremiumChart />
                 <PaymentRatioChart />
                 <PriceDistributionChart />
@@ -101,7 +101,7 @@ export default function DashboardPage() {
             {/* Trader Insights Section */}
             <section className="mb-8">
               <SectionHeader number="03" title="Trader Insights" />
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <UniqueTradersChart />
                 <WhaleActivityChart />
                 <HoldingPeriodChart />
@@ -111,7 +111,7 @@ export default function DashboardPage() {
             {/* Collection Health Section */}
             <section className="mb-8">
               <SectionHeader number="04" title="Collection Health" />
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <HolderDistributionChart />
                 <MarketDepthChart />
               </div>

@@ -30,8 +30,8 @@ export function ChartStatCard({
 
   return (
     <div
-      className={`rounded-2xl border border-gvc-border bg-gvc-card backdrop-blur-md text-center ${className}`}
-      style={{ padding: SPACING.statPadding }}
+      className={`rounded-xl border border-gvc-border bg-gvc-card backdrop-blur-md text-center ${className}`}
+      style={{ padding: 8 }}
     >
       <div
         className="flex items-center justify-center text-gvc-text-muted"
@@ -39,7 +39,7 @@ export function ChartStatCard({
           gap: SPACING.statLabelGap,
           fontSize: TEXT_STYLES.statLabel.fontSize,
           fontWeight: TEXT_STYLES.statLabel.fontWeight,
-          marginBottom: SPACING.statLabelGap,
+          marginBottom: 2,
         }}
       >
         <span>{label}</span>
@@ -52,7 +52,7 @@ export function ChartStatCard({
         <span
           className="font-bold text-gvc-text"
           style={{
-            fontSize: TEXT_STYLES.statValue.fontSize,
+            fontSize: 16,
             lineHeight: TEXT_STYLES.statValue.lineHeight,
           }}
         >

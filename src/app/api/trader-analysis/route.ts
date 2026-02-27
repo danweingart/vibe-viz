@@ -9,6 +9,7 @@ import {
   transformToSaleRecords,
 } from "@/lib/etherscan/transformer";
 import { cache } from "@/lib/cache/postgres";
+import { withTimeout, timeoutWithCache } from "@/lib/middleware/timeout";
 import type { SaleRecord, DailyTraderStats, FlipRecord } from "@/types/api";
 
 export const dynamic = "force-dynamic";
@@ -23,11 +24,12 @@ interface TraderAnalysis {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const searchParams = request.nextUrl.searchParams;
-    const days = Math.min(parseInt(searchParams.get("days") || "30"), 90);
+  const searchParams = request.nextUrl.searchParams;
+  const days = Math.min(parseInt(searchParams.get("days") || "30"), 90);
+  const cacheKey = `trader-analysis-${days}`;
 
-    const cacheKey = `trader-analysis-${days}`;
+  return withTimeout(async () => {
+  try {
     const cached = await cache.get<TraderAnalysis>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
@@ -103,7 +105,7 @@ export async function GET(request: NextRequest) {
       tokenHistory.get(tokenId)!.push({
         buyer,
         price,
-        timestamp: Math.floor(sale.timestamp.getTime() / 1000), // Convert to seconds
+        timestamp: Math.floor(sale.timestamp.getTime() / 1000),
       });
     }
 
@@ -202,19 +204,14 @@ export async function GET(request: NextRequest) {
       avgHoldingPeriod: Math.round(avgHoldingPeriod * 10) / 10,
     };
 
-    // Cache for 10 minutes
-    await cache.set(cacheKey, result, 600);
+    // Cache for 30 minutes
+    await cache.set(cacheKey, result, 1800);
 
     console.log("Trader analysis complete");
 
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching trader analysis:", error);
-
-    // Try to return stale cache on error
-    const searchParams = request.nextUrl.searchParams;
-    const days = Math.min(parseInt(searchParams.get("days") || "30"), 90);
-    const cacheKey = `trader-analysis-${days}`;
 
     const staleCache = await cache.get<TraderAnalysis>(cacheKey, true);
     if (staleCache) {
@@ -227,4 +224,7 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+  }, timeoutWithCache(async () => {
+    return await cache.get<TraderAnalysis>(cacheKey, true);
+  }));
 }

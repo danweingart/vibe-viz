@@ -42,6 +42,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
+    // Stale-while-revalidate: return stale data immediately if available,
+    // while the fresh fetch continues below and updates the cache
+    const staleData = await cache.get<DailyStats[]>(cacheKey, true);
+    if (staleData) {
+      console.log(`Returning stale price history for ${collectionSlug} while refreshing...`);
+      // Don't await — let the rest of this handler run in the background to refresh the cache.
+      // The stale data is returned immediately below, and next request will get fresh data.
+      // Note: We still proceed with the fetch below so the cache gets updated for next time,
+      // but we return the stale response right away.
+      // Fire-and-forget: schedule a background refresh
+      refreshPriceHistory(days, contractAddress, collectionSlug, cacheKey).catch(err =>
+        console.error("Background price history refresh failed:", err)
+      );
+      return NextResponse.json(staleData);
+    }
+
     console.log(`Fetching price history for ${collectionSlug} (${days} days)...`);
 
     // Fetch current ETH price and all transfers in parallel
@@ -150,8 +166,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Cache based on time range
-    const cacheTTL = days <= 7 ? 300 : CACHE_TTL.PRICE_HISTORY; // 5 min for short ranges
+    // Cache based on time range: 30 min for short ranges, 6 hours for longer
+    const cacheTTL = days <= 7 ? 1800 : CACHE_TTL.PRICE_HISTORY;
     await cache.set(cacheKey, dailyStats, cacheTTL);
 
     console.log(`Returning ${dailyStats.length} days of stats`);
@@ -185,4 +201,78 @@ export async function GET(request: NextRequest) {
     const cacheKey = `price-history-${days}-${collectionSlug}`;
     return await cache.get<DailyStats[]>(cacheKey, true);
   }));
+}
+
+/**
+ * Background refresh: fetches fresh price history and updates the cache.
+ * Called fire-and-forget when stale data is returned.
+ */
+async function refreshPriceHistory(
+  days: number,
+  contractAddress: string,
+  collectionSlug: string,
+  cacheKey: string
+): Promise<void> {
+  const [ethPriceData, allTransfers] = await Promise.all([
+    getEthPrice(),
+    getTransfersInDateRange(days, contractAddress),
+  ]);
+
+  const salesTransfers = filterToSalesOnly(allTransfers);
+  const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd, collectionSlug);
+  const allSales = transformToSaleRecords(enriched);
+
+  if (allSales.length === 0) {
+    await cache.set(cacheKey, [], days <= 7 ? 1800 : CACHE_TTL.PRICE_HISTORY);
+    return;
+  }
+
+  const floorPrice = calculateFloorPrice(allSales);
+
+  const salesByDate = new Map<string, SaleRecord[]>();
+  for (const sale of allSales) {
+    const date = sale.timestamp.toISOString().split("T")[0];
+    if (!salesByDate.has(date)) {
+      salesByDate.set(date, []);
+    }
+    salesByDate.get(date)!.push(sale);
+  }
+
+  const dailyStats: DailyStats[] = [];
+  const dates = Array.from(salesByDate.keys()).sort();
+
+  for (const date of dates) {
+    const daySales = salesByDate.get(date)!;
+    const prices = daySales.map((s) => s.priceEth);
+    if (prices.length === 0) continue;
+
+    const volume = prices.reduce((a, b) => a + b, 0);
+    const ethPrice = daySales[0].priceEth > 0 ? daySales[0].priceUsd / daySales[0].priceEth : ethPriceData.usd;
+
+    dailyStats.push({
+      date,
+      volume,
+      volumeUsd: volume * ethPrice,
+      salesCount: prices.length,
+      avgPrice: volume / prices.length,
+      minPrice: Math.min(...prices),
+      maxPrice: Math.max(...prices),
+      ethPrice,
+      salesAbove10Pct: prices.length > 0 ? (daySales.filter(s => s.priceEth >= floorPrice * 1.1).length / prices.length) * 100 : 0,
+      salesAbove25Pct: prices.length > 0 ? (daySales.filter(s => s.priceEth >= floorPrice * 1.25).length / prices.length) * 100 : 0,
+      salesAbove50Pct: prices.length > 0 ? (daySales.filter(s => s.priceEth >= floorPrice * 1.5).length / prices.length) * 100 : 0,
+      ethPayments: daySales.filter(s => s.paymentToken === "ETH").length,
+      wethPayments: daySales.filter(s => s.paymentToken === "WETH").length,
+      otherPayments: daySales.filter(s => s.paymentToken === "OTHER").length,
+      ethVolume: daySales.filter(s => s.paymentToken === "ETH").reduce((sum, s) => sum + s.priceEth, 0),
+      wethVolume: daySales.filter(s => s.paymentToken === "WETH").reduce((sum, s) => sum + s.priceEth, 0),
+      otherVolume: daySales.filter(s => s.paymentToken === "OTHER").reduce((sum, s) => sum + s.priceEth, 0),
+      salePrices: daySales.map(s => ({ eth: s.priceEth, usd: s.priceUsd })),
+      marketplaceCounts: {},
+    });
+  }
+
+  const cacheTTL = days <= 7 ? 1800 : CACHE_TTL.PRICE_HISTORY;
+  await cache.set(cacheKey, dailyStats, cacheTTL);
+  console.log(`Background refresh complete for ${collectionSlug} (${days}d): ${dailyStats.length} days cached`);
 }

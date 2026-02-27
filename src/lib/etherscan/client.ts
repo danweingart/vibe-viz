@@ -28,7 +28,7 @@ const CHAIN_ID = 1; // Ethereum mainnet
 async function fetchWithRetry(
   url: string,
   options: RequestInit = {},
-  maxRetries = 5
+  maxRetries = 2
 ): Promise<Response> {
   // Global rate limiting (coordinates across all routes)
   await globalRateLimiter.wait();
@@ -37,17 +37,23 @@ async function fetchWithRetry(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
+      const controller = new AbortController();
+      const fetchTimeout = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch(url, {
         ...options,
+        signal: controller.signal,
         headers: {
           'Accept': 'application/json',
           ...options.headers,
         },
       });
 
-      // Handle rate limiting (429) with exponential backoff
+      clearTimeout(fetchTimeout);
+
+      // Handle rate limiting (429) with short backoff
       if (response.status === 429) {
-        const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+        const delay = Math.min(1000 * (attempt + 1), 3000);
         console.warn(`Rate limited by Etherscan, retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
@@ -55,7 +61,7 @@ async function fetchWithRetry(
 
       // Handle server errors (5xx) with retry
       if (response.status >= 500) {
-        const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+        const delay = Math.min(1000 * (attempt + 1), 3000);
         console.warn(`Etherscan server error (${response.status}), retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
@@ -65,10 +71,10 @@ async function fetchWithRetry(
       return response;
     } catch (error) {
       lastError = error as Error;
-      const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
-      console.error(`Etherscan API error (attempt ${attempt + 1}/${maxRetries}):`, error);
+      console.error(`Etherscan API error (attempt ${attempt + 1}/${maxRetries}):`, error instanceof Error ? error.message : error);
 
       if (attempt < maxRetries - 1) {
+        const delay = Math.min(1000 * (attempt + 1), 3000);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }

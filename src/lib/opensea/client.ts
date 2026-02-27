@@ -21,7 +21,7 @@ if (!OPENSEA_API_KEY) {
 async function fetchWithRetry<T>(
   url: string,
   options: RequestInit = {},
-  retries = 5
+  retries = 2
 ): Promise<T> {
   const headers: HeadersInit = {
     Accept: "application/json",
@@ -31,11 +31,16 @@ async function fetchWithRetry<T>(
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const response = await fetch(url, { ...options, headers });
+      const controller = new AbortController();
+      const fetchTimeout = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(url, { ...options, headers, signal: controller.signal });
+
+      clearTimeout(fetchTimeout);
 
       if (response.status === 429) {
-        // Rate limited - wait longer and retry
-        const retryAfter = parseInt(response.headers.get("Retry-After") || "10");
+        // Rate limited - short wait and retry
+        const retryAfter = Math.min(parseInt(response.headers.get("Retry-After") || "3"), 3);
         console.log(`Rate limited, waiting ${retryAfter}s before retry ${attempt + 1}/${retries}`);
         await new Promise((resolve) =>
           setTimeout(resolve, retryAfter * 1000)
@@ -50,8 +55,7 @@ async function fetchWithRetry<T>(
       return response.json();
     } catch (error) {
       if (attempt === retries - 1) throw error;
-      // Longer exponential backoff
-      const delay = Math.pow(2, attempt + 1) * 1000;
+      const delay = Math.min(1000 * (attempt + 1), 3000);
       console.log(`Retry ${attempt + 1}/${retries} after ${delay}ms`);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }

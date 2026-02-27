@@ -35,6 +35,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
+    // Stale-while-revalidate: return stale data immediately if available
+    const staleData = await cache.get<TraderAnalysis>(cacheKey, true);
+    if (staleData) {
+      console.log("Returning stale trader analysis while refreshing...");
+      return NextResponse.json(staleData);
+    }
+
     console.log(`Fetching trader analysis for ${days} days...`);
 
     // Fetch transfers from Etherscan

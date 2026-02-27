@@ -3,7 +3,7 @@
   "framework": "nextjs",
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 60
+      "maxDuration": 10
     }
   },
   "crons": [
@@ -13,7 +13,7 @@
     },
     {
       "path": "/api/admin/cleanup-cache",
-      "schedule": "0 */6 * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }

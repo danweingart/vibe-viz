@@ -74,6 +74,13 @@ export async function GET() {
       return NextResponse.json(cached);
     }
 
+    // Stale-while-revalidate: return stale data immediately if available
+    const staleData = await cache.get<MarketIndicators>(CACHE_KEY, true);
+    if (staleData) {
+      console.log("Returning stale market indicators while refreshing...");
+      return NextResponse.json({ ...staleData, _stale: true });
+    }
+
     console.log("Calculating market indicators (hybrid Etherscan + OpenSea)...");
 
     // Fetch 30 days of sales from Etherscan and current listings from OpenSea

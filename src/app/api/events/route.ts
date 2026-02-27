@@ -34,6 +34,21 @@ export async function GET(request: NextRequest) {
     let allSales = await cache.get<SaleRecord[]>(cacheKey);
 
     if (!allSales) {
+      // Stale-while-revalidate: return stale data immediately if available
+      const staleData = await cache.get<SaleRecord[]>(cacheKey, true);
+      if (staleData) {
+        console.log("Returning stale events while refreshing...");
+        const paginatedSales = staleData.slice(offset, offset + limit);
+        const hasMore = offset + limit < staleData.length;
+        return NextResponse.json({
+          events: paginatedSales,
+          nextCursor: hasMore ? String(offset + limit) : null,
+          hasMore,
+          total: staleData.length,
+          _stale: true,
+        });
+      }
+
       // Fetch ETH price and transfers in parallel
       const [ethPriceData, allTransfers] = await Promise.all([
         getEthPrice(),

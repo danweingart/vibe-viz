@@ -16,8 +16,8 @@
 
 import { NextResponse } from "next/server";
 
-export const REQUEST_TIMEOUT = 60000; // 60 seconds (increased for initial cache population)
-export const TIMEOUT_WARNING = 45000; // 45 seconds (warn 15s before timeout)
+export const REQUEST_TIMEOUT = 8000; // 8 seconds (Vercel Hobby tier limit is 10s)
+export const TIMEOUT_WARNING = 6000; // 6 seconds (warn 2s before timeout)
 
 interface TimeoutConfig {
   timeout?: number;

@@ -21,10 +21,10 @@ interface RetryConfig {
 }
 
 const DEFAULT_CONFIG: Required<RetryConfig> = {
-  maxRetries: 3,
+  maxRetries: 2,
   initialDelay: 100, // ms
-  maxDelay: 5000, // ms
-  timeout: 10000, // 10 seconds
+  maxDelay: 2000, // ms
+  timeout: 4000, // 4 seconds (must fit within Vercel Hobby 10s limit)
 };
 
 /**

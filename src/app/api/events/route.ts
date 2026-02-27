@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getTransfersInDateRange,
+  getTokenTransfers,
   filterToSalesOnly,
 } from "@/lib/etherscan/client";
 import { getEthPrice } from "@/lib/coingecko/client";
@@ -23,10 +23,9 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
   const offset = parseInt(searchParams.get("offset") || "0");
-  const days = parseInt(searchParams.get("days") || "7");
 
-  // Cache the full dataset per day-range, then paginate from it
-  const cacheKey = `events-${days}`;
+  // Use a single cache key for the recent events dataset
+  const cacheKey = "events-recent";
 
   return withTimeout(async () => {
   try {
@@ -49,21 +48,22 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      // Fetch ETH price and transfers in parallel
-      const [ethPriceData, allTransfers] = await Promise.all([
+      // Fetch the most recent transfers directly (no block range calculation needed)
+      // This is a single API call that returns the latest transfers sorted desc
+      const [ethPriceData, recentTransfers] = await Promise.all([
         getEthPrice(),
-        getTransfersInDateRange(days),
+        getTokenTransfers(undefined, 0, 'latest', 1, 500),
       ]);
 
       // Filter to sales only (exclude mints and burns)
-      const salesTransfers = filterToSalesOnly(allTransfers);
+      const salesTransfers = filterToSalesOnly(recentTransfers);
 
-      console.log(`Found ${salesTransfers.length} sales in last ${days} days`);
+      console.log(`Found ${salesTransfers.length} non-mint/burn transfers out of ${recentTransfers.length} total`);
 
       // Enrich with OpenSea prices
       const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd);
 
-      // Transform to SaleRecord format
+      // Transform to SaleRecord format (only keeps transfers with price data)
       allSales = transformToSaleRecords(enriched);
 
       // Validate price coverage

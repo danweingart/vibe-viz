@@ -57,7 +57,7 @@ export function useRecentSales(limit = 10) {
   return useQuery({
     queryKey: ["events", "recent", limit],
     queryFn: async () => {
-      const response = await fetch(`/api/events?type=sale&limit=${limit}`);
+      const response = await fetch(`/api/events?limit=${limit}`);
       if (!response.ok) {
         throw new Error("Failed to fetch recent sales");
       }

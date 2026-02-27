@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getTransfersInDateRange,
+  getTokenTransfers,
   filterToSalesOnly,
 } from "@/lib/etherscan/client";
 import { getEthPrice } from "@/lib/coingecko/client";
@@ -60,14 +60,20 @@ export async function GET(request: NextRequest) {
 
     console.log(`Fetching price history for ${collectionSlug} (${days} days)...`);
 
-    // Fetch current ETH price and all transfers in parallel
+    // Fetch recent transfers in a single API call, then filter by date
     const [ethPriceData, allTransfers] = await Promise.all([
       getEthPrice(),
-      getTransfersInDateRange(days, contractAddress),
+      getTokenTransfers(contractAddress, 0, 'latest', 1, 1000),
     ]);
 
+    // Filter to the requested date range
+    const cutoffTimestamp = Math.floor(Date.now() / 1000) - (days * 86400);
+    const transfersInRange = allTransfers.filter(
+      t => parseInt(t.timeStamp) >= cutoffTimestamp
+    );
+
     // Filter to sales only (exclude mints and burns)
-    const salesTransfers = filterToSalesOnly(allTransfers);
+    const salesTransfers = filterToSalesOnly(transfersInRange);
 
     console.log(`Found ${salesTransfers.length} transfers (excluding mints/burns)`);
 
@@ -215,10 +221,16 @@ async function refreshPriceHistory(
 ): Promise<void> {
   const [ethPriceData, allTransfers] = await Promise.all([
     getEthPrice(),
-    getTransfersInDateRange(days, contractAddress),
+    getTokenTransfers(contractAddress, 0, 'latest', 1, 1000),
   ]);
 
-  const salesTransfers = filterToSalesOnly(allTransfers);
+  // Filter to the requested date range
+  const cutoffTimestamp = Math.floor(Date.now() / 1000) - (days * 86400);
+  const transfersInRange = allTransfers.filter(
+    t => parseInt(t.timeStamp) >= cutoffTimestamp
+  );
+
+  const salesTransfers = filterToSalesOnly(transfersInRange);
   const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd, collectionSlug);
   const allSales = transformToSaleRecords(enriched);
 

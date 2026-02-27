@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getTransfersInDateRange,
+  getTokenTransfers,
   filterToSalesOnly,
 } from "@/lib/etherscan/client";
 import { getEthPrice } from "@/lib/coingecko/client";
@@ -44,14 +44,20 @@ export async function GET(request: NextRequest) {
 
     console.log(`Fetching trader analysis for ${days} days...`);
 
-    // Fetch transfers from Etherscan
+    // Fetch the most recent transfers in a single API call, then filter by date
     const [ethPriceData, allTransfers] = await Promise.all([
       getEthPrice(),
-      getTransfersInDateRange(days),
+      getTokenTransfers(undefined, 0, 'latest', 1, 1000),
     ]);
 
+    // Filter to the requested date range
+    const cutoffTimestamp = Math.floor(Date.now() / 1000) - (days * 86400);
+    const transfersInRange = allTransfers.filter(
+      t => parseInt(t.timeStamp) >= cutoffTimestamp
+    );
+
     // Filter to sales only
-    const salesTransfers = filterToSalesOnly(allTransfers);
+    const salesTransfers = filterToSalesOnly(transfersInRange);
 
     // Enrich with prices
     const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd);

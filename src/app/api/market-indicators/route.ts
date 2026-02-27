@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getListings, parseListingPrice } from "@/lib/opensea/client";
 import {
-  getTransfersInDateRange,
+  getTokenTransfers,
   filterToSalesOnly,
 } from "@/lib/etherscan/client";
 import { getEthPrice } from "@/lib/coingecko/client";
@@ -83,15 +83,19 @@ export async function GET() {
 
     console.log("Calculating market indicators (hybrid Etherscan + OpenSea)...");
 
-    // Fetch 30 days of sales from Etherscan and current listings from OpenSea
+    // Fetch recent transfers in a single API call + current listings from OpenSea
     const [ethPriceData, allTransfers, listings] = await Promise.all([
       getEthPrice(),
-      getTransfersInDateRange(30),
+      getTokenTransfers(undefined, 0, 'latest', 1, 1000),
       getListings(COLLECTION_SLUG, 50),
     ]);
 
-    // Filter to sales only
-    const salesTransfers = filterToSalesOnly(allTransfers);
+    // Filter to last 30 days, then to sales only
+    const cutoffTimestamp = Math.floor(Date.now() / 1000) - (30 * 86400);
+    const transfersInRange = allTransfers.filter(
+      t => parseInt(t.timeStamp) >= cutoffTimestamp
+    );
+    const salesTransfers = filterToSalesOnly(transfersInRange);
 
     // Enrich with prices
     const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd);

@@ -1,6 +1,65 @@
 // VIBESTR Token Types
 
 // ============================================================================
+// DexScreener API Types
+// ============================================================================
+
+export interface DexScreenerTxns {
+  buys: number;
+  sells: number;
+}
+
+export interface DexScreenerPair {
+  chainId: string;
+  dexId: string;
+  pairAddress: string;
+  baseToken: { address: string; name: string; symbol: string };
+  quoteToken: { address: string; name: string; symbol: string };
+  priceNative: string;
+  priceUsd: string;
+  txns: {
+    m5: DexScreenerTxns;
+    h1: DexScreenerTxns;
+    h6: DexScreenerTxns;
+    h24: DexScreenerTxns;
+  };
+  volume: { m5: number; h1: number; h6: number; h24: number };
+  priceChange: { m5: number; h1: number; h6: number; h24: number };
+  liquidity: { usd: number; base: number; quote: number };
+  fdv: number;
+  marketCap: number;
+  pairCreatedAt: number;
+}
+
+export interface DexScreenerResponse {
+  pairs: DexScreenerPair[];
+}
+
+// ============================================================================
+// CoinGecko Market History Types
+// ============================================================================
+
+export interface MarketHistoryPoint {
+  timestamp: number;
+  price: number;
+  marketCap: number;
+}
+
+// ============================================================================
+// NFT Trade Types
+// ============================================================================
+
+export interface NFTTrade {
+  tokenId: string;
+  action: "buy" | "sell";
+  price: number; // ETH
+  date: string; // ISO date
+  timestamp: number;
+  imageUrl: string;
+  profit?: number; // For sold NFTs: sold - bought
+}
+
+// ============================================================================
 // Raw API Response Types (from NFT Strategy API)
 // ============================================================================
 

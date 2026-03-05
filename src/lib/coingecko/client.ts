@@ -58,6 +58,22 @@ export async function getEthPrice(): Promise<{
   };
 }
 
+export async function fetchVibestrMarketChart(
+  days: number
+): Promise<{ prices: [number, number][]; market_caps: [number, number][] }> {
+  const data = await fetchWithRetry<{
+    prices: [number, number][];
+    market_caps: [number, number][];
+  }>(
+    `${COINGECKO_API_BASE}/coins/vibestrategy/market_chart?vs_currency=usd&days=${days}`
+  );
+
+  return {
+    prices: data.prices,
+    market_caps: data.market_caps,
+  };
+}
+
 export async function getHistoricalPrices(
   days: number
 ): Promise<Map<string, number>> {

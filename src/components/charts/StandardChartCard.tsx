@@ -50,6 +50,7 @@ export interface StandardChartCardProps {
   // Optional - loading/error states
   isLoading?: boolean;
   error?: Error | null;
+  onRetry?: () => void;
   isEmpty?: boolean;
   emptyMessage?: string;
 
@@ -72,6 +73,7 @@ export function StandardChartCard({
   exportConfig,
   isLoading,
   error,
+  onRetry,
   isEmpty,
   emptyMessage = "No data available",
   className,
@@ -113,8 +115,8 @@ export function StandardChartCard({
     </span>
   );
 
-  // Base card styles — fixed height for consistent dashboard sizing
-  const cardClasses = `flex flex-col overflow-hidden h-[480px] !p-0 ${className || ""}`;
+  // Base card styles — responsive height, no hover lift on large cards
+  const cardClasses = `flex flex-col overflow-hidden h-[380px] sm:h-[480px] !p-0 !transform-none ${className || ""}`;
 
   // Loading state
   if (isLoading) {
@@ -145,6 +147,14 @@ export function StandardChartCard({
           <ErrorIcon className="w-10 h-10 text-danger mb-3" />
           <p className="text-foreground-muted text-sm">Failed to load data</p>
           <p className="text-foreground-muted text-xs mt-1 opacity-60">{error.message}</p>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="mt-3 px-4 py-1.5 text-xs font-medium rounded-full bg-brand/10 text-brand border border-brand/20 hover:bg-brand/20 transition-colors"
+            >
+              Retry
+            </button>
+          )}
         </div>
       </Card>
     );

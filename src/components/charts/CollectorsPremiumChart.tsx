@@ -139,7 +139,7 @@ function PremiumChartRow({
 export function CollectorsPremiumChart() {
   const [showComparison, setShowComparison] = useState(false);
   const { timeRange } = useChartSettings();
-  const { data, isLoading, error } = usePriceHistory(timeRange);
+  const { data, isLoading, error, refetch } = usePriceHistory(timeRange);
   const { data: basketData, isLoading: basketLoading } = useBasketPriceHistory(timeRange);
 
   const exportConfig = useMemo(() => ({
@@ -259,6 +259,7 @@ export function CollectorsPremiumChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!data || data.length === 0}
       emptyMessage="No data available"
       stats={statsContent}

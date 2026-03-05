@@ -23,7 +23,7 @@ import { CustomLabel } from "@/lib/chartHelpers";
 
 export function UniqueTradersChart() {
   const { timeRange } = useChartSettings();
-  const { data, isLoading, error } = useTraderAnalysis(timeRange);
+  const { data, isLoading, error, refetch } = useTraderAnalysis(timeRange);
 
   const [visibleSeries, setVisibleSeries] = useState<Record<string, boolean>>({
     buyers: true,
@@ -141,6 +141,7 @@ export function UniqueTradersChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!data || data.dailyStats.length === 0}
       emptyMessage="No trader data available"
       stats={statsContent}

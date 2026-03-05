@@ -22,7 +22,7 @@ import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 export function PriceVolatilityChart() {
   const { timeRange, currency } = useChartSettings();
-  const { data, isLoading, error } = usePriceHistory(timeRange);
+  const { data, isLoading, error, refetch } = usePriceHistory(timeRange);
 
   // Track which series are visible
   const [visibleSeries, setVisibleSeries] = useState({
@@ -133,6 +133,7 @@ export function PriceVolatilityChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!data || data.length === 0}
       emptyMessage="No data available"
       stats={

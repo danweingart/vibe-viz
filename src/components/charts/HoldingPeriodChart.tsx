@@ -82,7 +82,7 @@ function getBucketsForRange(timeRange: number) {
 
 export function HoldingPeriodChart() {
   const { timeRange } = useChartSettings();
-  const { data, isLoading, error } = useTraderAnalysis(timeRange);
+  const { data, isLoading, error, refetch } = useTraderAnalysis(timeRange);
 
   const bucketConfig = useMemo(() => getBucketsForRange(timeRange), [timeRange]);
 
@@ -148,6 +148,7 @@ export function HoldingPeriodChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!data || chartData.length === 0}
       emptyMessage="No holding period data available"
       stats={

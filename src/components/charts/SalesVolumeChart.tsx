@@ -26,7 +26,7 @@ type ViewMode = "sales" | "volume";
 export function SalesVolumeChart() {
   const [viewMode, setViewMode] = useState<ViewMode>("sales");
   const { timeRange, currency } = useChartSettings();
-  const { data, isLoading, error } = usePriceHistory(timeRange);
+  const { data, isLoading, error, refetch } = usePriceHistory(timeRange);
 
   // Calculate 7-day rolling averages for both metrics
   const chartData = useMemo(() => {
@@ -159,6 +159,7 @@ export function SalesVolumeChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!data || data.length === 0}
       emptyMessage="No data available"
       stats={stats}

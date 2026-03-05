@@ -22,7 +22,7 @@ import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 export function CumulativeVolumeChart() {
   const { timeRange, currency } = useChartSettings();
-  const { data, isLoading, error } = usePriceHistory(timeRange);
+  const { data, isLoading, error, refetch } = usePriceHistory(timeRange);
 
   const legendItems: LegendItem[] = [
     { key: "cumulative", label: "Cumulative", color: CHART_COLORS.primary, active: true },
@@ -93,6 +93,7 @@ export function CumulativeVolumeChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!data || data.length === 0}
       emptyMessage="No data available"
       stats={

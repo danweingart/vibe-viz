@@ -23,7 +23,7 @@ const HOLDER_BUCKETS = [
 ];
 
 export function HolderDistributionChart() {
-  const { data: stats, isLoading, error } = useCollectionStats();
+  const { data: stats, isLoading, error, refetch } = useCollectionStats();
 
   const totalHolders = stats?.numOwners || 0;
 
@@ -58,6 +58,7 @@ export function HolderDistributionChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!stats || totalHolders === 0}
       emptyMessage="No holder data available"
       stats={

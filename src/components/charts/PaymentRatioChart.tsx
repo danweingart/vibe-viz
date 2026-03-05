@@ -145,7 +145,7 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth, time
 export function PaymentRatioChart() {
   const [showComparison, setShowComparison] = useState(false);
   const { timeRange } = useChartSettings();
-  const { data: priceHistory, isLoading, error } = usePriceHistory(timeRange);
+  const { data: priceHistory, isLoading, error, refetch } = usePriceHistory(timeRange);
   const { data: basketData, isLoading: basketLoading } = useBasketPriceHistory(timeRange);
 
   // Transform daily payment data into percentages with 7-day rolling average
@@ -374,6 +374,7 @@ export function PaymentRatioChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!priceHistory || gvcDailyData.length === 0}
       emptyMessage="No payment data available"
       stats={statsContent}

@@ -30,7 +30,7 @@ function truncateAddress(address: string): string {
 export function WhaleActivityChart() {
   const [viewMode, setViewMode] = useState<"buyers" | "sellers">("buyers");
   const { timeRange } = useChartSettings();
-  const { data, isLoading, error } = useTraderAnalysis(timeRange);
+  const { data, isLoading, error, refetch } = useTraderAnalysis(timeRange);
 
   const { chartData, totalVolume, top5Count } = useMemo(() => {
     if (!data) return { chartData: [], totalVolume: 0, top5Count: 0 };
@@ -94,6 +94,7 @@ export function WhaleActivityChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!data || chartData.length === 0}
       emptyMessage="No whale data available"
       stats={

@@ -18,7 +18,7 @@ import { CHART_MARGINS, AXIS_STYLE, getTooltipContentStyle, getYAxisWidth, getAl
 import { CustomLabel } from "@/lib/chartHelpers";
 
 export function MarketDepthChart() {
-  const { data, isLoading, error } = useMarketDepth();
+  const { data, isLoading, error, refetch } = useMarketDepth();
   const [visibleSeries, setVisibleSeries] = useState<Set<string>>(
     new Set(["bids", "asks"])
   );
@@ -116,6 +116,7 @@ export function MarketDepthChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!data || chartData.length === 0}
       emptyMessage="No market depth data available"
       stats={

@@ -23,7 +23,7 @@ import { CustomLabel } from "@/lib/chartHelpers";
 
 export function PriceDistributionChart() {
   const { timeRange } = useChartSettings();
-  const { data: priceHistory, isLoading, error } = usePriceHistory(timeRange);
+  const { data: priceHistory, isLoading, error, refetch } = usePriceHistory(timeRange);
 
   // Track which price categories are visible
   const [visibleSeries, setVisibleSeries] = useState({
@@ -129,6 +129,7 @@ export function PriceDistributionChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!priceHistory || priceHistory.length === 0 || chartData.length === 0}
       emptyMessage="No price distribution data available"
       stats={

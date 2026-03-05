@@ -22,7 +22,7 @@ import { CustomLabel, shouldShowLabel } from "@/lib/chartHelpers";
 
 export function PriceHistoryChart() {
   const { timeRange, currency } = useChartSettings();
-  const { data, isLoading, error } = usePriceHistory(timeRange);
+  const { data, isLoading, error, refetch } = usePriceHistory(timeRange);
 
   // Track which series are visible
   const [visibleSeries, setVisibleSeries] = useState({
@@ -83,6 +83,7 @@ export function PriceHistoryChart() {
       exportConfig={exportConfig}
       isLoading={isLoading}
       error={error}
+      onRetry={refetch}
       isEmpty={!data || data.length === 0}
       emptyMessage="No sales data available yet"
       stats={

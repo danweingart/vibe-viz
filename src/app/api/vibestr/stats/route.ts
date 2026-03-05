@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     // Check cache first
-    const cached = await cache.get<TokenStats>("vibestr-stats");
+    const cached = await cache.get<TokenStats>("vibestr-stats-v2");
     if (cached) {
       console.log("Returning cached VIBESTR stats");
       return NextResponse.json(cached);
@@ -32,7 +32,7 @@ export async function GET() {
     stats.price = stats.priceUsd / ethPrice.usd;
 
     // Cache the result
-    await cache.set("vibestr-stats", stats, VIBESTR_CACHE_TTL.STATS);
+    await cache.set("vibestr-stats-v2", stats, VIBESTR_CACHE_TTL.STATS);
 
     console.log("VIBESTR stats cached successfully");
 

@@ -1,12 +1,15 @@
 "use client";
 
-import { Card } from "@/components/ui";
 import { StatCardSkeleton } from "@/components/ui/Skeleton";
+import { useDexScreenerStats } from "@/hooks/vibestr/useDexScreenerStats";
 import { useTokenStats } from "@/hooks/vibestr";
 import { formatUsd, formatNumber, formatPercent } from "@/lib/utils";
 
 export function TokenStatsOverview() {
-  const { data: stats, isLoading, error } = useTokenStats();
+  const { data: pair, isLoading: dexLoading, error: dexError } = useDexScreenerStats();
+  const { data: stats, isLoading: statsLoading } = useTokenStats();
+
+  const isLoading = dexLoading || statsLoading;
 
   if (isLoading) {
     return (
@@ -18,46 +21,65 @@ export function TokenStatsOverview() {
     );
   }
 
-  if (error || !stats) {
+  if (dexError || !pair) {
     return (
-      <div className="rounded-xl border border-chart-danger/50 bg-chart-danger/10 p-6 text-center">
-        <p className="text-chart-danger">Failed to load token stats</p>
+      <div className="rounded-xl border border-gvc-red/50 bg-gvc-red/10 p-6 text-center">
+        <p className="text-gvc-red">Failed to load token stats</p>
+        <p className="text-gvc-text-muted text-xs mt-1">
+          {dexError?.message || "No data available"}
+        </p>
       </div>
     );
   }
 
+  const price = parseFloat(pair.priceUsd);
+  const priceChange24h = pair.priceChange.h24;
+  const volume24h = pair.volume.h24;
+  const liquidity = pair.liquidity.usd;
+  const marketCap = pair.marketCap || pair.fdv;
+  const buys24h = pair.txns.h24.buys;
+  const sells24h = pair.txns.h24.sells;
+  const buyRatio = buys24h + sells24h > 0
+    ? (buys24h / (buys24h + sells24h)) * 100
+    : 50;
+
+  // Burn data from NFTStrategy API (fallback)
+  const burnedAmount = stats?.burnedAmount || 0;
+  const burnedPercent = stats?.burnedPercent || 0;
+
   const statsData = [
     {
       label: "Token Price",
-      value: formatUsd(stats.priceUsd, 4),
-      subValue: formatPercent(stats.priceChange24h),
-      change: stats.priceChange24h,
+      value: formatUsd(price, 6),
+      subValue: formatPercent(priceChange24h),
+      change: priceChange24h,
       highlight: true,
     },
     {
       label: "Market Cap",
-      value: formatUsd(stats.marketCap, 0),
+      value: formatUsd(marketCap, 0),
       subValue: "fully diluted",
     },
     {
       label: "24h Volume",
-      value: formatUsd(stats.volume24h, 0),
-      subValue: "trading volume",
+      value: formatUsd(volume24h, 0),
+      subValue: `${formatNumber(buys24h + sells24h)} txns`,
     },
     {
       label: "Liquidity",
-      value: formatUsd(stats.liquidity, 0),
+      value: formatUsd(liquidity, 0),
       subValue: "available",
     },
     {
-      label: "Burned",
-      value: `${(stats.burnedAmount / 1e9).toFixed(1)}B`,
-      subValue: `${stats.burnedPercent.toFixed(1)}% of supply`,
+      label: "Buy/Sell Ratio",
+      value: `${buyRatio.toFixed(0)}%`,
+      subValue: `${buys24h}B / ${sells24h}S`,
+      change: buyRatio > 50 ? 1 : buyRatio < 50 ? -1 : 0,
     },
     {
-      label: "NFT Holdings",
-      value: formatNumber(stats.holdingsCount),
-      subValue: "GVC NFTs in pool",
+      label: "Burned",
+      value: burnedAmount > 0 ? `${(burnedAmount / 1e6).toFixed(1)}M` : "—",
+      subValue: burnedPercent > 0 ? `${burnedPercent.toFixed(1)}% of supply` : "loading...",
     },
   ];
 

@@ -41,11 +41,18 @@ export const WETH_ADDRESS = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 // VIBESTR Token & Strategy
 export const VIBESTR_TOKEN_CONTRACT = "0xd0cc2b0efb168bfe1f94a948d8df70fa10257196";
 export const VIBESTR_STRATEGY_ID = "0xd0cc2b0efb168bfe1f94a948d8df70fa10257196";
-export const VIBESTR_TOTAL_SUPPLY = 1_000_000_000_000; // 1 trillion tokens
+export const VIBESTR_TOTAL_SUPPLY = 1_000_000_000; // 1 billion tokens
+export const COINGECKO_VIBESTR_ID = "vibestrategy";
+
+// DexScreener API
+export const DEXSCREENER_API = "https://api.dexscreener.com/latest/dex";
 
 // VIBESTR Cache TTLs (in seconds)
 export const VIBESTR_CACHE_TTL = {
   STATS: 300, // 5 minutes - token stats
+  DEXSCREENER: 120, // 2 minutes - real-time trading data
+  MARKET_HISTORY: 1800, // 30 minutes - CoinGecko price history
+  NFT_TRADES: 600, // 10 minutes - NFT trade history
   HOLDINGS: 3600, // 1 hour - NFT holdings
   PRICE_HISTORY: 3600, // 1 hour - historical price data
   VOLUME_HISTORY: 3600, // 1 hour - volume data

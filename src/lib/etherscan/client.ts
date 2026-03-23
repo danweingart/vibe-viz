@@ -409,6 +409,109 @@ export function filterToSalesOnly(transfers: EtherscanTransfer[]): EtherscanTran
  * @param transfers - All transfer records
  * @returns Number of unique current holders
  */
+/**
+ * ERC-20 Token Transfer Record from Etherscan
+ */
+export interface EtherscanERC20Transfer {
+  blockNumber: string;
+  timeStamp: string;
+  hash: string;
+  nonce: string;
+  blockHash: string;
+  from: string;
+  contractAddress: string;
+  to: string;
+  value: string;
+  tokenName: string;
+  tokenSymbol: string;
+  tokenDecimal: string;
+  transactionIndex: string;
+  gas: string;
+  gasPrice: string;
+  gasUsed: string;
+  cumulativeGasUsed: string;
+  input: string;
+  confirmations: string;
+}
+
+/**
+ * Fetch ERC-20 token transfers for a given contract
+ *
+ * Uses the `tokentx` action (vs `tokennfttx` for ERC-721).
+ * Used for VIBESTR token transfer tracking.
+ */
+export async function getERC20TokenTransfers(
+  contractAddress: string,
+  startBlock: number = 0,
+  endBlock: number | string = 'latest',
+  page: number = 1,
+  offset: number = 10000
+): Promise<EtherscanERC20Transfer[]> {
+  const url = buildUrl({
+    module: 'account',
+    action: 'tokentx',
+    contractaddress: contractAddress,
+    startblock: startBlock,
+    endblock: endBlock,
+    page,
+    offset,
+    sort: 'desc',
+  });
+
+  const response = await fetchWithRetry(url);
+  const data = await response.json();
+
+  if (data.status !== '1') {
+    if (data.message === 'No transactions found') {
+      return [];
+    }
+    console.error('Etherscan ERC-20 API error:', data);
+    throw new Error(`Etherscan API error: ${data.message || data.result || 'Unknown error'}`);
+  }
+
+  return data.result;
+}
+
+/**
+ * Build current ownership map from transfer history
+ *
+ * Replays all transfers to determine who currently holds which tokens.
+ * Returns Map of address → Set of tokenIDs.
+ */
+export function buildOwnershipMap(transfers: EtherscanTransfer[]): Map<string, Set<string>> {
+  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+  const holdings = new Map<string, Set<string>>();
+
+  const sortedTransfers = [...transfers].sort((a, b) =>
+    parseInt(a.blockNumber) - parseInt(b.blockNumber)
+  );
+
+  for (const transfer of sortedTransfers) {
+    const from = transfer.from.toLowerCase();
+    const to = transfer.to.toLowerCase();
+    const tokenId = transfer.tokenID;
+
+    if (from !== ZERO_ADDRESS) {
+      const fromHoldings = holdings.get(from);
+      if (fromHoldings) {
+        fromHoldings.delete(tokenId);
+        if (fromHoldings.size === 0) {
+          holdings.delete(from);
+        }
+      }
+    }
+
+    if (to !== ZERO_ADDRESS) {
+      if (!holdings.has(to)) {
+        holdings.set(to, new Set());
+      }
+      holdings.get(to)!.add(tokenId);
+    }
+  }
+
+  return holdings;
+}
+
 export function calculateHolderCount(transfers: EtherscanTransfer[]): number {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 

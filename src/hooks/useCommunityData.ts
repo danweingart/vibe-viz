@@ -1,0 +1,200 @@
+"use client";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Types matching API response shapes (no ENS names — resolved separately)
+
+export interface HolderEntry {
+  address: string;
+  tokenCount: number;
+  percentOfSupply: number;
+  hasActiveListing: boolean;
+  lastTransferTimestamp: number | null;
+}
+
+export interface HoldersResponse {
+  holders: HolderEntry[];
+  diamondHands: HolderEntry[];
+  stats: {
+    totalHolders: number;
+    diamondHandsCount: number;
+    diamondHandsPercent: number;
+    totalSupply: number;
+    topHolderConcentration: number;
+  };
+}
+
+export interface NewCollector {
+  address: string;
+  firstPurchaseTimestamp: number;
+  tokensAcquired: number;
+}
+
+export interface Accumulator {
+  address: string;
+  buysThisMonth: number;
+  currentHoldings: number;
+}
+
+export interface ActivityResponse {
+  newCollectors: NewCollector[];
+  accumulators: Accumulator[];
+  stats: {
+    newCollectors30d: number;
+    accumulatorCount: number;
+    totalBuys30d: number;
+    totalSells30d: number;
+    netAccumulationRate: number;
+  };
+}
+
+export interface VibestrHolder {
+  address: string;
+  balance: number;
+  lastSellTimestamp: number | null;
+}
+
+export interface VibestrNewBuyer {
+  address: string;
+  firstBuyTimestamp: number;
+  amountPurchased: number;
+}
+
+export interface VibestrActivityResponse {
+  diamondHands: VibestrHolder[];
+  newBuyers: VibestrNewBuyer[];
+  stats: {
+    totalHolders: number;
+    diamondHandsCount: number;
+    newBuyers30d: number;
+    totalTransfers30d: number;
+  };
+}
+
+async function fetchCommunityHolders(): Promise<HoldersResponse> {
+  const response = await fetch("/api/community/holders");
+  if (!response.ok) throw new Error("Failed to fetch community holders");
+  return response.json();
+}
+
+async function fetchCommunityActivity(): Promise<ActivityResponse> {
+  const response = await fetch("/api/community/activity");
+  if (!response.ok) throw new Error("Failed to fetch community activity");
+  return response.json();
+}
+
+async function fetchVibestrActivity(): Promise<VibestrActivityResponse> {
+  const response = await fetch("/api/community/vibestr-activity");
+  if (!response.ok) throw new Error("Failed to fetch VIBESTR activity");
+  return response.json();
+}
+
+export function useCommunityHolders() {
+  return useQuery({
+    queryKey: ["community-holders"],
+    queryFn: fetchCommunityHolders,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+  });
+}
+
+export function useCommunityActivity() {
+  return useQuery({
+    queryKey: ["community-activity"],
+    queryFn: fetchCommunityActivity,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+  });
+}
+
+export function useVibestrActivity() {
+  return useQuery({
+    queryKey: ["community-vibestr-activity"],
+    queryFn: fetchVibestrActivity,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+  });
+}
+
+/**
+ * Lazy ENS resolution hook.
+ * Takes an array of addresses and resolves them in batch via a lightweight API.
+ * Returns a map of address → display name.
+ */
+async function fetchENSNames(addresses: string[]): Promise<Record<string, string | null>> {
+  if (addresses.length === 0) return {};
+  const response = await fetch("/api/community/ens", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ addresses: addresses.slice(0, 30) }),
+  });
+  if (!response.ok) return {};
+  return response.json();
+}
+
+export function useENSNames(addresses: string[]) {
+  return useQuery({
+    queryKey: ["ens-names", addresses.sort().join(",")],
+    queryFn: () => fetchENSNames(addresses),
+    staleTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
+    enabled: addresses.length > 0,
+    retry: 1,
+  });
+}
+
+// ─── Account Tags ────────────────────────────────────────────────────
+
+async function fetchAccountTags(): Promise<Record<string, string>> {
+  const response = await fetch("/api/community/tags");
+  if (!response.ok) return {};
+  return response.json();
+}
+
+export function useAccountTags() {
+  return useQuery({
+    queryKey: ["account-tags"],
+    queryFn: fetchAccountTags,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+  });
+}
+
+export function useSetAccountTag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ address, name }: { address: string; name: string }) => {
+      const response = await fetch("/api/community/tags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address, name }),
+      });
+      if (!response.ok) throw new Error("Failed to set tag");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account-tags"] });
+    },
+  });
+}
+
+export function useDeleteAccountTag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (address: string) => {
+      const response = await fetch("/api/community/tags", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address }),
+      });
+      if (!response.ok) throw new Error("Failed to delete tag");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account-tags"] });
+    },
+  });
+}

@@ -48,6 +48,9 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
             <NavLink href="/vibestr" active={pathname === "/vibestr"}>
               VIBESTR
             </NavLink>
+            <NavLink href="/community" active={pathname === "/community"}>
+              Community
+            </NavLink>
           </nav>
 
           {/* Actions */}
@@ -110,6 +113,9 @@ export function Header({ lastUpdated, onRefresh, isRefreshing }: HeaderProps) {
               </MobileNavLink>
               <MobileNavLink href="/vibestr" onClick={() => setMobileMenuOpen(false)} active={pathname === "/vibestr"}>
                 VIBESTR
+              </MobileNavLink>
+              <MobileNavLink href="/community" onClick={() => setMobileMenuOpen(false)} active={pathname === "/community"}>
+                Community
               </MobileNavLink>
             </div>
           </nav>

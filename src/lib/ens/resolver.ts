@@ -15,48 +15,68 @@ const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
 
 // Cache TTL: 7 days for auto-resolved names
 const NAME_CACHE_TTL = 604800;
-// Cache TTL: 10 years for manual tags (effectively permanent)
-const TAG_TTL = 315360000;
-const TAG_PREFIX = "account-tag-";
 
-// ─── Account Tag CRUD ────────────────────────────────────────────────
+// ─── Account Tags (dedicated table — immune to cache clears) ─────────
+
+let tagTableReady = false;
+
+async function ensureTagTable(): Promise<void> {
+  if (tagTableReady) return;
+  tagTableReady = true;
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS account_tags (
+        address TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+  } catch (error) {
+    console.error("Failed to create account_tags table:", error);
+    tagTableReady = false;
+  }
+}
 
 export async function getAccountTag(address: string): Promise<string | null> {
-  const result = await cache.get<{ name: string }>(
-    `${TAG_PREFIX}${address.toLowerCase()}`
-  );
-  return result?.name || null;
+  await ensureTagTable();
+  try {
+    const result = await sql`
+      SELECT name FROM account_tags WHERE address = ${address.toLowerCase()}
+    `;
+    return result.rows[0]?.name || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function setAccountTag(
   address: string,
   name: string
 ): Promise<void> {
-  await cache.set(
-    `${TAG_PREFIX}${address.toLowerCase()}`,
-    { name },
-    TAG_TTL
-  );
+  await ensureTagTable();
+  await sql`
+    INSERT INTO account_tags (address, name, updated_at)
+    VALUES (${address.toLowerCase()}, ${name}, NOW())
+    ON CONFLICT (address)
+    DO UPDATE SET name = ${name}, updated_at = NOW()
+  `;
 }
 
 export async function deleteAccountTag(address: string): Promise<void> {
-  await cache.delete(`${TAG_PREFIX}${address.toLowerCase()}`);
+  await ensureTagTable();
+  await sql`
+    DELETE FROM account_tags WHERE address = ${address.toLowerCase()}
+  `;
 }
 
 export async function getAllAccountTags(): Promise<Record<string, string>> {
+  await ensureTagTable();
   try {
-    const result = await sql`
-      SELECT key, value FROM cache_entries
-      WHERE key LIKE 'account-tag-%'
-      AND expires_at > NOW()
-    `;
+    const result = await sql`SELECT address, name FROM account_tags`;
     const tags: Record<string, string> = {};
     for (const row of result.rows) {
-      const address = row.key.replace(TAG_PREFIX, "");
-      const parsed = typeof row.value === "string" ? JSON.parse(row.value) : row.value;
-      if (parsed?.name) {
-        tags[address] = parsed.name;
-      }
+      tags[row.address] = row.name;
     }
     return tags;
   } catch (error) {

@@ -96,6 +96,14 @@ export function useCommunityHolders() {
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 2,
+    // Auto-refetch every 5s while data is still building (progressive load)
+    refetchInterval: (query) => {
+      const data = query.state.data as HoldersResponse | undefined;
+      if (data && '_partial' in data && (data as HoldersResponse & { _partial?: boolean })._partial) {
+        return 5000;
+      }
+      return false;
+    },
   });
 }
 

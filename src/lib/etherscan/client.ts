@@ -139,7 +139,8 @@ export async function getTokenTransfers(
   startBlock: number = 0,
   endBlock: number | string = 'latest',
   page: number = 1,
-  offset: number = 10000
+  offset: number = 10000,
+  sort: 'asc' | 'desc' = 'desc'
 ): Promise<EtherscanTransfer[]> {
   const url = buildUrl({
     module: 'account',
@@ -149,7 +150,7 @@ export async function getTokenTransfers(
     endblock: endBlock,
     page,
     offset,
-    sort: 'desc', // Most recent first
+    sort,
   });
 
   const response = await fetchWithRetry(url);

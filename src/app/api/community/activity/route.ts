@@ -60,8 +60,19 @@ export async function GET() {
 
         const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 86400;
 
-        // Separate all sales into historical (>30d) and recent (<=30d)
-        const allSales = filterToSalesOnly(allTransfers);
+        // Filter to real sales:
+        // 1. Exclude mints/burns
+        // 2. Exclude batch transfers (>1 token per tx = wallet reorganization, not sales)
+        const nonMintTransfers = filterToSalesOnly(allTransfers);
+
+        // Count tokens per transaction hash — batch txs are wallet transfers, not sales
+        const txTokenCounts = new Map<string, number>();
+        for (const t of nonMintTransfers) {
+          txTokenCounts.set(t.hash, (txTokenCounts.get(t.hash) || 0) + 1);
+        }
+        const allSales = nonMintTransfers.filter(
+          (t) => (txTokenCounts.get(t.hash) || 0) <= 1
+        );
 
         // Track all-time buyers (before 30d window) for first-time detection
         const historicalBuyers = new Set<string>();

@@ -128,14 +128,22 @@ export function useVibestrActivity() {
 }
 
 /**
+ * Resolved profile from the server.
+ */
+export interface ResolvedProfile {
+  name: string | null;
+  twitter: string | null;
+}
+
+/**
  * Lazy name resolution hook.
  *
- * Sends ALL addresses to the server. The server returns cached names
+ * Sends ALL addresses to the server. The server returns cached profiles
  * instantly and resolves uncached ones within a 5s time budget.
- * The client re-fetches every 10s while names are still missing,
- * progressively building up the full name map.
+ * Each profile includes name + twitter handle when available.
+ * The client re-fetches every 10s while profiles are still missing.
  */
-async function fetchDisplayNames(addresses: string[]): Promise<Record<string, string | null>> {
+async function fetchDisplayProfiles(addresses: string[]): Promise<Record<string, ResolvedProfile>> {
   if (addresses.length === 0) return {};
   const response = await fetch("/api/community/ens", {
     method: "POST",
@@ -146,19 +154,19 @@ async function fetchDisplayNames(addresses: string[]): Promise<Record<string, st
   return response.json();
 }
 
-export function useENSNames(addresses: string[]) {
+export function useDisplayProfiles(addresses: string[]) {
   return useQuery({
-    queryKey: ["ens-names", addresses.sort().join(",")],
-    queryFn: () => fetchDisplayNames(addresses),
+    queryKey: ["display-profiles", addresses.sort().join(",")],
+    queryFn: () => fetchDisplayProfiles(addresses),
     staleTime: 60 * 60 * 1000,
     gcTime: 24 * 60 * 60 * 1000,
     enabled: addresses.length > 0,
     retry: 1,
-    // Re-fetch every 10s while there are still unresolved names
+    // Re-fetch every 10s while profiles are still missing
     refetchInterval: (query) => {
-      const data = query.state.data as Record<string, string | null> | undefined;
+      const data = query.state.data as Record<string, ResolvedProfile> | undefined;
       if (!data) return false;
-      const hasUnresolved = Object.values(data).some((v) => v === null) ||
+      const hasUnresolved = Object.values(data).some((v) => v.name === null) ||
         Object.keys(data).length < addresses.length;
       return hasUnresolved ? 10000 : false;
     },

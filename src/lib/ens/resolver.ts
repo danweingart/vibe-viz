@@ -85,9 +85,16 @@ export async function getAllAccountTags(): Promise<Record<string, string>> {
   }
 }
 
+// ─── Resolved Profile ────────────────────────────────────────────────
+
+export interface ResolvedProfile {
+  name: string | null;
+  twitter: string | null;
+}
+
 // ─── OpenSea Resolution ──────────────────────────────────────────────
 
-async function resolveViaOpenSea(address: string): Promise<string | null> {
+async function resolveViaOpenSea(address: string): Promise<ResolvedProfile> {
   try {
     const response = await fetch(
       `https://api.opensea.io/api/v2/accounts/${address}`,
@@ -99,11 +106,15 @@ async function resolveViaOpenSea(address: string): Promise<string | null> {
         signal: AbortSignal.timeout(3000),
       }
     );
-    if (!response.ok) return null;
+    if (!response.ok) return { name: null, twitter: null };
     const data = await response.json();
-    return data.username || null;
+    const twitter =
+      data.social_media_accounts?.find(
+        (s: { platform: string; username: string }) => s.platform === "twitter"
+      )?.username || null;
+    return { name: data.username || null, twitter };
   } catch {
-    return null;
+    return { name: null, twitter: null };
   }
 }
 
@@ -183,81 +194,43 @@ function decodeENSResult(hexData: string): string | null {
 // ─── Main Resolution ─────────────────────────────────────────────────
 
 /**
- * Resolve a single address to a display name.
+ * Resolve a single address to a display profile.
  *
  * Priority: OpenSea username → ENS name → null
+ * Also captures Twitter handle from OpenSea when available.
  * (Manual tags are checked separately at the API/page level)
  */
 export async function resolveDisplayName(
   address: string
-): Promise<string | null> {
+): Promise<ResolvedProfile> {
   const lowerAddress = address.toLowerCase();
   const cacheKey = `ens-${lowerAddress}`;
 
   // Check auto-resolution cache first
-  const cached = await cache.get<{ name: string | null }>(cacheKey);
+  const cached = await cache.get<ResolvedProfile>(cacheKey);
   if (cached !== null) {
-    return cached.name;
+    return cached;
   }
 
-  // Try OpenSea first (better coverage for NFT holders)
-  let name = await resolveViaOpenSea(lowerAddress);
+  // Try OpenSea first (better coverage for NFT holders, also gets Twitter)
+  const osResult = await resolveViaOpenSea(lowerAddress);
 
-  // Fallback to ENS
-  if (!name) {
-    name = await resolveViaENS(lowerAddress);
+  let profile: ResolvedProfile = {
+    name: osResult.name,
+    twitter: osResult.twitter,
+  };
+
+  // Fallback to ENS for name if OpenSea didn't have one
+  if (!profile.name) {
+    const ensName = await resolveViaENS(lowerAddress);
+    if (ensName) {
+      profile.name = ensName;
+    }
   }
 
   // Cache result (even null to avoid repeated lookups)
-  await cache.set(cacheKey, { name }, NAME_CACHE_TTL);
+  await cache.set(cacheKey, profile, NAME_CACHE_TTL);
 
-  return name;
+  return profile;
 }
 
-/**
- * Batch resolve display names for multiple addresses.
- * Resolves in parallel with concurrency limit.
- */
-export async function batchResolveDisplayNames(
-  addresses: string[],
-  maxConcurrent = 5
-): Promise<Map<string, string | null>> {
-  const results = new Map<string, string | null>();
-  const uniqueAddresses = [
-    ...new Set(addresses.map((a) => a.toLowerCase())),
-  ];
-
-  // Check cache for all addresses first
-  const uncached: string[] = [];
-  for (const address of uniqueAddresses) {
-    const cacheKey = `ens-${address}`;
-    const cached = await cache.get<{ name: string | null }>(cacheKey);
-    if (cached !== null) {
-      results.set(address, cached.name);
-    } else {
-      uncached.push(address);
-    }
-  }
-
-  // Resolve uncached in batches
-  for (let i = 0; i < uncached.length; i += maxConcurrent) {
-    const batch = uncached.slice(i, i + maxConcurrent);
-    const batchResults = await Promise.allSettled(
-      batch.map(async (address) => {
-        const name = await resolveDisplayName(address);
-        return { address, name };
-      })
-    );
-
-    for (const result of batchResults) {
-      if (result.status === "fulfilled") {
-        results.set(result.value.address, result.value.name);
-      } else {
-        const address = batch[batchResults.indexOf(result)];
-        results.set(address, null);
-      }
-    }
-  }
-
-  return results;
-}

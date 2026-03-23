@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resolveDisplayName } from "@/lib/ens/resolver";
+import { resolveDisplayName, type ResolvedProfile } from "@/lib/ens/resolver";
 import { cache } from "@/lib/cache/postgres";
 
 export const dynamic = "force-dynamic";
@@ -7,10 +7,9 @@ export const dynamic = "force-dynamic";
 /**
  * Batch name resolution with time budget.
  *
- * Accepts any number of addresses. Returns cached results instantly,
+ * Accepts any number of addresses. Returns cached profiles instantly,
  * then resolves uncached addresses until the time budget (~5s) runs out.
- * The client re-fetches periodically, and each call resolves more names
- * until all are cached.
+ * Each profile includes name + twitter handle when available.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -22,15 +21,15 @@ export async function POST(request: NextRequest) {
     }
 
     const unique = [...new Set(addresses.map((a) => a.toLowerCase()))];
-    const response: Record<string, string | null> = {};
+    const response: Record<string, ResolvedProfile> = {};
     const uncached: string[] = [];
 
     // Phase 1: Check cache for ALL addresses (fast — just DB reads)
     for (const address of unique) {
       const cacheKey = `ens-${address}`;
-      const cached = await cache.get<{ name: string | null }>(cacheKey);
+      const cached = await cache.get<ResolvedProfile>(cacheKey);
       if (cached !== null) {
-        response[address] = cached.name;
+        response[address] = cached;
       } else {
         uncached.push(address);
       }
@@ -43,20 +42,19 @@ export async function POST(request: NextRequest) {
     let resolved = 0;
 
     for (let i = 0; i < uncached.length; i += CONCURRENCY) {
-      // Check if we've exceeded the time budget
       if (Date.now() - startTime > TIME_BUDGET_MS) break;
 
       const batch = uncached.slice(i, i + CONCURRENCY);
       const results = await Promise.allSettled(
         batch.map(async (address) => {
-          const name = await resolveDisplayName(address);
-          return { address, name };
+          const profile = await resolveDisplayName(address);
+          return { address, profile };
         })
       );
 
       for (const result of results) {
         if (result.status === "fulfilled") {
-          response[result.value.address] = result.value.name;
+          response[result.value.address] = result.value.profile;
           resolved++;
         }
       }

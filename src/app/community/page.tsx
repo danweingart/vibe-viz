@@ -15,7 +15,7 @@ import {
   useCommunityHolders,
   useCommunityActivity,
   useVibestrActivity,
-  useENSNames,
+  useDisplayProfiles,
   useAccountTags,
   useSetAccountTag,
   useDeleteAccountTag,
@@ -61,12 +61,13 @@ export default function CommunityPage() {
   }, [holders.data, activity.data, vibestr.data]);
 
   // Lazy OpenSea/ENS resolution (fires after data loads)
-  const ensQuery = useENSNames(allAddresses);
-  const ensNames = ensQuery.data || {};
+  const profilesQuery = useDisplayProfiles(allAddresses);
+  const profiles = profilesQuery.data || {};
 
   // Merged display: manual tag > auto-resolved name
-  const getDisplayName = (address: string) => tags[address.toLowerCase()] || ensNames[address] || null;
+  const getDisplayName = (address: string) => tags[address.toLowerCase()] || profiles[address]?.name || null;
   const isTagged = (address: string) => !!tags[address.toLowerCase()];
+  const getTwitter = (address: string) => profiles[address]?.twitter || null;
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -109,7 +110,7 @@ export default function CommunityPage() {
                 emptyMessage="No diamond hand data available"
                 columns={[
                   { key: "rank", label: "#", align: "center", width: "40px", render: (_, i) => <Rank n={i + 1} /> },
-                  { key: "address", label: "Holder", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} onTag={handleTag} /> },
+                  { key: "address", label: "Holder", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} twitter={getTwitter(item.address)} onTag={handleTag} /> },
                   { key: "tokenCount", label: "Holdings", align: "right", render: (item) => <Val>{item.tokenCount}</Val> },
                   { key: "percent", label: "% Supply", align: "right", hideOnMobile: true, render: (item) => <Muted>{item.percentOfSupply.toFixed(2)}%</Muted> },
                   { key: "lastTransfer", label: "Last Transfer", align: "right", hideOnMobile: true, render: (item) => <Time ts={item.lastTransferTimestamp} /> },
@@ -134,7 +135,7 @@ export default function CommunityPage() {
                 emptyMessage="No holder data available"
                 columns={[
                   { key: "rank", label: "#", align: "center", width: "40px", render: (_, i) => <Rank n={i + 1} /> },
-                  { key: "address", label: "Holder", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} onTag={handleTag} /> },
+                  { key: "address", label: "Holder", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} twitter={getTwitter(item.address)} onTag={handleTag} /> },
                   { key: "tokenCount", label: "Tokens", align: "right", render: (item) => <Val>{item.tokenCount}</Val> },
                   { key: "percent", label: "% Supply", align: "right", hideOnMobile: true, render: (item) => <Muted>{item.percentOfSupply.toFixed(2)}%</Muted> },
                   {
@@ -164,7 +165,7 @@ export default function CommunityPage() {
                 emptyMessage="No accumulation data available"
                 columns={[
                   { key: "rank", label: "#", align: "center", width: "40px", render: (_, i) => <Rank n={i + 1} /> },
-                  { key: "address", label: "Collector", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} onTag={handleTag} /> },
+                  { key: "address", label: "Collector", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} twitter={getTwitter(item.address)} onTag={handleTag} /> },
                   { key: "buys", label: "Buys", align: "right", render: (item) => <span className="font-medium text-gvc-green">{item.buysThisMonth}</span> },
                   { key: "holdings", label: "Holdings", align: "right", render: (item) => <Muted>{item.currentHoldings}</Muted> },
                 ]}
@@ -188,7 +189,7 @@ export default function CommunityPage() {
                 emptyMessage="No new collectors in the past 30 days"
                 columns={[
                   { key: "rank", label: "#", align: "center", width: "40px", render: (_, i) => <Rank n={i + 1} /> },
-                  { key: "address", label: "Collector", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} onTag={handleTag} /> },
+                  { key: "address", label: "Collector", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} twitter={getTwitter(item.address)} onTag={handleTag} /> },
                   { key: "date", label: "First Purchase", align: "right", render: (item) => <Time ts={item.firstPurchaseTimestamp} /> },
                   { key: "tokens", label: "Tokens", align: "right", render: (item) => <Val>{item.tokensAcquired}</Val> },
                 ]}
@@ -212,7 +213,7 @@ export default function CommunityPage() {
                 emptyMessage="No VIBESTR diamond hand data available"
                 columns={[
                   { key: "rank", label: "#", align: "center", width: "40px", render: (_, i) => <Rank n={i + 1} /> },
-                  { key: "address", label: "Holder", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} onTag={handleTag} /> },
+                  { key: "address", label: "Holder", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} twitter={getTwitter(item.address)} onTag={handleTag} /> },
                   { key: "balance", label: "VIBESTR Balance", align: "right", render: (item) => <Val>{formatNumber(item.balance)}</Val> },
                   { key: "lastSell", label: "Last Sell", align: "right", hideOnMobile: true, render: (item) => <span className="text-gvc-text-muted text-xs">{item.lastSellTimestamp ? formatRelativeTime(item.lastSellTimestamp) : "Never"}</span> },
                 ]}
@@ -236,7 +237,7 @@ export default function CommunityPage() {
                 emptyMessage="No new VIBESTR buyers in the past 30 days"
                 columns={[
                   { key: "rank", label: "#", align: "center", width: "40px", render: (_, i) => <Rank n={i + 1} /> },
-                  { key: "address", label: "Buyer", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} onTag={handleTag} /> },
+                  { key: "address", label: "Buyer", render: (item) => <AddressCell address={item.address} displayName={getDisplayName(item.address)} isTagged={isTagged(item.address)} twitter={getTwitter(item.address)} onTag={handleTag} /> },
                   { key: "date", label: "First Buy", align: "right", render: (item) => <Time ts={item.firstBuyTimestamp} /> },
                   { key: "amount", label: "Amount", align: "right", render: (item) => <Val>{formatNumber(item.amountPurchased)}</Val> },
                 ]}

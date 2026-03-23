@@ -143,11 +143,13 @@ export function AddressCell({
   address,
   displayName,
   isTagged,
+  twitter,
   onTag,
 }: {
   address: string;
   displayName: string | null;
   isTagged?: boolean;
+  twitter?: string | null;
   onTag?: (address: string, name: string | null) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -226,6 +228,19 @@ export function AddressCell({
           </span>
         )}
       </a>
+      {twitter && (
+        <a
+          href={`https://x.com/${twitter}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 text-gvc-text-muted hover:text-gvc-text transition-colors"
+          title={`@${twitter}`}
+        >
+          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+        </a>
+      )}
       {onTag && (
         <button
           onClick={startEditing}

@@ -128,16 +128,19 @@ export function useVibestrActivity() {
 }
 
 /**
- * Lazy ENS resolution hook.
- * Takes an array of addresses and resolves them in batch via a lightweight API.
- * Returns a map of address → display name.
+ * Lazy name resolution hook.
+ *
+ * Sends ALL addresses to the server. The server returns cached names
+ * instantly and resolves uncached ones within a 5s time budget.
+ * The client re-fetches every 10s while names are still missing,
+ * progressively building up the full name map.
  */
-async function fetchENSNames(addresses: string[]): Promise<Record<string, string | null>> {
+async function fetchDisplayNames(addresses: string[]): Promise<Record<string, string | null>> {
   if (addresses.length === 0) return {};
   const response = await fetch("/api/community/ens", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ addresses: addresses.slice(0, 30) }),
+    body: JSON.stringify({ addresses }),
   });
   if (!response.ok) return {};
   return response.json();
@@ -146,11 +149,19 @@ async function fetchENSNames(addresses: string[]): Promise<Record<string, string
 export function useENSNames(addresses: string[]) {
   return useQuery({
     queryKey: ["ens-names", addresses.sort().join(",")],
-    queryFn: () => fetchENSNames(addresses),
-    staleTime: 60 * 60 * 1000, // 1 hour
-    gcTime: 24 * 60 * 60 * 1000, // 24 hours
+    queryFn: () => fetchDisplayNames(addresses),
+    staleTime: 60 * 60 * 1000,
+    gcTime: 24 * 60 * 60 * 1000,
     enabled: addresses.length > 0,
     retry: 1,
+    // Re-fetch every 10s while there are still unresolved names
+    refetchInterval: (query) => {
+      const data = query.state.data as Record<string, string | null> | undefined;
+      if (!data) return false;
+      const hasUnresolved = Object.values(data).some((v) => v === null) ||
+        Object.keys(data).length < addresses.length;
+      return hasUnresolved ? 10000 : false;
+    },
   });
 }
 

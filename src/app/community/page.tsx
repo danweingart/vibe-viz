@@ -10,6 +10,9 @@ import {
   CommunityTable,
   AddressCell,
 } from "@/components/community/CommunityTable";
+import { XMentionVolume } from "@/components/community/XMentionVolume";
+import { XTopMentioners } from "@/components/community/XTopMentioners";
+import { XMentionsFeed } from "@/components/community/XMentionsFeed";
 // SentimentBadge available at @/components/community/SentimentBadge if needed
 import {
   useCommunityHolders,
@@ -20,6 +23,7 @@ import {
   useSetAccountTag,
   useDeleteAccountTag,
 } from "@/hooks/useCommunityData";
+import { useXMentions } from "@/hooks/useXMentions";
 import type {
   HolderEntry,
   NewCollector,
@@ -33,6 +37,7 @@ export default function CommunityPage() {
   const holders = useCommunityHolders();
   const activity = useCommunityActivity();
   const vibestr = useVibestrActivity();
+  const xMentions = useXMentions();
 
   // Account tags (manual labels)
   const tagsQuery = useAccountTags();
@@ -94,9 +99,51 @@ export default function CommunityPage() {
             </div>
           </div>
 
-          {/* Section 01: Diamond Hands */}
+          {/* Section 01: X Mentions */}
           <section className="mb-8">
-            <SectionHeader number="01" title="Diamond Hands" />
+            <SectionHeader number="01" title="X Mentions" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+              <XMentionVolume
+                data={xMentions.data?.weeklyVolume}
+                isLoading={xMentions.isLoading}
+              />
+              <XTopMentioners
+                data={xMentions.data?.topMentioners}
+                isLoading={xMentions.isLoading}
+              />
+            </div>
+            <XMentionsFeed
+              mentions={xMentions.data?.mentions}
+              isLoading={xMentions.isLoading}
+              lastUpdated={xMentions.data?.stats.lastUpdated}
+            />
+
+            {/* Stats summary */}
+            {xMentions.data?.stats && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                {[
+                  { label: "Total Mentions", value: xMentions.data.stats.totalMentions },
+                  { label: "Unique Accounts", value: xMentions.data.stats.uniqueAccounts },
+                  { label: "Avg Likes", value: xMentions.data.stats.avgLikes },
+                  { label: "Avg Retweets", value: xMentions.data.stats.avgRetweets },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="bg-gvc-card border border-gvc-border rounded-lg px-3 py-2 text-center"
+                  >
+                    <div className="text-lg font-brice text-gvc-text">{stat.value}</div>
+                    <div className="text-[10px] text-gvc-text-muted uppercase tracking-wider">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Section 02: Diamond Hands */}
+          <section className="mb-8">
+            <SectionHeader number="02" title="Diamond Hands" />
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">GVC Holders Without Active Listings</CardTitle>
@@ -119,9 +166,9 @@ export default function CommunityPage() {
             </Card>
           </section>
 
-          {/* Section 02: Top Holders */}
+          {/* Section 03: Top Holders */}
           <section className="mb-8">
-            <SectionHeader number="02" title="Top Holders" />
+            <SectionHeader number="03" title="Top Holders" />
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Largest GVC Token Holders</CardTitle>
@@ -149,9 +196,9 @@ export default function CommunityPage() {
             </Card>
           </section>
 
-          {/* Section 03: Accumulation Leaders */}
+          {/* Section 04: Accumulation Leaders */}
           <section className="mb-8">
-            <SectionHeader number="03" title="Accumulation Leaders" />
+            <SectionHeader number="04" title="Accumulation Leaders" />
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Active Buyers Without Sells</CardTitle>
@@ -173,9 +220,9 @@ export default function CommunityPage() {
             </Card>
           </section>
 
-          {/* Section 04: New GVC Collectors */}
+          {/* Section 05: New GVC Collectors */}
           <section className="mb-8">
-            <SectionHeader number="04" title="New Collectors" />
+            <SectionHeader number="05" title="New Collectors" />
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">First-Time GVC Buyers</CardTitle>
@@ -197,9 +244,9 @@ export default function CommunityPage() {
             </Card>
           </section>
 
-          {/* Section 05: VIBESTR Diamond Hands */}
+          {/* Section 06: VIBESTR Diamond Hands */}
           <section className="mb-8">
-            <SectionHeader number="05" title="VIBESTR Diamond Hands" />
+            <SectionHeader number="06" title="VIBESTR Diamond Hands" />
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">VIBESTR Holders Without Recent Sells</CardTitle>
@@ -221,9 +268,9 @@ export default function CommunityPage() {
             </Card>
           </section>
 
-          {/* Section 06: New VIBESTR Buyers */}
+          {/* Section 07: New VIBESTR Buyers */}
           <section className="mb-8">
-            <SectionHeader number="06" title="New VIBESTR Buyers" />
+            <SectionHeader number="07" title="New VIBESTR Buyers" />
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">First-Time VIBESTR Purchasers</CardTitle>

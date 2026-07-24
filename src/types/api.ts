@@ -76,6 +76,8 @@ export interface CollectionStats {
 export interface SaleRecord {
   id: string;
   tokenId: string;
+  /** All Citizen token IDs in this sale. Length 1 = normal sale, >1 = sweep (one buyer, multiple tokens in one tx). */
+  tokenIds: number[];
   tokenName: string;
   imageUrl: string;
   priceEth: number;
@@ -84,6 +86,10 @@ export interface SaleRecord {
   paymentSymbol: string;
   seller: string;
   buyer: string;
+  /** ENS / OpenSea account name for the buyer, or null if unknown / not resolved. */
+  buyerName: string | null;
+  /** ENS / OpenSea account name for the seller, or null if unknown / not resolved. */
+  sellerName: string | null;
   timestamp: Date;
   txHash: string;
   premiumPercent?: number;

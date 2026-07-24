@@ -6,8 +6,10 @@ import {
 import { getEthPrice } from "@/lib/coingecko/client";
 import {
   enrichTransfersWithPrices,
-  transformToSaleRecords
+  transformToSaleRecords,
+  groupSalesForFeed
 } from "@/lib/etherscan/transformer";
+import { resolveDisplayName, getAllAccountTags } from "@/lib/ens/resolver";
 import {
   validatePriceCoverage,
   logValidationMetrics
@@ -23,9 +25,56 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
   const offset = parseInt(searchParams.get("offset") || "0");
+  // Opt-in: resolve buyer/seller wallet names (ENS / OpenSea username) for the
+  // returned page. Off by default to keep the shared feed fast.
+  const resolveNames = searchParams.get("resolveNames") === "true";
 
   // Use a single cache key for the recent events dataset
   const cacheKey = "events-recent";
+
+  // Attach buyer/seller display names to a page of sales (only when requested).
+  // Uses the shared resolver: manual tag → OpenSea username → ENS → null,
+  // resolving uncached addresses within a ~5s time budget (best-effort).
+  async function withNames(events: SaleRecord[]): Promise<SaleRecord[]> {
+    if (!resolveNames || events.length === 0) return events;
+    try {
+      const names = new Map<string, string | null>();
+      const tags = await getAllAccountTags();
+
+      const addresses = Array.from(
+        new Set(events.flatMap(e => [e.buyer.toLowerCase(), e.seller.toLowerCase()]))
+      );
+
+      const TIME_BUDGET_MS = 5000;
+      const CONCURRENCY = 5;
+      const start = Date.now();
+
+      for (let i = 0; i < addresses.length; i += CONCURRENCY) {
+        const batch = addresses.slice(i, i + CONCURRENCY);
+        const results = await Promise.allSettled(
+          batch.map(async (addr) => {
+            // Manual tag wins over auto-resolution
+            const tag = tags[addr];
+            if (tag) return { addr, name: tag };
+            const profile = await resolveDisplayName(addr);
+            return { addr, name: profile.name };
+          })
+        );
+        for (const r of results) {
+          if (r.status === "fulfilled") names.set(r.value.addr, r.value.name);
+        }
+        if (Date.now() - start > TIME_BUDGET_MS) break;
+      }
+
+      return events.map(e => ({
+        ...e,
+        buyerName: names.get(e.buyer.toLowerCase()) ?? null,
+        sellerName: names.get(e.seller.toLowerCase()) ?? null,
+      }));
+    } catch {
+      return events; // names are best-effort
+    }
+  }
 
   return withTimeout(async () => {
   try {
@@ -40,7 +89,7 @@ export async function GET(request: NextRequest) {
         const paginatedSales = staleData.slice(offset, offset + limit);
         const hasMore = offset + limit < staleData.length;
         return NextResponse.json({
-          events: paginatedSales,
+          events: await withNames(paginatedSales),
           nextCursor: hasMore ? String(offset + limit) : null,
           hasMore,
           total: staleData.length,
@@ -63,8 +112,9 @@ export async function GET(request: NextRequest) {
       // Enrich with OpenSea prices
       const enriched = await enrichTransfersWithPrices(salesTransfers, ethPriceData.usd);
 
-      // Transform to SaleRecord format (only keeps transfers with price data)
-      allSales = transformToSaleRecords(enriched);
+      // Transform to SaleRecord format (only keeps transfers with price data),
+      // then group into one row per (transaction, buyer) for the feed.
+      allSales = groupSalesForFeed(transformToSaleRecords(enriched));
 
       // Validate price coverage
       const enrichedCount = enriched.filter(t => t.priceEth !== undefined).length;
@@ -86,7 +136,7 @@ export async function GET(request: NextRequest) {
     const hasMore = offset + limit < allSales.length;
 
     const result = {
-      events: paginatedSales,
+      events: await withNames(paginatedSales),
       nextCursor: hasMore ? String(offset + limit) : null,
       hasMore,
       total: allSales.length,

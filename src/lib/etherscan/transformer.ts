@@ -11,6 +11,7 @@ import type {
   SaleRecord,
   DailyStats,
   CollectionStats,
+  OpenSeaEvent,
 } from "@/types/api";
 import { getEvents, parseEventPrice, getPaymentToken } from "@/lib/opensea/client";
 import { getPriceCache, setPriceCache } from "@/lib/cache/prices";
@@ -79,7 +80,7 @@ export async function enrichTransfersWithPrices(
 
   try {
     // Fetch ALL OpenSea sales in this time range with pagination
-    const allOpenSeaEvents: any[] = [];
+    const allOpenSeaEvents: OpenSeaEvent[] = [];
     let nextCursor: string | null = null;
     let page = 0;
     const maxPages = 250; // Increased limit for complete historical data (250 pages × 200 events = 50k max)
@@ -111,11 +112,20 @@ export async function enrichTransfersWithPrices(
 
     console.log(`Fetched ${allOpenSeaEvents.length} OpenSea events across ${page} pages`);
 
-    // Build txHash -> OpenSea event map
+    // Build txHash -> OpenSea event map (fallback)
     const eventsByTxHash = new Map(
       allOpenSeaEvents
         .filter(event => event.transaction)
         .map(event => [event.transaction!.toLowerCase(), event] as const)
+    );
+
+    // Build (txHash + tokenId) -> OpenSea event map. This is the precise key:
+    // it gives each token in a multi-token sweep its own marketplace price,
+    // rather than every token in the tx sharing a single price.
+    const eventsByTxToken = new Map(
+      allOpenSeaEvents
+        .filter(event => event.transaction && event.nft?.identifier)
+        .map(event => [`${event.transaction!.toLowerCase()}-${event.nft!.identifier}`, event] as const)
     );
 
     console.log(`Built map with ${eventsByTxHash.size} unique transaction hashes from OpenSea`);
@@ -129,7 +139,10 @@ export async function enrichTransfersWithPrices(
       const txHash = transfer.hash.toLowerCase();
 
       if (txHashesToFetch.includes(transfer.hash)) {
-        const openSeaEvent = eventsByTxHash.get(txHash);
+        // Prefer the per-token event (accurate for sweeps); fall back to per-tx.
+        const openSeaEvent =
+          eventsByTxToken.get(`${txHash}-${transfer.tokenID}`) ||
+          eventsByTxHash.get(txHash);
 
         if (openSeaEvent) {
           if (openSeaEvent.payment) {
@@ -192,6 +205,7 @@ export function transformToSaleRecords(
     .map(transfer => ({
       id: transfer.hash,
       tokenId: transfer.tokenID,
+      tokenIds: [Number(transfer.tokenID)],
       tokenName: transfer.tokenName || `#${transfer.tokenID}`,
       imageUrl: transfer.imageUrl || "", // Extracted from OpenSea event during enrichment
       priceEth: transfer.priceEth!,
@@ -200,9 +214,121 @@ export function transformToSaleRecords(
       paymentSymbol: transfer.paymentSymbol || "UNKNOWN",
       seller: transfer.from,
       buyer: transfer.to,
+      buyerName: null,
+      sellerName: null,
       timestamp: new Date(parseInt(transfer.timeStamp) * 1000),
       txHash: transfer.hash,
     }));
+}
+
+/**
+ * Group per-transfer sale records into one row per (transaction, buyer) for the
+ * public sales feed. Each output row is one buyer's acquisition.
+ *
+ * Handles the real on-chain transaction shapes seen in GVC data:
+ *  - Same-token multi-hop (A -> B -> C in one tx, e.g. an aggregator/strategy
+ *    contract forwarding a token): collapsed to ONE sale where seller is the
+ *    originator and buyer is the terminal recipient, counted/priced once.
+ *  - Multi-buyer batch (one seller, many tokens, many distinct buyers in one tx):
+ *    kept as SEPARATE rows, one per buyer.
+ *  - Genuine sweep (one buyer acquires multiple tokens in one tx): ONE row with
+ *    all tokenIds and the summed price.
+ *
+ * Consumers can branch on `tokenIds.length`: 1 = normal sale, >1 = sweep.
+ *
+ * `id` is a stable, unique dedup key: it equals `txHash` for ordinary
+ * single-buyer transactions, and `txHash-buyer` for the rare multi-buyer batch
+ * transaction (so rows sharing a txHash stay distinct).
+ *
+ * @param records - Per-transfer SaleRecords from transformToSaleRecords
+ * @returns One SaleRecord per (transaction, buyer)
+ */
+export function groupSalesForFeed(records: SaleRecord[]): SaleRecord[] {
+  // Group by transaction hash
+  const byTx = new Map<string, SaleRecord[]>();
+  for (const r of records) {
+    const key = r.txHash.toLowerCase();
+    if (!byTx.has(key)) byTx.set(key, []);
+    byTx.get(key)!.push(r);
+  }
+
+  interface TokenSale {
+    tokenId: string;
+    seller: string;
+    buyer: string;
+    priceEth: number;
+    priceUsd: number;
+    rep: SaleRecord;
+  }
+
+  const feed: SaleRecord[] = [];
+
+  for (const txRecords of byTx.values()) {
+    // --- Step 1: collapse each token's intermediary hops into one net sale ---
+    const recordsByToken = new Map<string, SaleRecord[]>();
+    for (const r of txRecords) {
+      if (!recordsByToken.has(r.tokenId)) recordsByToken.set(r.tokenId, []);
+      recordsByToken.get(r.tokenId)!.push(r);
+    }
+
+    const tokenSales: TokenSale[] = [];
+    for (const hops of recordsByToken.values()) {
+      const froms = new Set(hops.map(h => h.seller.toLowerCase()));
+      const tos = new Set(hops.map(h => h.buyer.toLowerCase()));
+      // Originator = a sender that never receives within this tx;
+      // terminal = a receiver that never sends within this tx.
+      const originator =
+        hops.find(h => !tos.has(h.seller.toLowerCase()))?.seller ?? hops[0].seller;
+      const terminal =
+        hops.find(h => !froms.has(h.buyer.toLowerCase()))?.buyer ??
+        hops[hops.length - 1].buyer;
+      // Every hop of one token carries the same marketplace price → count once.
+      const rep = hops[0];
+      tokenSales.push({
+        tokenId: rep.tokenId,
+        seller: originator,
+        buyer: terminal,
+        priceEth: rep.priceEth,
+        priceUsd: rep.priceUsd,
+        rep,
+      });
+    }
+
+    // --- Step 2: group net token-sales by terminal buyer ---
+    const byBuyer = new Map<string, TokenSale[]>();
+    for (const ts of tokenSales) {
+      const key = ts.buyer.toLowerCase();
+      if (!byBuyer.has(key)) byBuyer.set(key, []);
+      byBuyer.get(key)!.push(ts);
+    }
+
+    const multipleBuyers = byBuyer.size > 1;
+
+    for (const sales of byBuyer.values()) {
+      // Stable order: lowest token id first (also picks the representative token)
+      sales.sort((a, b) => Number(a.tokenId) - Number(b.tokenId));
+      const rep = sales[0].rep;
+      const buyer = sales[0].buyer;
+      const tokenIds = sales.map(s => Number(s.tokenId));
+
+      feed.push({
+        ...rep,
+        id: multipleBuyers ? `${rep.txHash}-${buyer.toLowerCase()}` : rep.txHash,
+        tokenId: String(tokenIds[0]),
+        tokenIds,
+        priceEth: sales.reduce((sum, s) => sum + s.priceEth, 0),
+        priceUsd: sales.reduce((sum, s) => sum + s.priceUsd, 0),
+        // Representative seller (lowest token id). Multi-seller sweeps report the
+        // first seller; buyer is always the single terminal recipient.
+        seller: sales[0].seller,
+        buyer,
+        buyerName: null,
+        sellerName: null,
+      });
+    }
+  }
+
+  return feed;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCollectionStats as getOpenSeaStats } from "@/lib/opensea/client";
+import { getCollectionStats as getOpenSeaStats, getBestListing, parseListingPrice } from "@/lib/opensea/client";
 import { getTotalSupply } from "@/lib/etherscan/client";
 import { getEthPrice } from "@/lib/coingecko/client";
 import { cache } from "@/lib/cache/postgres";
@@ -21,15 +21,19 @@ export async function GET() {
     console.log("Fetching collection stats (using OpenSea totals + intervals)...");
 
     // Fetch data in parallel — only fast calls, no Etherscan transfer pagination
-    const [openSeaStats, totalSupply, ethPriceData] = await Promise.all([
+    const [openSeaStats, totalSupply, ethPriceData, bestListing] = await Promise.all([
       getOpenSeaStats(),
       getTotalSupply(CONTRACT_ADDRESS),
       getEthPrice(),
+      getBestListing().catch(() => null),
     ]);
 
     // Get metrics from OpenSea (source of truth for totals)
     const numOwners = openSeaStats.total.num_owners || 0;
-    const floorPrice = openSeaStats.total.floor_price || 0;
+    const bestListingPrice = bestListing ? parseListingPrice(bestListing) : 0;
+    const floorPrice = bestListingPrice > 0
+      ? bestListingPrice
+      : (openSeaStats.total.floor_price || 0);
     const totalVolume = openSeaStats.total.volume || 0;
     const totalSales = openSeaStats.total.sales || 0;
 

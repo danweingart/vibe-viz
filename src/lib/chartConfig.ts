@@ -51,7 +51,7 @@ export const GRID_STYLE = {
 
 /** Tooltip container styling */
 export const TOOLTIP_STYLE = {
-  backgroundColor: '#141414',
+  backgroundColor: 'var(--background-tertiary)',
   border: TOOLTIP.container.border,
   borderRadius: `${TOOLTIP.container.borderRadius}px`,
   boxShadow: TOOLTIP.container.boxShadow,

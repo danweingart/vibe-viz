@@ -139,7 +139,8 @@ export function NFTTradeHistoryChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             content={({ payload }) => {
               if (!payload || payload.length === 0) return null;
               const point = payload[0]?.payload as TradePoint;
@@ -156,7 +157,7 @@ export function NFTTradeHistoryChart() {
                   <div style={{ color: point.action === "buy" ? CHART_COLORS.success : CHART_COLORS.danger, fontSize: 13, fontWeight: 600 }}>
                     {point.action === "buy" ? "Bought" : "Sold"} #{point.tokenId}
                   </div>
-                  <div style={{ color: "#a1a1aa", fontSize: 12 }}>
+                  <div style={{ color: "var(--foreground-muted)", fontSize: 12 }}>
                     {point.y.toFixed(3)} ETH
                   </div>
                   {point.profit !== undefined && (

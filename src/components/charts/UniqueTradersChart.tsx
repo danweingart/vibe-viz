@@ -179,7 +179,8 @@ export function UniqueTradersChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(value, name) => {
               const labels: Record<string, string> = {
                 uniqueBuyers: "Unique Buyers",

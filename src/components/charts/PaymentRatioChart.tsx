@@ -86,7 +86,8 @@ function PaymentLineChart({ data, label, showXAxis = true, avgEth, avgWeth, time
             />
             <Tooltip
               contentStyle={getTooltipContentStyle()}
-              labelStyle={{ color: "#ffffff" }}
+              labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
               formatter={(value, name) => {
                 const labelText = name === "ethPct" ? "ETH" : "WETH";
                 return [`${Number(value).toFixed(1)}%`, labelText];
@@ -311,7 +312,8 @@ export function PaymentRatioChart() {
         />
         <Tooltip
           contentStyle={getTooltipContentStyle()}
-          labelStyle={{ color: "#ffffff" }}
+          labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
           formatter={(value, name) => {
             const labelText = name === "ethPct" ? "ETH" : "WETH";
             return [`${Number(value).toFixed(1)}%`, labelText];

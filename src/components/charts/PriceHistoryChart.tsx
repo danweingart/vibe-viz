@@ -138,7 +138,8 @@ export function PriceHistoryChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(value) => [
               currency === "eth" ? formatEth(Number(value), 2) : formatUsd(Number(value)),
               "Avg Price",

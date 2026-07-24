@@ -152,14 +152,15 @@ export function WhaleActivityChart() {
               />
               <Tooltip
                 contentStyle={getTooltipContentStyle()}
-                labelStyle={{ color: "#ffffff" }}
+                labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
                   const d = payload[0]?.payload;
                   const crossColor = viewMode === "buyers" ? CHART_COLORS.danger : CHART_COLORS.success;
                   const crossLabel = viewMode === "buyers" ? "sells" : "buys";
                   return (
-                    <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+                    <div className="bg-background-tertiary border border-border-light rounded-lg p-2 text-xs shadow-md">
                       <p className="font-mono text-foreground" style={{ fontSize: FONT_SIZE.xs }}>{d.address}</p>
                       <p className="text-foreground-muted mt-1">
                         <span style={{ color }}>{formatNumber(d.count)} {viewMode === "buyers" ? "buys" : "sells"}</span>

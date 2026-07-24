@@ -176,7 +176,8 @@ export function PriceDistributionChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(value) => [formatNumber(Number(value)), "Sales"]}
             labelFormatter={(label, payload) => {
               if (payload && payload[0]) {

@@ -10,6 +10,7 @@ import {
   PriceDistributionChart,
   CollectorsPremiumChart,
 } from "@/components/charts";
+import { StatCard, PageHero } from "@/components/ui";
 import { useCollectionStats } from "@/hooks";
 import { formatEth, formatUsd, formatNumber } from "@/lib/utils";
 
@@ -22,17 +23,12 @@ export default function SalesPage() {
 
       <main className="flex-1">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-brice text-foreground mb-2">
-              Sales Analytics
-            </h1>
-            <p className="text-foreground-muted">
-              Comprehensive sales data and trends for Good Vibes Club
-            </p>
-          </div>
+          <PageHero title="Sales Analytics" size="md">
+            Comprehensive sales data and trends for Good Vibes Club
+          </PageHero>
 
           {/* Key Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
             <StatCard
               label="24h Volume"
               value={formatEth(stats?.volume24h || 0, 2)}
@@ -55,12 +51,12 @@ export default function SalesPage() {
 
           {/* Charts */}
           <ChartSettingsProvider>
-            <div className="mb-4">
+            <div className="mb-6">
               <ChartControls />
             </div>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* 2-column grid for all chart tiles */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <PriceHistoryChart />
                 <VolumeChart />
                 <CollectorsPremiumChart />
@@ -68,7 +64,7 @@ export default function SalesPage() {
                 <PaymentRatioChart />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <RecentSales />
                 <TopSales />
               </div>
@@ -78,24 +74,6 @@ export default function SalesPage() {
       </main>
 
       <Footer />
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  subValue,
-}: {
-  label: string;
-  value: string;
-  subValue?: string;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-background-secondary p-4">
-      <p className="text-xs text-foreground-muted uppercase tracking-wide mb-1">{label}</p>
-      <p className="text-xl font-bold text-foreground font-brice">{value}</p>
-      {subValue && <p className="text-xs text-foreground-muted">{subValue}</p>}
     </div>
   );
 }

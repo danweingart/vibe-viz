@@ -53,7 +53,7 @@ export function ToggleButtonGroup<T extends string>({
 
   return (
     <div
-      className="flex rounded-lg border border-border overflow-hidden"
+      className="flex rounded-full border border-border overflow-hidden"
       role="group"
       aria-label="View toggle"
     >

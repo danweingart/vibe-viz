@@ -184,7 +184,8 @@ export function PriceVsFloorChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(value, name) => {
               if (name === "tokenPrice") return [formatUsd(Number(value), 6), "VIBESTR"];
               return [formatUsd(Number(value), 2), "GVC Floor"];

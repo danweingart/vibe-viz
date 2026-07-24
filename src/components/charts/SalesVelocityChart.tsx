@@ -134,7 +134,8 @@ export function SalesVelocityChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(value, name) => [
               formatNumber(Number(value)),
               name === "salesCount" ? "Sales" : "7D Avg",

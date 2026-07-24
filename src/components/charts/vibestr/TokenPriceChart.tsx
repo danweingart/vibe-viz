@@ -159,7 +159,8 @@ export function TokenPriceChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(value) => [formatUsd(Number(value), 6)]}
             labelFormatter={(label) => formatDate(label)}
           />

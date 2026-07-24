@@ -150,7 +150,8 @@ export function TreasuryFeesChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(value, _, entry) => [
               formatUsd(Number(value), 0),
               (entry as { payload: FeeBreakdown }).payload.description,

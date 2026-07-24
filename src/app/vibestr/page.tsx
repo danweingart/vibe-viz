@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
+import { SectionHeader, PageHero } from "@/components/ui";
 import { TokenStatsOverview } from "@/components/vibestr/TokenStatsOverview";
 import { ChartControls } from "@/components/dashboard/ChartControls";
 import { ChartSettingsProvider } from "@/providers/ChartSettingsProvider";
@@ -31,21 +32,11 @@ export default function VibestrPage() {
       <main className="flex-1 relative z-10">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-8">
           {/* Hero Section */}
-          <div className="mb-8 relative">
-            <div className="absolute -top-8 -left-4 w-64 h-32 bg-brand/5 blur-3xl rounded-full pointer-events-none" />
-
-            <div className="relative">
-              <h1 className="text-5xl font-brice text-brand mb-3 tracking-tight glowing-text relative inline-block">
-                VIBESTR Strategy
-                <div className="absolute inset-0 blur-[40px] bg-brand/20 animate-glow-pulse -z-10" />
-              </h1>
-              <p className="text-gvc-text-muted text-base sm:text-lg max-w-xl">
-                Real-time analytics for the{" "}
-                <span className="text-brand font-medium">Good Vibes Club</span>{" "}
-                strategy token — powered by DexScreener & CoinGecko
-              </p>
-            </div>
-          </div>
+          <PageHero title="VIBESTR Strategy">
+            Real-time analytics for the{" "}
+            <span className="text-brand font-medium">Good Vibes Club</span>{" "}
+            strategy token — powered by DexScreener & CoinGecko
+          </PageHero>
 
           <ChartSettingsProvider>
             {/* Stats Overview */}
@@ -94,17 +85,6 @@ export default function VibestrPage() {
   );
 }
 
-function SectionHeader({ number, title, id }: { number: string; title: string; id?: string }) {
-  return (
-    <div id={id} className="flex items-center gap-3 mb-4 sticky top-[120px] z-30 py-2 -mx-1 px-1 bg-gvc-bg/80 backdrop-blur-md">
-      <span className="text-[11px] font-mono text-brand bg-brand/10 px-2 py-0.5 rounded-md border border-brand/20 uppercase tracking-wider">
-        {number}
-      </span>
-      <h2 className="text-3xl font-brice text-gvc-text tracking-tight">{title}</h2>
-      <div className="flex-1 h-px bg-gradient-to-r from-gvc-border via-gvc-border/50 to-transparent" />
-    </div>
-  );
-}
 
 function BackToTop() {
   const [visible, setVisible] = useState(false);

@@ -8,3 +8,6 @@ export { ChartStatCard, ChartStatGrid } from "./ChartStatCard";
 export { Logo, LogoFallback } from "./Logo";
 export { OpenSeaLink, OpenSeaIcon } from "./OpenSeaLink";
 export { ToggleButtonGroup } from "./ToggleButtonGroup";
+export { SectionHeader } from "./SectionHeader";
+export { PageHero } from "./PageHero";
+export { StatCard } from "./StatCard";

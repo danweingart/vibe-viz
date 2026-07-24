@@ -201,7 +201,7 @@ export function HoldingPeriodChart() {
               if (!active || !payload?.length) return null;
               const d = payload[0]?.payload;
               return (
-                <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+                <div className="bg-background-tertiary border border-border-light rounded-lg p-2 text-xs shadow-md">
                   <p className="font-bold text-brand">Holding: {d.label}</p>
                   <p className="text-foreground">{formatNumber(d.count)} resales ({d.percentage.toFixed(1)}%)</p>
                 </div>

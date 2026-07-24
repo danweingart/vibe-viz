@@ -143,12 +143,13 @@ export function CumulativeVolumeChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             content={({ active, payload, label }) => {
               if (!active || !payload?.length || !label) return null;
               const d = payload[0]?.payload;
               return (
-                <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+                <div className="bg-background-tertiary border border-border-light rounded-lg p-2 text-xs shadow-md">
                   <p className="font-bold text-foreground">{formatDate(String(label))}</p>
                   <p className="text-brand">
                     Cumulative: {currency === "eth" ? formatEth(d.displayCumulative, 2) : formatUsd(d.displayCumulative)}

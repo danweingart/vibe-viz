@@ -135,7 +135,8 @@ export function BuySellPressureChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(value, name) => {
               const absVal = Math.abs(Number(value));
               return [formatNumber(absVal), name === "buys" ? "Buys" : "Sells"];

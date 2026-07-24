@@ -14,7 +14,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { CHART_MARGINS } from "@/lib/chartConfig";
+import { CHART_MARGINS, getTooltipContentStyle } from "@/lib/chartConfig";
 
 // Chart colors from constants
 const CHART_COLORS = {
@@ -131,12 +131,9 @@ export function PriceVolumeChart() {
               tickFormatter={(value) => `$${value}k`}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: "#0c0c0c",
-                border: "1px solid #333",
-                borderRadius: "8px",
-                padding: "8px 12px",
-              }}
+              contentStyle={{ ...getTooltipContentStyle(), padding: "8px 12px" }}
+              labelStyle={{ color: "var(--foreground)" }}
+              itemStyle={{ color: "var(--foreground)" }}
               formatter={(value: number | undefined, name: string | undefined) => {
                 if (!value || !name) return ["N/A", ""];
                 if (name === "Price") return [formatUsd(value, 4), name];

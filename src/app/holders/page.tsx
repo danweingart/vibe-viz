@@ -4,7 +4,7 @@ import { Header, Footer } from "@/components/layout";
 import { HolderDistributionChart } from "@/components/charts";
 import { ChartSettingsProvider } from "@/providers/ChartSettingsProvider";
 import { ChartControls } from "@/components/dashboard";
-import { Card, CardHeader, CardTitle } from "@/components/ui";
+import { Card, CardHeader, CardTitle, StatCard, PageHero } from "@/components/ui";
 import { useCollectionStats } from "@/hooks";
 import { formatNumber } from "@/lib/utils";
 
@@ -17,17 +17,12 @@ export default function HoldersPage() {
 
       <main className="flex-1">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-brice text-foreground mb-2">
-              Holder Analytics
-            </h1>
-            <p className="text-foreground-muted">
-              Distribution and concentration analysis for Good Vibes Club holders
-            </p>
-          </div>
+          <PageHero title="Holder Analytics" size="md">
+            Distribution and concentration analysis for Good Vibes Club holders
+          </PageHero>
 
           {/* Key Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
             <StatCard
               label="Unique Holders"
               value={formatNumber(stats?.numOwners || 0)}
@@ -48,7 +43,7 @@ export default function HoldersPage() {
 
           {/* Main Chart */}
           <ChartSettingsProvider>
-            <div className="mb-4">
+            <div className="mb-6">
               <ChartControls />
             </div>
             {/* Centered single chart with max-width for 1:1 tile */}
@@ -78,15 +73,6 @@ export default function HoldersPage() {
       </main>
 
       <Footer />
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-border bg-background-secondary p-4">
-      <p className="text-xs text-foreground-muted uppercase tracking-wide mb-1">{label}</p>
-      <p className="text-xl font-bold text-foreground font-brice">{value}</p>
     </div>
   );
 }

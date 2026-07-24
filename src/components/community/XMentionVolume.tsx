@@ -91,7 +91,7 @@ export function XMentionVolume({ data, isLoading }: XMentionVolumeProps) {
                   ...TOOLTIP_STYLE,
                   fontSize: "12px",
                 }}
-                labelStyle={{ color: "#a1a1aa", marginBottom: 4 }}
+                labelStyle={{ color: "var(--foreground)", marginBottom: 4 }}
                 itemStyle={{ color: BAR_COLOR }}
                 formatter={(value: number | undefined) => [`${value ?? 0} tweets`, "Mentions"]}
               />

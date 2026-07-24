@@ -6,7 +6,7 @@ export function ChartControls() {
   const { timeRange, setTimeRange, currency, setCurrency } = useChartSettings();
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl border border-border bg-background-secondary/80 backdrop-blur-sm">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl border border-gvc-border bg-gvc-card backdrop-blur-md">
       <div className="flex items-center justify-center sm:justify-start gap-3">
         <span className="text-xs text-foreground-subtle uppercase tracking-wider font-medium hidden sm:inline">Time Range</span>
         <div className="flex gap-1.5 p-1 rounded-full bg-background-tertiary border border-border/50">

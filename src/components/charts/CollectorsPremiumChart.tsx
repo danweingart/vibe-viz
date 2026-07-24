@@ -90,7 +90,8 @@ function PremiumChartRow({
             />
             <Tooltip
               contentStyle={getTooltipContentStyle()}
-              labelStyle={{ color: "#ffffff" }}
+              labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
               formatter={(value, name) => {
                 const labelText = name === "basketValue" ? "Leading ETH" : "GVC";
                 return [`${Number(value).toFixed(1)}%`, labelText];

@@ -52,7 +52,7 @@ export function ChartLegend({
             disabled={!isInteractive}
             type="button"
             className={`
-              flex items-center gap-2 px-3 py-1.5 rounded-lg border
+              flex items-center gap-2 px-3 py-1.5 rounded-full border
               transition-all duration-150
               ${isActive ? "border-gvc-border bg-gvc-card/50" : "border-gvc-border/30 bg-gvc-card/20 opacity-50"}
               ${isInteractive ? "hover:border-gvc-border-hover cursor-pointer" : "cursor-default"}

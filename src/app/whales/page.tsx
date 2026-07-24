@@ -4,7 +4,7 @@ import { Header, Footer } from "@/components/layout";
 import { HolderDistributionChart, SalesVelocityChart } from "@/components/charts";
 import { ChartSettingsProvider } from "@/providers/ChartSettingsProvider";
 import { ChartControls } from "@/components/dashboard";
-import { Card, CardHeader, CardTitle, Badge, OpenSeaLink } from "@/components/ui";
+import { Card, CardHeader, CardTitle, Badge, OpenSeaLink, StatCard, PageHero } from "@/components/ui";
 import { useRecentSales, useCollectionStats } from "@/hooks";
 import { formatEth, formatUsd, formatAddress, formatTimeAgo } from "@/lib/utils";
 
@@ -32,48 +32,38 @@ export default function WhalesPage() {
 
       <main className="flex-1">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-brice text-foreground mb-2">
-              Whale Activity
-            </h1>
-            <p className="text-foreground-muted">
-              Track large holders and significant transactions
-            </p>
-          </div>
+          <PageHero title="Whale Activity" size="md">
+            Track large holders and significant transactions
+          </PageHero>
 
           {/* Whale Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="rounded-xl border border-border bg-background-secondary p-4">
-              <p className="text-xs text-foreground-muted uppercase tracking-wide mb-1">Est. Whale Count</p>
-              <p className="text-xl font-bold text-foreground font-brice">
-                {stats?.numOwners ? Math.round(stats.numOwners * 0.05) : 0}
-              </p>
-              <p className="text-xs text-foreground-muted">Top 5% holders</p>
-            </div>
-            <div className="rounded-xl border border-border bg-background-secondary p-4">
-              <p className="text-xs text-foreground-muted uppercase tracking-wide mb-1">Large Sales (24h)</p>
-              <p className="text-xl font-bold text-foreground font-brice">{largeSales.length}</p>
-              <p className="text-xs text-foreground-muted">≥0.5 ETH</p>
-            </div>
-            <div className="rounded-xl border border-border bg-background-secondary p-4">
-              <p className="text-xs text-foreground-muted uppercase tracking-wide mb-1">Avg Whale Price</p>
-              <p className="text-xl font-bold text-foreground font-brice">
-                {largeSales.length > 0
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
+            <StatCard
+              label="Est. Whale Count"
+              value={stats?.numOwners ? Math.round(stats.numOwners * 0.05) : 0}
+              subValue="Top 5% holders"
+            />
+            <StatCard
+              label="Large Sales (24h)"
+              value={largeSales.length}
+              subValue="≥0.5 ETH"
+            />
+            <StatCard
+              label="Avg Whale Price"
+              value={
+                largeSales.length > 0
                   ? formatEth(largeSales.reduce((sum, s) => sum + s.priceEth, 0) / largeSales.length, 3)
-                  : "N/A"}
-              </p>
-            </div>
-            <div className="rounded-xl border border-border bg-background-secondary p-4">
-              <p className="text-xs text-foreground-muted uppercase tracking-wide mb-1">Unique Holders</p>
-              <p className="text-xl font-bold text-foreground font-brice">{stats?.numOwners || 0}</p>
-            </div>
+                  : "N/A"
+              }
+            />
+            <StatCard label="Unique Holders" value={stats?.numOwners || 0} />
           </div>
 
           <ChartSettingsProvider>
-            <div className="mb-4">
+            <div className="mb-6">
               <ChartControls />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <HolderDistributionChart />
               <SalesVelocityChart />
             </div>

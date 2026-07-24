@@ -1,6 +1,5 @@
 // Style system components
 export { StandardChartCard, type LegendItem } from "./StandardChartCard";
-export { StandardLegend } from "./StandardLegend";
 export { ChartLoadingSkeleton, ChartEmptyState, ChartErrorState } from "./ChartStates";
 export { ChartInfoPanel, ChartInfoTooltip } from "./ChartInfoPanel";
 

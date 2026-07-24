@@ -89,7 +89,7 @@ export function HolderDistributionChart() {
               if (!active || !payload?.length) return null;
               const d = payload[0]?.payload;
               return (
-                <div className="bg-background-secondary border border-border rounded-lg p-2 text-xs">
+                <div className="bg-background-tertiary border border-border-light rounded-lg p-2 text-xs shadow-md">
                   <p className="font-bold text-brand">{d.label} NFTs</p>
                   <p className="text-foreground">{formatNumber(d.count)} holders ({d.percentage}%)</p>
                 </div>

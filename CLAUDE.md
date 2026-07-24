@@ -59,6 +59,16 @@ External APIs → API Routes → Memory Cache → React Query → Components
 - Fonts: Brice-Bold (headings), Mundial (body)
 - Dark theme only with CSS variables in `globals.css`
 
+### Cohesion Rules (single visual system)
+
+- **One token system**: the V1 vars (`--foreground*`, `--border*`) are aliased to the GVC values in `globals.css` — text is white/white-alpha, borders are yellow-tinted. Surface scale stays neutral: `--background` #050505 → `-secondary` #0c0c0c → `-tertiary` #141414 → `-elevated` #181818. Never reintroduce gray text/border hexes.
+- **Semantic colors**: use `text-success` / `text-danger` / `text-muted` / `text-info` / `text-accent` (defined in `@theme`, mapped to the chart palette) — not raw hexes.
+- **Radius language**: cards `rounded-2xl`, chart-internal panels `rounded-lg`, ALL interactive pills/buttons/toggles `rounded-full` (Button, ToggleButtonGroup, ChartLegend, ChartControls, Badge).
+- **Shared components**: `PageHero` (brand glowing title, `size="lg"` dashboard / `"md"` subpages), `SectionHeader` (numbered sticky headers), `StatCard` (page-level stat tiles) — all in `components/ui`. Do not hand-roll these per page.
+- **Tooltips**: surface = `bg-background-tertiary border border-border-light rounded-lg shadow-md` (same values as `TOOLTIP_STYLE`/`getTooltipContentStyle()`). Hand-rolled tooltip divs must match.
+- **Tooltip text is never dark**: every default-content Recharts `<Tooltip>` MUST set both `labelStyle={{ color: "var(--foreground)" }}` and `itemStyle={{ color: "var(--foreground)" }}` — without itemStyle, Recharts falls back to black item text on series that don't pass a color (e.g. bars using `<Cell>` fills), which is invisible on the dark surface.
+- **`.font-mundial-bold`** is defined in globals.css (Mundial 700).
+
 ### Chart Component Patterns
 
 **Download/Export Structure**: Each chart uses `html-to-image` to export the chart as a PNG. The `chartRef` should only wrap the visual content intended for export. Interactive controls (toggles, filters, view switchers) must be placed **outside** the `chartRef` div so they don't appear in downloaded images.

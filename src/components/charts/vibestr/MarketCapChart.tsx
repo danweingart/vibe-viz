@@ -128,7 +128,8 @@ export function MarketCapChart() {
           />
           <Tooltip
             contentStyle={getTooltipContentStyle()}
-            labelStyle={{ color: "#ffffff" }}
+            labelStyle={{ color: "var(--foreground)" }}
+            itemStyle={{ color: "var(--foreground)" }}
             formatter={(value) => [formatUsd(Number(value), 0), "Market Cap"]}
             labelFormatter={(label) => formatDate(label)}
           />

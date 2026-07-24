@@ -16,16 +16,19 @@
   --chart-info: #60a5fa;
 
   /* Dark theme (default) */
+  /* Surface scale stays neutral: page → secondary → tertiary → elevated */
   --background: #050505;
   --background-secondary: #0c0c0c;
   --background-tertiary: #141414;
   --background-elevated: #181818;
-  --foreground: #fafafa;
-  --foreground-muted: #71717a;
-  --foreground-subtle: #52525b;
-  --border: #1f1f23;
-  --border-light: #27272a;
-  --border-hover: #3f3f46;
+  /* Text + border scales are aliased to the GVC (V2) values so both
+     token generations render identically — single visual system */
+  --foreground: #ffffff;
+  --foreground-muted: rgba(255, 255, 255, 0.6);
+  --foreground-subtle: rgba(255, 255, 255, 0.4);
+  --border: rgba(255, 224, 72, 0.15);
+  --border-light: rgba(255, 224, 72, 0.25);
+  --border-hover: rgba(255, 224, 72, 0.3);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
@@ -93,6 +96,14 @@
   --color-chart-danger: var(--chart-danger);
   --color-chart-info: var(--chart-info);
 
+  /* Semantic status/emphasis utilities (text-success, text-danger, text-muted, …)
+     — previously referenced across the app but never defined */
+  --color-success: var(--chart-success);
+  --color-danger: var(--chart-danger);
+  --color-info: var(--chart-info);
+  --color-accent: var(--chart-accent);
+  --color-muted: var(--foreground-muted);
+
   /* V2 GVC Colors (new semantic names) */
   --color-gvc-bg: #050505;
   --color-gvc-primary: #ffe048;
@@ -128,6 +139,11 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 /* Utility classes */
 .font-mundial {
   font-family: var(--font-mundial), system-ui, sans-serif;
+}
+
+.font-mundial-bold {
+  font-family: var(--font-mundial), system-ui, sans-serif;
+  font-weight: 700;
 }
 
 .font-brice {

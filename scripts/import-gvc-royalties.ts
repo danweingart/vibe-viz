@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { createClient } from "@vercel/postgres";
 import { config } from "dotenv";
-import { validateRoyaltyImport } from "../src/lib/royalties/import";
+import { type RoyaltyImport, validateRoyaltyImport } from "../src/lib/royalties/import";
 import { monthStart, offsetMonth } from "../src/lib/royalties/history";
 
 config({ path: ".env.local", quiet: true });
@@ -19,7 +19,12 @@ async function main() {
     console.log("Dry run only. --apply atomically REPLACES this month's receipt snapshot and coverage. Supply the full month-to-cutoff dataset, never a delta.");
     return;
   }
-  if (!process.env.POSTGRES_URL) throw new Error("POSTGRES_URL is required for --apply");
+  await applyRoyaltyImport(data);
+}
+
+export async function applyRoyaltyImport(data: RoyaltyImport) {
+  data = validateRoyaltyImport(data);
+  if (!process.env.POSTGRES_URL && !process.env.POSTGRES_URL_NON_POOLING) throw new Error("POSTGRES_URL is required for --apply");
   const client = createClient({ connectionString: process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL });
   await client.connect();
   try {
@@ -57,7 +62,7 @@ async function main() {
   }
 }
 
-main().catch(error => {
+if (require.main === module) main().catch(error => {
   console.error(error instanceof Error ? error.message : "Royalty import failed");
   process.exitCode = 1;
 });

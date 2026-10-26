@@ -1,139 +1,89 @@
-# GVC secondary-sale royalties: handoff for Dan and his agent
+# GVC royalties: handoff for Dan / his agent
 
-## Outcome and current status
+The feature is built in draft PR https://github.com/danweingart/vibe-viz/pull/2. It adds `/royalties`, with no navigation link, using the existing dashboard components. It shows 12 completed UTC months, ETH-equivalent and USD totals, MoM, and separate current-month receipts. `/preview/royalties` is development-only and uses **made-up sample amounts**.
 
-Implement and operate verified monthly **Good Vibes Club NFT secondary-sale royalties received**, in ETH and historical USD. Exclude primary mint revenue, gross NFT sales, marketplace/platform fees, transfers unrelated to sales, and VIBESTR token fees.
+**The wallet sync and SQL are included. You do not need to build an extractor.** A live, read-only backfill succeeded for September 2025 through October 2026 MTD. No production data has been imported or deployed yet.
 
-The application work is implemented in this branch:
+## What you need to supply
 
-- A standalone `/royalties` page, accessible by typing the URL, with no added navigation link or homepage section. It reuses `SectionHeader`, `StatCard`, `StandardChartCard`, Recharts, the existing currency context, and chart export. The intended production URL is `https://goodvibesclub.info/royalties`.
-- Twelve completed UTC calendar months, a 12-month total, monthly ETH/USD table, currency-specific month-over-month changes, and a separate month-to-date card.
-- `GET /api/royalties`, reading the new Postgres payment ledger and coverage records. No upstream blockchain requests on page load. React Query refreshes every five minutes.
-- Migration `migrations/003_create_gvc_royalties.sql` and a validated, transactional monthly snapshot importer, `scripts/import-gvc-royalties.ts`.
-- Development-only `/preview/royalties` with clearly labeled synthetic sample data, partial-history and empty states. Production returns 404 for this preview. Sample amounts never enter the real API or database.
+- The royalty receiving wallet is **`0x4b8796671c12dbe98ce5bced349c25b8ac2ac26c`**, discovered via `royaltyInfo(1, 1 ETH)` on the GVC contract. It matches the constructor recipient. This verifies deployment and current settings, not the absence of every intermediate change; confirm recipient continuity before final sign-off. Etherscan’s proxy returned current state even for a pre-deployment block tag, so those calls were not treated as historical proof. The configured rate is 5%, but the dashboard sums actual payments; it never multiplies sales volume by 5%. The team confirms the wallet is for GVC. Confirm its secondary-sale-only purpose and review the direct deposits below before enabling imports.
+- An Etherscan API key with access to normal transactions, internal transactions and logs, plus the existing Postgres credentials. Keep these in `.env.local` / your worker secrets.
 
-**Production data has not been backfilled. No recipient wallets or actual royalty totals have been verified. No production database changes or deployment have been performed.** Dan's remaining work is data-source verification, the historical extraction/reconciliation, imports, and the scheduled ingestion job. This requires the team's recipient records and infrastructure access; it does not require Dan personally if his agent has those inputs.
+This small collector deliberately supports one dedicated royalty wallet. If the wallet changed, is a mixed-use treasury, or receives both original royalties and redistributed royalties, use the included reviewed JSON importer after classifying receipts; do not enable the dedicated-wallet confirmation. The script cannot infer the purpose of every deposit from an address alone.
 
-## Required decisions and inputs
+## Run it
 
-1. Confirm every GVC royalty recipient wallet/splitter and the block/date interval during which each was active. The NFT collection contract is `0xb8ea78fcacef50d41375e44e6814ebba36bb33c4`, Ethereum mainnet, chain ID 1. It is **not automatically the payment recipient**.
-2. Choose one accounting boundary: receipt at the creator's royalty collector/splitter, or downstream beneficiary disbursement. Prefer the first collection receipt. Never count both the splitter's incoming royalty and its onward distributions. If the collector holds money before payout, state that this dashboard measures collector receipts.
-3. Provide an indexer/export with transaction receipts, ETH internal transfer traces, WETH transfer logs, marketplace sale attribution, pagination, and sufficient historical access. An existing finance export is suitable if it supplies this evidence. Recipient inflows alone are insufficient: exclude treasury moves, refunds, gifts, and other collections' royalties.
-4. Choose and record a historical ETH/USD provider and methodology. Recommended policy: each payment's UTC-date daily closing/reference rate, consistently sourced; document the exact provider convention in `fxSource`. For today's unclosed daily rate, use null and refresh when finalized rather than substituting spot prices. The UI never calls the current ETH quote for this feature.
-5. Use the project's production Postgres credentials on Dan's machine/CI. The web app uses `POSTGRES_URL`; the importer prefers `POSTGRES_URL_NON_POOLING` for its dedicated transaction connection, falling back to `POSTGRES_URL`. Do not put secrets in Git or Slack.
+From the repo root, install dependencies and set:
 
-## Historical extraction work for the agent
-
-Backfill **13 completed months plus the current month to a finalized cutoff**: twelve visible months plus one hidden baseline for the first MoM calculation. As of 2026-10-26, extract from **2025-09-01 00:00 UTC**; the chart displays October 2025–September 2026, with October 2026 shown separately as MTD. Compute these dates from the run date in future runs. Use finalized chain data and record a timestamp cutoff exclusive of the first unprocessed block.
-
-The existing `/api/price-history?days=365` is NOT an adequate extraction source. It fetches at most 1,000 recent NFT transfers, enriches prices rather than royalty receipts, and converts USD using today's price. Do not multiply that volume by a fixed royalty percentage.
-
-For each real secondary sale, attribute its actual creator payout using the order/receipt and approved recipient history. Include enforced, optional, and zero-royalty sales in the reconciliation, but store only positive royalty payments. Fully paginate every marketplace and date/block range. Use actual paid amounts, not the configured royalty rate. For mixed-collection bundles, store only the evidenced GVC-attributable portion and document that allocation. Do not assert complete coverage if attribution is unresolved.
-
-Canonical receipt identity is `(chain_id, tx_hash, payment_id)`:
-
-- ETH: `paymentId = "trace:0_2"` (stable canonical call-trace address for the actual payout).
-- WETH: `paymentId = "log:42"` (receipt log index of the actual ERC-20 payout).
-- Count a sweep payout once, even if several NFTs generated it. Do not emit both a trace and a log representation for the same economic payout. Distinct payouts in one transaction have distinct canonical IDs.
-- `amountWei` is the GVC royalty amount in integer wei, encoded as a string. ETH and WETH both have 18 decimals. Keep exact integers until database aggregation.
-- `ethUsd` is a positive decimal string or null; `fxSource` must accompany a non-null rate and identify the provider, UTC pricing date, and convention. Do not store zero for an unknown rate.
-- Save evidence identifying the sale and creator-payment attribution. `evidence` can link to the transaction and include trace/log/order details.
-
-**This initial ledger supports ETH and WETH only.** Audit for other payment currencies. If present, extend the ledger, importer, conversion logic, tests and UI disclosures before claiming complete collection-wide coverage. Do not silently discard those royalties or treat a token unit as ETH.
-
-## Migration
-
-First run the migration against staging, then the intended production database after review. It adds two tables and an index; it does not modify existing tables.
-
-```sh
-psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f migrations/003_create_gvc_royalties.sql
+```dotenv
+GVC_ROYALTY_WALLET=0x4b8796671c12dbe98ce5bced349c25b8ac2ac26c
+ETHERSCAN_API_KEY=REPLACE_WITH_API_KEY
+POSTGRES_URL=REPLACE_WITH_EXISTING_DATABASE_URL
+POSTGRES_URL_NON_POOLING=REPLACE_WITH_DIRECT_DATABASE_URL
 ```
 
-Alternatively run the exact SQL file in the database console. The migration is transactional and rerunnable. `gvc_royalty_payments` stores receipts with exact numeric amounts and FX provenance; `gvc_royalty_coverage` records reviewed coverage by month. Keep the ingestion role's write access separate from frontend read access where the deployment supports it. Do not add a public unauthenticated import endpoint.
-
-## Import contract and commands
-
-Produce one JSON file per UTC month. This template intentionally contains invalid placeholders: replace them with verified data before running the importer.
-
-```json
-{
-  "month": "2026-09",
-  "coveredThrough": "2026-10-01T00:00:00.000Z",
-  "complete": true,
-  "source": "PROVIDER / export identifier / reconciliation report",
-  "verifiedBy": "REVIEWER or reviewed pipeline version",
-  "payments": [
-    {
-      "txHash": "REPLACE_WITH_REAL_0x_TRANSACTION_HASH",
-      "paymentId": "log:42",
-      "recipient": "REPLACE_WITH_VERIFIED_0x_RECIPIENT",
-      "paidAt": "2026-09-12T12:34:56.000Z",
-      "currency": "WETH",
-      "amountWei": "REPLACE_WITH_ACTUAL_INTEGER_WEI",
-      "ethUsd": "REPLACE_WITH_HISTORICAL_RATE",
-      "fxSource": "PROVIDER / 2026-09-12 UTC / daily close convention",
-      "evidence": "TRANSACTION URL plus sale/order and royalty-payment attribution"
-    }
-  ]
-}
-```
-
-`complete: true` is an explicit attestation that **all** applicable royalties between UTC month start and the exclusive `coveredThrough` boundary were reconciled. It is never inferred from the number of imported rows. A historical complete month must end at the next month's boundary. A current-month complete snapshot may end at a finalized timestamp within that month. Use `complete: false` for unresolved gaps; its amounts remain hidden. A verified no-receipt month is `complete: true, payments: []`. An absent coverage row means unknown, not zero.
+`POSTGRES_URL_NON_POOLING` is preferred for the import transaction; the importer falls back to `POSTGRES_URL`. The web app uses `POSTGRES_URL`.
 
 ```sh
 npm ci
 npm run test:royalties
 
-# Validates locally; no database connection or writes by default.
-npm run royalties:import -- /secure/path/2026-09.json
-
-# Explicitly writes a reviewed, complete month-to-cutoff snapshot.
-npm run royalties:import -- /secure/path/2026-09.json --apply
+# Read-only crawl; saves receipt JSON locally in ignored .royalties/.
+# No Postgres writes. Covers 13 completed months plus current MTD.
+npm run royalties:sync -- --backfill
 ```
 
-**Important: `--apply` atomically replaces all receipts for the selected month. Supply the full month-to-cutoff dataset, never incremental new rows.** Keep source exports/backups so earlier snapshots can be reconstructed. Repeating the same snapshot does not double-count. A failed insert rolls back both deletion and coverage updates. Older cutoffs are rejected; corrections should use the same or later cutoff. A cross-month timestamp correction requires correcting both affected snapshots. Concurrent imports are serialized with an advisory transaction lock.
+Check the exports against the wallet history (including an ETH payment and a WETH payment). The live scan found **587 tiny direct ETH deposits totaling 0.000154899604363824 ETH** in the backfill window, with no sale attribution established. The separately supplied `GVC-Receipt-Exclusions-REVIEW.json` contains their exact transaction IDs and amounts; it is a candidate list, not an approved exclusion list.
 
-The importer validates timestamp boundaries, currencies, exact amount strings, payment IDs, duplicate payouts and FX provenance. It cannot independently prove a wallet is a royalty recipient or that a source is complete; those checks belong in the reconciliation pipeline and reviewer attestation.
+Review that list, retain only confirmed unrelated deposits, and set `GVC_ROYALTY_EXCLUSIONS=/secure/path/reviewed-exclusions.json`. The schema is an array of `{txHash, paymentId, reason}` (extra audit fields are allowed). The sync records excluded receipts in separate monthly `*-excluded.json` files. A direct ETH deposit that remains included stops automatic publication of that month; legitimate direct royalties can be included through the reviewed JSON importer. This avoids silently treating unsolicited dust as revenue without dropping small actual royalties by an arbitrary threshold.
 
-## Ongoing ingestion and deployment
+Once the wallet's dedicated use and exclusions are confirmed, add `GVC_ROYALTY_WALLET_CONFIRMED=true` to `.env.local` or worker secrets.
 
-1. Implement the provider-specific extractor using the confirmed recipient history. Keep its block checkpoints, raw evidence, reconciliation counts and failure logs outside Git. The extractor is not included because the recipients/provider are not yet known.
-2. Run it daily (or hourly if needed) in a scheduled worker/CI job with private credentials. Do not run the historical crawl inside a Vercel page request: this repo configures a 10-second function budget.
-3. Re-export/import the entire current month to the new finalized cutoff. Reconcile recent finalized days for reorgs/late indexing and refresh missing daily USD rates. At month rollover, finish the prior month through the new UTC boundary. A prior month's partial cutoff becomes incomplete automatically in the UI.
-4. Only advance coverage when the job has fully paginated, deduplicated, attributed, priced or flagged unpriced receipts, and reconciled them. If an upstream source fails, preserve the prior snapshot and last-success timestamp.
-5. Deploy the branch after review and migrations. Verify `/api/royalties`, then `/royalties`. No new frontend secrets or external client API calls are needed. Until tables/data are ready, the page shows an honest pending state. The page has no navigation link; this is discoverability only, not access control. No authentication was added.
+Run `migrations/003_create_gvc_royalties.sql` in the intended Postgres SQL console. Alternatively, with the connection URL exported into your shell:
 
-The frontend's five-minute refresh reads existing Postgres data; **it does not collect blockchain payments**. Freshness depends on the ingestion schedule. USD months with missing prices stay blank even when ETH is verified. Annual totals stay blank until all twelve respective currency totals are known. MoM is undefined for missing months or a zero baseline; current MTD is never compared against a full prior month.
-
-## Reconciliation SQL
-
-```sql
--- Coverage and ingestion freshness
-SELECT month, covered_through, complete, source, verified_by, updated_at
-FROM gvc_royalty_coverage ORDER BY month DESC;
-
--- Receipt totals and missing historical USD rates
-SELECT date_trunc('month', paid_at AT TIME ZONE 'UTC')::date AS month,
-       COUNT(*) AS payouts,
-       SUM(amount_wei / 1000000000000000000::numeric) AS royalties_eth,
-       CASE WHEN COUNT(*) FILTER (WHERE eth_usd IS NULL) = 0
-            THEN SUM(amount_wei / 1000000000000000000::numeric * eth_usd)
-       END AS royalties_usd,
-       COUNT(*) FILTER (WHERE eth_usd IS NULL) AS missing_fx
-FROM gvc_royalty_payments GROUP BY 1 ORDER BY 1;
-
--- Per-recipient reconciliation against your approved wallet list
-SELECT recipient, currency, COUNT(*) AS payouts,
-       SUM(amount_wei / 1000000000000000000::numeric) AS royalties_eth
-FROM gvc_royalty_payments GROUP BY recipient, currency ORDER BY recipient;
+```sh
+psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f migrations/003_create_gvc_royalties.sql
+npm run royalties:sync -- --backfill --apply
+psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f scripts/query-gvc-royalties.sql
 ```
 
-## Acceptance checks
+The migration creates two small tables: timestamped receipts and monthly coverage. The query file gives monthly ETH, WETH, combined ETH-equivalent, historical USD, coverage, and receipt-level details. All ingestion and frontend queries are already written.
 
-- Match at least three historical months and current MTD to independently reconciled source totals. Inspect a multi-NFT sweep, a zero-royalty sale, an ETH receipt, a WETH receipt, and recipient/splitter transitions if applicable.
-- Check rerunning a monthly import leaves counts/totals unchanged; corrected imports replace rather than append. A failed import leaves the old month intact.
-- Verify missing months display dashes and verified empty months display zero. Confirm changing the display currency changes chart, summary and MoM but the table retains both currencies.
-- Verify USD uses payment-date rates and is not recalculated from spot ETH. Test missing FX, month rollover, December/January boundaries, and a zero prior-month baseline.
-- Run `npm run test:royalties`, `npx tsc --noEmit`, `npm run build`, and targeted ESLint on the new royalty files. The lockfile also repairs the pre-existing missing Puppeteer dependency entries encountered by `npm ci`.
+Schedule this command daily in the existing worker/CI, from the repo root with the same environment:
 
-Local review: `npm run dev`, then `/preview/royalties` (sample/partial/empty modes). This is a UI demonstration, not financial backfill evidence.
+```sh
+npm run royalties:sync -- --apply
+```
+
+It refreshes the previous and current month, including month rollover. Rerun `--backfill --apply` for older corrections or after a long outage. The first backfill includes one extra month for the first visible MoM comparison. At the October 2026 run date, that means September 2025 onward, with October 2025–September 2026 displayed as completed months.
+
+## What the sync does
+
+- Reads direct ETH receipts, internal ETH transfers, and Transfer logs from canonical mainnet WETH (`0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2`). Saves original currency, integer wei, block timestamp and transaction hash. WETH uses its log index; internal ETH is summed exactly once per transaction because the live Etherscan response repeats trace IDs across distinct payouts in batch sales.
+- Excludes failed transfers, zero amounts, outgoing/self transfers, WETH mint transfers and native ETH returned by the WETH contract on unwrap. Deduplicates WETH log identities and excludes repeated root ETH transfers. Wrapping/unwrapping must not count the same royalty twice.
+- Splits block ranges whenever a response reaches 1,000 records. Errors, malformed responses and an unsplittable saturated block stop the sync rather than becoming a zero month. Uses a one-hour indexing/confirmation buffer; this is not a cryptographic finality check or independent indexer reconciliation.
+- Fetches hourly historical ETH/USD reference quotes from DefiLlama in batches near each receipt timestamp. Requires a positive quote within one hour and records the provider's actual quote timestamp. ETH and WETH use the same ETH reference price. This is a historical reference valuation, not an exact execution price or today's mark-to-market value. This matches the requested price-at-receipt convention.
+- Saves a full JSON export, then atomically replaces that month's Postgres snapshot when `--apply` is given. Repeating a run does not duplicate payments. Older coverage cutoffs are rejected. A failure leaves the affected month unchanged; earlier months successfully committed in the same run remain committed.
+
+The job is a CLI, not a public write endpoint, and adds no runtime dependency. Run it outside frontend request handlers. No new Docker/container service is required.
+
+## App / verification
+
+After backfill and deployment, check `/api/royalties` and `https://goodvibesclub.info/royalties`. The page is public but has no added navigation link; typing the URL is sufficient. It reads Postgres every five minutes. Missing coverage remains blank rather than becoming zero. Twelve-month totals require all twelve months. MTD is excluded from completed-month MoM.
+
+Validation in this branch: royalty unit tests, TypeScript, lint, and SQL import/aggregation checks. Live Etherscan and historical-price extraction has succeeded for the full requested window, without database writes. Production import and receipt classification remain for review; sample preview numbers are still entirely synthetic.
+
+For mixed-use wallets or manual corrections, the existing fallback is:
+
+```sh
+npm run royalties:import -- /path/to/reviewed-month.json
+npm run royalties:import -- /path/to/reviewed-month.json --apply
+```
+
+Its typed JSON contract is `RoyaltyImport` in `src/lib/royalties/import.ts`; the sync exports already match it. Supply the **entire** month-to-cutoff dataset, never a delta. `paymentId` is `normal:0`, `internal:0` (the transaction’s internal ETH sum), `trace:<traceId>` for independently verified canonical traces, or `log:<logIndex>`. Do not mix transaction sums and component traces for the same payout. Only mark `complete: true` after reconciliation. Unpriced manually imported receipts can retain ETH while USD stays blank.
+
+Provider references: [Etherscan normal transactions](https://docs.etherscan.io/api-reference/endpoint/txlist), [internal transactions](https://docs.etherscan.io/api-reference/endpoint/txlistinternal), [filtered event logs](https://docs.etherscan.io/api-reference/endpoint/getlogs-address-topics), and [DefiLlama price API](https://api-docs.defillama.com/llms-free.txt).
+
+## Supplied files
+
+Alongside this handoff: `003_create_gvc_royalties.sql`, `query-gvc-royalties.sql`, `GVC-Receipt-Exclusions-REVIEW.json`, and `GVC-Wallet-Receipts-Unverified.zip`. The ZIP contains real wallet receipts and historical price references from the successful read-only crawl, with `complete: false`. It includes candidate non-royalty direct deposits; do not treat its raw sums as approved royalty totals or change coverage to true without review. Re-running the sync with approved exclusions produces the import-ready snapshots.

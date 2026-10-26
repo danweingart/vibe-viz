@@ -11,8 +11,9 @@
     "start": "next start",
     "lint": "eslint",
     "scrape:x-mentions": "tsx scripts/scrape-x-mentions.ts",
-    "test:royalties": "tsx --test tests/royalties.test.ts",
-    "royalties:import": "tsx scripts/import-gvc-royalties.ts"
+    "test:royalties": "tsx --test tests/royalties*.test.ts",
+    "royalties:import": "tsx scripts/import-gvc-royalties.ts",
+    "royalties:sync": "tsx scripts/sync-gvc-royalties.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",

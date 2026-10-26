@@ -63,8 +63,8 @@ export function validateRoyaltyImport(input: unknown, now = new Date()): Royalty
     if (!/^0x[0-9a-f]{64}$/.test(txHash)) throw new Error(`Invalid txHash at payment ${index}`);
     if (!/^0x[0-9a-f]{40}$/.test(recipient) || /^0x0{40}$/.test(recipient)) throw new Error(`Invalid recipient at payment ${index}`);
     const paymentId = text(row.paymentId, "paymentId");
-    if (!/^(log:\d+|trace:\d+(?:_\d+)*)$/.test(paymentId) || paymentId.length > 200) {
-      throw new Error("paymentId must identify an actual payout: log:<index> or trace:<trace_address>");
+    if (!/^(normal:0|internal:0|log:\d+|trace:\d+(?:_\d+)*)$/.test(paymentId) || paymentId.length > 200) {
+      throw new Error("paymentId must identify an actual payout: normal:0, internal:0 (transaction sum), log:<index> or trace:<trace_address>");
     }
     const key = `${txHash}:${paymentId}`;
     if (seen.has(key)) throw new Error(`Duplicate payout ${key}; do not repeat a sweep payment per NFT`);

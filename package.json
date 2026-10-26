@@ -10,7 +10,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "scrape:x-mentions": "tsx scripts/scrape-x-mentions.ts"
+    "scrape:x-mentions": "tsx scripts/scrape-x-mentions.ts",
+    "test:royalties": "tsx --test tests/royalties.test.ts",
+    "royalties:import": "tsx scripts/import-gvc-royalties.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",
@@ -36,6 +38,7 @@
     "eslint-config-next": "16.1.1",
     "puppeteer": "^24.0.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

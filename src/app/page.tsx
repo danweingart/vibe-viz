@@ -6,6 +6,7 @@ import { StatsOverview, RecentSales, TopSales, ChartControls } from "@/component
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
 import { SectionHeader, PageHero } from "@/components/ui";
 import { ChartSettingsProvider } from "@/providers/ChartSettingsProvider";
+import { RoyaltiesSection } from "@/components/dashboard/RoyaltiesSection";
 import {
   // Core price & volume charts
   PriceHistoryChart,
@@ -84,9 +85,11 @@ export default function DashboardPage() {
               </div>
             </section>
 
+            <RoyaltiesSection />
+
             {/* Market Analysis Section */}
             <section className="mb-8">
-              <SectionHeader number="02" title="Market Analysis" id="section-market" />
+              <SectionHeader number="03" title="Market Analysis" id="section-market" />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <CollectorsPremiumChart />
                 <PaymentRatioChart />
@@ -96,7 +99,7 @@ export default function DashboardPage() {
 
             {/* Trader Insights Section */}
             <section className="mb-8">
-              <SectionHeader number="03" title="Trader Insights" id="section-traders" />
+              <SectionHeader number="04" title="Trader Insights" id="section-traders" />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <UniqueTradersChart />
                 <WhaleActivityChart />
@@ -106,7 +109,7 @@ export default function DashboardPage() {
 
             {/* Collection Health Section */}
             <section className="mb-8">
-              <SectionHeader number="04" title="Collection Health" id="section-health" />
+              <SectionHeader number="05" title="Collection Health" id="section-health" />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <HolderDistributionChart />
                 <MarketDepthChart />

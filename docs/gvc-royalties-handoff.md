@@ -6,7 +6,7 @@ Implement and operate verified monthly **Good Vibes Club NFT secondary-sale roya
 
 The application work is implemented in this branch:
 
-- A Royalties section after Price & Volume on `/`, reusing `SectionHeader`, `StatCard`, `StandardChartCard`, Recharts, the existing currency context, and chart export.
+- A standalone `/royalties` page, accessible by typing the URL, with no added navigation link or homepage section. It reuses `SectionHeader`, `StatCard`, `StandardChartCard`, Recharts, the existing currency context, and chart export. The intended production URL is `https://goodvibesclub.info/royalties`.
 - Twelve completed UTC calendar months, a 12-month total, monthly ETH/USD table, currency-specific month-over-month changes, and a separate month-to-date card.
 - `GET /api/royalties`, reading the new Postgres payment ledger and coverage records. No upstream blockchain requests on page load. React Query refreshes every five minutes.
 - Migration `migrations/003_create_gvc_royalties.sql` and a validated, transactional monthly snapshot importer, `scripts/import-gvc-royalties.ts`.
@@ -101,7 +101,7 @@ The importer validates timestamp boundaries, currencies, exact amount strings, p
 2. Run it daily (or hourly if needed) in a scheduled worker/CI job with private credentials. Do not run the historical crawl inside a Vercel page request: this repo configures a 10-second function budget.
 3. Re-export/import the entire current month to the new finalized cutoff. Reconcile recent finalized days for reorgs/late indexing and refresh missing daily USD rates. At month rollover, finish the prior month through the new UTC boundary. A prior month's partial cutoff becomes incomplete automatically in the UI.
 4. Only advance coverage when the job has fully paginated, deduplicated, attributed, priced or flagged unpriced receipts, and reconciled them. If an upstream source fails, preserve the prior snapshot and last-success timestamp.
-5. Deploy the branch after review and migrations. Verify `/api/royalties`, then `/#section-royalties`. No new frontend secrets or external client API calls are needed. Until tables/data are ready, the section shows an honest pending state.
+5. Deploy the branch after review and migrations. Verify `/api/royalties`, then `/royalties`. No new frontend secrets or external client API calls are needed. Until tables/data are ready, the page shows an honest pending state. The page has no navigation link; this is discoverability only, not access control. No authentication was added.
 
 The frontend's five-minute refresh reads existing Postgres data; **it does not collect blockchain payments**. Freshness depends on the ingestion schedule. USD months with missing prices stay blank even when ETH is verified. Annual totals stay blank until all twelve respective currency totals are known. MoM is undefined for missing months or a zero baseline; current MTD is never compared against a full prior month.
 

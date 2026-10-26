@@ -54,7 +54,7 @@ export function RoyaltiesView({ data, isLoading = false, error = null, onRetry, 
 
   return (
     <section className="mb-8" aria-label="GVC secondary-sale royalties">
-      <SectionHeader number="02" title="Royalties" id="section-royalties" />
+      <SectionHeader number="01" title="Royalties" id="section-royalties" />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
           <p className="text-foreground-muted text-sm">GVC secondary-sale royalties received · {dateRange}</p>

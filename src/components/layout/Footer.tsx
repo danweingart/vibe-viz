@@ -1,4 +1,4 @@
-export function Footer() {
+export function Footer({ dataSource = "Data provided by OpenSea API. Prices in USD via CoinGecko." }: { dataSource?: string }) {
   return (
     <footer className="border-t border-gvc-border py-8 mt-12 relative z-10">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
@@ -35,7 +35,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-4 text-center text-xs text-gvc-text-muted">
-          Data provided by OpenSea API. Prices in USD via CoinGecko.
+          {dataSource}
         </div>
       </div>
     </footer>
